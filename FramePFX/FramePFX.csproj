@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{941F18AD-2903-41BA-A29E-EA176E5E03B1}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>FramePFX</RootNamespace>
+    <AssemblyName>FramePFX</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Editors\Controls\IClipControl.cs" />
+    <Compile Include="Editors\Controls\ITrackControl.cs" />
+    <Compile Include="Editors\Controls\TimelineTrackListBox.cs" />
+    <Compile Include="Editors\Controls\TimelineTrackListBoxItem.cs" />
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Utils\AdvancedDisposable.cs" />
+    <Compile Include="Utils\Arrays.cs" />
+    <Compile Include="Utils\AsyncLock.cs" />
+    <Compile Include="Utils\AudioUtils.cs" />
+    <Compile Include="Utils\Bits.cs" />
+    <Compile Include="Utils\BoolBox.cs" />
+    <Compile Include="Utils\CASLock.cs" />
+    <Compile Include="Utils\CastingList.cs" />
+    <Compile Include="Utils\Collections\AdvancedReadOnlyObservableCollection.cs" />
+    <Compile Include="Utils\Collections\DictionaryList.cs" />
+    <Compile Include="Utils\Collections\InheritanceDictionary.cs" />
+    <Compile Include="Utils\Collections\InheritanceMultiMap.cs" />
+    <Compile Include="Utils\Collections\ITypeEntry.cs" />
+    <Compile Include="Utils\Collections\ObservableList.cs" />
+    <Compile Include="Utils\Collections\OrderedList.cs" />
+    <Compile Include="Utils\Collections\PropertyMap.cs" />
+    <Compile Include="Utils\Collections\ReferenceDictionary.cs" />
+    <Compile Include="Utils\Collections\TypeMultiTable.cs" />
+    <Compile Include="Utils\CollectionUtils.cs" />
+    <Compile Include="Utils\DisposalException.cs" />
+    <Compile Include="Utils\EfficientObservableCollection.cs" />
+    <Compile Include="Utils\ErrorList.cs" />
+    <Compile Include="Utils\EventArgsCache.cs" />
+    <Compile Include="Utils\ExceptionUtils.cs" />
+    <Compile Include="Utils\Expressions\BasicNumericExpression.cs" />
+    <Compile Include="Utils\Expressions\ComplexNumericExpression.cs" />
+    <Compile Include="Utils\FastStringBuf.cs" />
+    <Compile Include="Utils\FFmpegError.cs" />
+    <Compile Include="Utils\FileUtils.cs" />
+    <Compile Include="Utils\HandlerList.cs" />
+    <Compile Include="Utils\Helper.cs" />
+    <Compile Include="Utils\IDisposableEx.cs" />
+    <Compile Include="Utils\InheritedProperty.cs" />
+    <Compile Include="Utils\IntRect.cs" />
+    <Compile Include="Utils\IRenameTarget.cs" />
+    <Compile Include="Utils\Lang.cs" />
+    <Compile Include="Utils\Maths.cs" />
+    <Compile Include="Utils\MutableBitmap.cs" />
+    <Compile Include="Utils\NumberAverager.cs" />
+    <Compile Include="Utils\NumberRangeStore.cs" />
+    <Compile Include="Utils\Numerics\SizeI.cs" />
+    <Compile Include="Utils\Numerics\Vector2i.cs" />
+    <Compile Include="Utils\ObservableCollectionEx.cs" />
+    <Compile Include="Utils\Periodic.cs" />
+    <Compile Include="Utils\PrecisionTimer.cs" />
+    <Compile Include="Utils\RandomUtils.cs" />
+    <Compile Include="Utils\RateLimitedExecutor.cs" />
+    <Compile Include="Utils\Reference.cs" />
+    <Compile Include="Utils\ReferenceEqualityComparer.cs" />
+    <Compile Include="Utils\Singleton.cs" />
+    <Compile Include="Utils\SingletonEnumerator.cs" />
+    <Compile Include="Utils\SingletonList.cs" />
+    <Compile Include="Utils\StringJoiner.cs" />
+    <Compile Include="Utils\StringUtils.cs" />
+    <Compile Include="Utils\TextIncrement.cs" />
+    <Compile Include="Utils\TextRange.cs" />
+    <Compile Include="Utils\TextUtils.cs" />
+    <Compile Include="Utils\ThreadTimer.cs" />
+    <Compile Include="Utils\Time.cs" />
+    <Compile Include="Utils\Tristate.cs" />
+    <Compile Include="Utils\TypeUtils.cs" />
+    <Compile Include="Utils\UsageCounter.cs" />
+    <Compile Include="Utils\Validate.cs" />
+    <Compile Include="Utils\ValueModState.cs" />
+    <Compile Include="Utils\Vec2i.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Destroying\IDestroy.cs" />
+    <Compile Include="Editors\Controls\TimelineClipControl.cs" />
+    <Compile Include="Editors\Controls\TimelineControl.cs" />
+    <Compile Include="Editors\Controls\TimelineTrackControl.cs" />
+    <Compile Include="Editors\Project.cs" />
+    <Compile Include="Editors\Timelines\FrameSpan.cs" />
+    <Compile Include="Editors\Timelines\Timeline.cs" />
+    <Compile Include="Editors\Timelines\Tracks\Clips\Clip.cs" />
+    <Compile Include="Editors\Timelines\Tracks\Clips\VideoClip.cs" />
+    <Compile Include="Editors\Timelines\Tracks\Track.cs" />
+    <Compile Include="Editors\Timelines\Tracks\VideoTrack.cs" />
+    <Compile Include="Editors\VideoEditor.cs" />
+    <Compile Include="Editors\Views\EditorWindow.xaml.cs">
+      <DependentUpon>EditorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Editors\Controls\TimelineControls.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Editors\Views\EditorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

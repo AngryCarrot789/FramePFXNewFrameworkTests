@@ -1,0 +1,26 @@
+﻿<Window x:Class="FramePFX.Editors.Views.EditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FramePFX.Editors"
+        xmlns:c="clr-namespace:FramePFX.Editors.Controls"
+        mc:Ignorable="d"
+        Title="EditorWindow" Height="450" Width="800">
+    <Grid x:Name="MyDebugName">
+        <Grid VerticalAlignment="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="5*"/>
+            </Grid.ColumnDefinitions>
+            <c:TimelineTrackListBox x:Name="TrackListElement" Grid.Column="0" Padding="0" SelectionChanged="TrackListElement_SelectionChanged"/>
+            <ScrollViewer x:Name="TheScrollViewer"
+                          Grid.Column="2"
+                          HorizontalScrollBarVisibility="Visible"
+                          VerticalScrollBarVisibility="Visible">
+                <c:TimelineControl x:Name="TimelineElement" ScrollViewer="{Binding ElementName=TheScrollViewer}"/>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>
