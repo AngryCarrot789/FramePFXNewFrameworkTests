@@ -10,16 +10,75 @@
         Style="{StaticResource CustomWindowStyleEx}"
         Background="{DynamicResource PanelBackground2}"
         BorderBrush="{DynamicResource PanelBorderBrush}"
-        TitlebarBrush="{DynamicResource ABrush.Tone6.Background.Static}"
+        TitlebarBrush="{DynamicResource ABrush.Tone7.Background.Static}"
         Title="EditorWindow"
-        Height="840" Width="1408">
+        Height="840" Width="1408"
+        FontFamily="{StaticResource FontOxanium}">
     <Grid x:Name="MyDebugName" Margin="0">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="1"/>
-            <RowDefinition Height="320"/>
+            <RowDefinition Height="375"/>
         </Grid.RowDefinitions>
-        <GridSplitter Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-        <c:FullTimelineControl VerticalAlignment="Stretch" Grid.Row="2" x:Name="TheTimeline"/>
+        <Menu Grid.Row="0" 
+              Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type v:WindowEx}}, Path=TitlebarBrush}"
+              BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0,0,0,1">
+            <MenuItem Header="File"/>
+        </Menu>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="5*"/>
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0" BorderThickness="0" Header="Resources">
+                
+            </GroupBox>
+            <GroupBox Grid.Column="2" BorderThickness="0" Header="View Port Preview">
+                <Border Background="{DynamicResource PanelBackground3}" VerticalAlignment="Bottom" Height="32" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0 1 0 0">
+                    <DockPanel>
+                        <!-- Left Panel -->
+                        <Grid Margin="5,0,0,0" DockPanel.Dock="Left" IsEnabled="False">
+                            <Button Focusable="False" Content="Fit to Scale" Width="75" HorizontalAlignment="Left" Padding="1,0,0,0" Margin="0,4,0,4"/>
+                            <CheckBox Focusable="False" Content="Zoom to cursor" HorizontalAlignment="Left" Padding="1,0,0,0" Margin="85,5,0,5"/>
+                        </Grid>
+                        
+                        <!-- Right Panel -->
+                        <Grid Grid.Column="2" Margin="0,0,5,0" DockPanel.Dock="Right" IsEnabled="False">
+                            <CheckBox Focusable="False" HorizontalAlignment="Right"
+                                      Content="Use NN Render" Padding="1,0,0,0"
+                                      ToolTip="Toggle between Nearest-Neighbour and Linear scaling for the VIEW PORT ONLY. Nearest-neighbour does not use smoothing between pixels, and is closer to what you will see in the final render. This is only really apparent when zoomed in or with low resolution frames"/>
+                        </Grid>
+                        
+                        <!-- Center Panel -->
+                        <StackPanel Grid.Column="1" Margin="0,4" Orientation="Horizontal" HorizontalAlignment="Center" IsEnabled="False">
+                            <Button Focusable="False" Content="Play/Pause" HorizontalAlignment="Left" Padding="5,0"/>
+                            <Button Focusable="False" Width="24" HorizontalAlignment="Left" Padding="1,0,0,0" Margin="5,0,0,0">
+                                <Polygon Width="16" Height="16" Points="0,16 0,0 16,8" Fill="{DynamicResource ABrush.Glyph.Static}"/>
+                            </Button>
+                            <Button Focusable="False" Width="24" HorizontalAlignment="Left" Margin="5,0,0,0">
+                                <Grid Width="14" Height="16">
+                                    <Rectangle Width="4" HorizontalAlignment="Left" Fill="{DynamicResource ABrush.Glyph.Static}"/>
+                                    <Rectangle Width="4" HorizontalAlignment="Right" Fill="{DynamicResource ABrush.Glyph.Static}"/>
+                                </Grid>
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+            </GroupBox>
+            <Border Focusable="False" UseLayoutRounding="True" Grid.Column="1" BorderThickness="0" Background="{DynamicResource PanelBorderBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+            <GridSplitter Focusable="False" Grid.Column="1" BorderThickness="0" Background="Transparent" Margin="-5,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+        </Grid>
+        <GroupBox Header="Timeline" 
+                  Grid.Row="3" 
+                  Grid.ColumnSpan="3"
+                  BorderThickness="0">
+            <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource PanelBorderBrush}">
+                <c:FullTimelineControl VerticalAlignment="Stretch" x:Name="TheTimeline"/>
+            </Border>
+        </GroupBox>
+        <Border Grid.Row="2" BorderThickness="0" Background="{DynamicResource PanelBorderBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+        <GridSplitter Grid.Row="2" BorderThickness="0" Background="Transparent" Margin="0,-3,0,-12" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
     </Grid>
 </v:WindowEx>

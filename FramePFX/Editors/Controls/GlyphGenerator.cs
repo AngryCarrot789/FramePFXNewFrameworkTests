@@ -5,28 +5,27 @@ using System.Windows.Media;
 
 namespace FramePFX.Editors.Controls {
     public class GlyphGenerator {
-        public static GlyphRun CreateText(string text, double fontSize, Control control) {
-            return CreateText(text, fontSize, control, new Point(0, fontSize));
+        public static GlyphRun CreateText(string text, double emSize, Control control) {
+            return CreateText(text, emSize, control, new Point(0, emSize));
         }
 
-        public static GlyphRun CreateText(string text, double fontSize, Control control, Point origin) {
+        public static GlyphRun CreateText(string text, double emSize, Control control, Point origin) {
             Typeface typeface = new Typeface(control.FontFamily, control.FontStyle, control.FontWeight, control.FontStretch);
-            return CreateText(text, fontSize, typeface, origin);
+            return CreateText(text, emSize, typeface, origin);
         }
 
-        public static GlyphRun CreateText(string text, double fontSize, Typeface typeface, Point origin) {
-            if (!typeface.TryGetGlyphTypeface(out GlyphTypeface glyphTypeface))
+        public static GlyphRun CreateText(string text, double emSize, Typeface typeface, Point origin) {
+            if (!typeface.TryGetGlyphTypeface(out GlyphTypeface gtf))
                 throw new InvalidOperationException("No glyph typeface found");
-
             ushort[] indices = new ushort[text.Length];
-            double[] widths = new double[text.Length];
-            for (int i = 0, count = text.Length; i < count; i++) {
-                ushort idx = (ushort) (text[i] - 29);
-                indices[i] = idx;
-                widths[i] = glyphTypeface.AdvanceWidths[idx] * fontSize;
+            double[] advWidths = new double[text.Length];
+            for (int i = 0; i < text.Length; i++) {
+                ushort index = gtf.CharacterToGlyphMap[text[i]];
+                indices[i] = index;
+                advWidths[i] = gtf.AdvanceWidths[index] * emSize;
             }
 
-            return new GlyphRun(glyphTypeface, 0, false, fontSize, indices, origin, widths, null, null, null, null, null, null);
+            return new GlyphRun(gtf, 0, false, emSize, indices, origin, advWidths, null, null, null, null, null, null);
         }
     }
 }

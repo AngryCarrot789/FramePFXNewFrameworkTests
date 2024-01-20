@@ -101,6 +101,7 @@
     <Compile Include="Editors\Controls\ITrackControl.cs" />
     <Compile Include="Editors\Controls\PlayHeadControl.cs" />
     <Compile Include="Editors\Controls\PlayheadPositionTextControl.cs" />
+    <Compile Include="Editors\Controls\TimelineScrollableContentGrid.cs" />
     <Compile Include="Editors\Controls\TimelineTrackListBox.cs" />
     <Compile Include="Editors\Controls\TimelineTrackListBoxItem.cs" />
     <Compile Include="Editors\Controls\TimelineTrackListBoxItemContent.cs" />
@@ -118,7 +119,14 @@
     <Compile Include="Editors\Controls\xclemence\RulerWPF\RulerBase.cs" />
     <Compile Include="Editors\Controls\xclemence\RulerWPF\RulerStepProperties.cs" />
     <Compile Include="Editors\Controls\xclemence\RulerWPF\RulerTextOverflow.cs" />
+    <Compile Include="Editors\Factories\ClipFactory.cs" />
+    <Compile Include="Editors\Factories\ReflectiveObjectFactory.cs" />
+    <Compile Include="Editors\Factories\ObjectFactory.cs" />
+    <Compile Include="Editors\Factories\TrackFactory.cs" />
+    <Compile Include="Editors\Timelines\Tracks\ClipCloneOptions.cs" />
+    <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />
     <Compile Include="Editors\Timelines\ZoomType.cs" />
+    <Compile Include="Editors\TimelineUtils.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Themes\Attached\CornerRadiusHelper.cs" />
     <Compile Include="Themes\Attached\MenuHelper.cs" />
@@ -265,6 +273,14 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <Resource Include="Resources\Fonts\Oxanium\Oxanium-Bold.ttf" />
+    <Resource Include="Resources\Fonts\Oxanium\Oxanium-ExtraBold.ttf" />
+    <Resource Include="Resources\Fonts\Oxanium\Oxanium-ExtraLight.ttf" />
+    <Resource Include="Resources\Fonts\Oxanium\Oxanium-Light.ttf" />
+    <Resource Include="Resources\Fonts\Oxanium\Oxanium-Medium.ttf" />
+    <Resource Include="Resources\Fonts\Oxanium\Oxanium-Regular.ttf" />
+    <Resource Include="Resources\Fonts\Oxanium\Oxanium-SemiBold.ttf" />
+    <Resource Include="Resources\Fonts\Oxanium\Oxanium-VariableFont_wght.ttf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -330,6 +346,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Fonts\Oxanium\OFL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SkiaSharp.NativeAssets.macOS.2.88.7\build\net462\SkiaSharp.NativeAssets.macOS.targets" Condition="Exists('..\packages\SkiaSharp.NativeAssets.macOS.2.88.7\build\net462\SkiaSharp.NativeAssets.macOS.targets')" />

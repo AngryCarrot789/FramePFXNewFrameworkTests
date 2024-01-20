@@ -1,11 +1,12 @@
 using System;
 using FramePFX.Destroying;
+using FramePFX.Editors.Factories;
 
 namespace FramePFX.Editors.Timelines.Tracks.Clips {
     public delegate void ClipSpanChangedEventHandler(Clip clip, FrameSpan oldSpan, FrameSpan newSpan);
     public delegate void ClipEventHandler(Clip clip);
 
-    public class Clip : IDestroy {
+    public abstract class Clip : IDestroy {
         private FrameSpan span;
         private string displayName;
 
@@ -32,10 +33,26 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
             }
         }
 
+        public string FactoryId => ClipFactory.Instance.GetId(this.GetType());
+
         public event ClipSpanChangedEventHandler SpanChanged;
         public event ClipEventHandler DisplayNameChanged;
 
         public Clip() {
+        }
+
+        public Clip Clone() => this.Clone(ClipCloneOptions.Default);
+
+        public Clip Clone(ClipCloneOptions options) {
+            string id = this.FactoryId;
+            Clip clone = ClipFactory.Instance.NewClip(id);
+            this.LoadDataIntoClone(clone, options);
+            return clone;
+        }
+
+        protected virtual void LoadDataIntoClone(Clip clone, ClipCloneOptions options) {
+            clone.span = this.span;
+            clone.displayName = this.displayName;
         }
 
         internal static void OnAddedToTrack(Clip clip, Track track) {

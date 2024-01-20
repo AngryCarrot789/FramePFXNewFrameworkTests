@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,6 +22,9 @@ namespace FramePFX.Editors.Controls.xclemence.RulerWPF {
         private bool disposedValue;
         private RulerPositionManager positionManager;
         private bool isLoadedInternal;
+        private Rect lastRect;
+        private Size lastRenderSize;
+        private bool isRenderClean;
 
         public Ruler() {
             this.positionManager = new TopRulerManager(this);
@@ -43,14 +47,23 @@ namespace FramePFX.Editors.Controls.xclemence.RulerWPF {
                 this.scroller.ScrollChanged += this.OnScrollerOnScrollChanged;
             }
 
-            this.Dispatcher.InvokeAsync(this.InvalidateVisual, DispatcherPriority.Background);
+            this.isRenderClean = false;
+            this.Dispatcher.InvokeAsync(delegate() {
+                this.InvalidateVisual();
+            }, DispatcherPriority.Background);
         }
 
         private void OnScrollerOnSizeChanged(object o, SizeChangedEventArgs e) {
+            this.isRenderClean = false;
             this.InvalidateVisual();
         }
 
         private void OnScrollerOnScrollChanged(object o, ScrollChangedEventArgs e) {
+            if (e.HorizontalChange == 0 && e.VerticalChange == 0) {
+                return;
+            }
+
+            this.isRenderClean = false;
             this.InvalidateVisual();
         }
 
@@ -75,14 +88,24 @@ namespace FramePFX.Editors.Controls.xclemence.RulerWPF {
         private bool CanDrawSlaveMode() => this.SlaveStepProperties != null;
         private bool CanDrawMasterMode() => (this.MajorStepValues != null && !double.IsNaN(this.MaxValue) && this.MaxValue > 0);
 
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
+            base.OnRenderSizeChanged(sizeInfo);
+            this.isRenderClean = false;
+        }
+
         protected override void OnRender(DrawingContext dc) {
             base.OnRender(dc);
             if (!this.CanDrawRuler()) {
                 return;
             }
 
+            // When zooming, OnRender gets called 3 times... this is why zooming is laggy
             // calculate visible pixel bounds
-            Rect rect = UIUtils.GetVisibleRectUnsafe(this.scroller, this);
+            Rect rect = UIUtils.GetVisibleRect(this.scroller, this);
+            if (rect.Width < 0.01D && rect.Height < 0.01D) {
+                return;
+            }
+
             if (this.Background is Brush bg) {
                 dc.DrawRectangle(bg, null, rect);
             }
@@ -128,11 +151,11 @@ namespace FramePFX.Editors.Controls.xclemence.RulerWPF {
                 }
 
                 // TODO: optimise smaller/minor lines, maybe using skia?
-                // for (int y = 1; y < steps; ++y) {
-                //     double sub_pixel = pixel + y * subpixel_size;
-                //     // calculates p1 and p2 then calls DrawLine
-                //     this.positionManager.DrawMinorLine(dc, sub_pixel);
-                // }
+                for (int y = 1; y < steps; ++y) {
+                    double sub_pixel = pixel + y * subpixel_size;
+                    // calculates p1 and p2 then calls DrawLine
+                    this.positionManager.DrawMinorLine(dc, sub_pixel);
+                }
 
                 double text_value = i * valueStep;
                 if (Math.Abs(text_value - (int) text_value) < 0.00001d) {

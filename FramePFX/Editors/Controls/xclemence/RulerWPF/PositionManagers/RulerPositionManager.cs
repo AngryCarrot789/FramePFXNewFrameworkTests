@@ -40,6 +40,7 @@ namespace FramePFX.Editors.Controls.xclemence.RulerWPF.PositionManagers {
                 return this.cachedText;
             }
 
+            this.cachedValue = value;
             Typeface typeface = this.Control.CachedTypeFace;
             if (typeface == null) {
                 FontFamily font = this.Control.FontFamily ?? (this.Control.FontFamily = new FontFamily("Consolas"));

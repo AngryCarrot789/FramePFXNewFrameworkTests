@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Security.AccessControl;
 using System.Windows.Media;
 using FramePFX.Destroying;
+using FramePFX.Editors.Factories;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using SkiaSharp;
 
@@ -25,6 +26,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public event TrackEventHandler HeightChanged;
         public event TrackEventHandler DisplayNameChanged;
         public event TrackEventHandler ColourChanged;
+
+        public string FactoryId => TrackFactory.Instance.GetId(this.GetType());
 
         public Timeline Timeline { get; private set; }
 
@@ -131,6 +134,26 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.Clips = new ReadOnlyCollection<Clip>(this.clips);
             // this.colour = new SKColor(255, (byte) Rnd.Next(256), (byte) Rnd.Next(256), (byte) Rnd.Next(256));
             this.colour = Colours[Rnd.Next(Colours.Length)];
+        }
+
+        public Track Clone() => this.Clone(TrackCloneOptions.Default);
+
+        public Track Clone(TrackCloneOptions options) {
+            string id = this.FactoryId;
+            Track track = TrackFactory.Instance.NewTrack(id);
+            this.LoadDataIntoClone(track, options);
+            return track;
+        }
+
+        protected virtual void LoadDataIntoClone(Track clone, TrackCloneOptions options) {
+            clone.height = this.height;
+            clone.displayName = this.displayName;
+            clone.colour = this.colour;
+            if (options.CloneClips) {
+                for (int i = 0; i < this.clips.Count; i++) {
+                    clone.InsertClip(i, this.clips[i].Clone(options.ClipCloneOptions));
+                }
+            }
         }
 
         public void AddClip(Clip clip) => this.InsertClip(this.clips.Count, clip);

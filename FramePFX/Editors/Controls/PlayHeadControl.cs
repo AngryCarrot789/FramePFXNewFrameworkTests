@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -7,14 +8,8 @@ using FramePFX.Utils;
 
 namespace FramePFX.Editors.Controls {
     public class PlayHeadControl : Control {
-        private static readonly DependencyPropertyKey FramePropertyKey = DependencyProperty.RegisterReadOnly("Frame", typeof(long), typeof(PlayHeadControl), new PropertyMetadata(0L, (d, e) => ((PlayHeadControl) d).OnPlayHeadFrameChanged(), OnCoerceFrameValue));
-        public static readonly DependencyProperty FrameProperty = FramePropertyKey.DependencyProperty;
+        private static readonly FieldInfo IsDraggingPropertyKeyField = typeof(Thumb).GetField("IsDraggingPropertyKey", BindingFlags.NonPublic | BindingFlags.Static);
         public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(PlayHeadControl), new PropertyMetadata(null, (d, e) => ((PlayHeadControl) d).OnTimelineChanged((Timeline) e.OldValue, (Timeline) e.NewValue)));
-
-        public long Frame {
-            get => (long) this.GetValue(FrameProperty);
-            private set => this.SetValue(FramePropertyKey, value);
-        }
 
         public Timeline Timeline {
             get => (Timeline) this.GetValue(TimelineProperty);
@@ -24,9 +19,6 @@ namespace FramePFX.Editors.Controls {
         private Thumb PART_ThumbHead;
         private Thumb PART_ThumbBody;
         private bool isDraggingThumb;
-        private bool isUpdatingFrameProperty;
-
-        private double UnitZoom => this.Timeline?.Zoom ?? 1.0;
 
         public PlayHeadControl() {
         }
@@ -48,13 +40,7 @@ namespace FramePFX.Editors.Controls {
         }
 
         private void OnTimelinePlayHeadChanged(Timeline timeline, long oldvalue, long newvalue) {
-            this.isUpdatingFrameProperty = true;
-            try {
-                this.Frame = timeline.PlayHeadPosition;
-            }
-            finally {
-                this.isUpdatingFrameProperty = false;
-            }
+            this.UpdatePixel(newvalue, timeline.Zoom);
         }
 
         private void OnTimelineZoomed(Timeline timeline, double oldzoom, double newzoom, ZoomType zoomtype) {
@@ -79,13 +65,42 @@ namespace FramePFX.Editors.Controls {
                 return;
             }
 
-            long change = (long) (e.HorizontalChange / this.UnitZoom);
+            long change = (long) (e.HorizontalChange / timeline.Zoom);
             if (change != 0) {
                 long oldFrame = timeline.PlayHeadPosition;
                 long newFrame = Math.Max(oldFrame + change, 0);
+                if (newFrame >= timeline.TotalFrames) {
+                    newFrame = timeline.TotalFrames - 1;
+                }
+
                 if (newFrame != oldFrame) {
                     timeline.PlayHeadPosition = newFrame;
                 }
+            }
+        }
+
+        public void EnableDragging(Point point) {
+            this.isDraggingThumb = true;
+            Thumb thumb = this.PART_ThumbBody ?? this.PART_ThumbHead;
+            if (thumb == null) {
+                return;
+            }
+
+            thumb.Focus();
+            thumb.CaptureMouse();
+            // lazy... could create custom control extending Thumb to modify this but this works so :D
+            thumb.SetValue((DependencyPropertyKey) IsDraggingPropertyKeyField.GetValue(null), true);
+            bool flag = true;
+            try {
+                thumb.RaiseEvent(new DragStartedEventArgs(point.X, point.Y));
+                flag = false;
+            }
+            finally {
+                if (flag) {
+                    thumb.CancelDrag();
+                }
+
+                this.isDraggingThumb = false;
             }
         }
 
@@ -94,13 +109,12 @@ namespace FramePFX.Editors.Controls {
             this.Margin = new Thickness(frame * zoom, m.Top, m.Right, m.Bottom);
         }
 
-        private void OnPlayHeadFrameChanged() {
-            if (this.Timeline is Timeline timeline)
-                this.UpdatePixel(timeline.PlayHeadPosition, timeline.Zoom);
+        protected override Size MeasureOverride(Size constraint) {
+            return base.MeasureOverride(constraint);
         }
 
-        private static object OnCoerceFrameValue(DependencyObject d, object value) {
-            return !(value is long frame) || frame < 0 ? 0L : value;
+        protected override Size ArrangeOverride(Size arrangeBounds) {
+            return base.ArrangeOverride(arrangeBounds);
         }
     }
 }

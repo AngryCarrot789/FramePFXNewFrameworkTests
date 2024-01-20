@@ -3,6 +3,7 @@
                     xmlns:c="clr-namespace:FramePFX.Editors.Controls"
                     xmlns:ap="clr-namespace:FramePFX.AttachedProperties"
                     xmlns:ctrl="clr-namespace:FramePFX.Editors.Controls.xclemence.RulerWPF">
+    <Style TargetType="{x:Type c:CancellableThumb}" BasedOn="{StaticResource {x:Type Thumb}}" />
     <Style TargetType="{x:Type c:TimelineTrackListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone5.Border.Static}"/>
         <Setter Property="Padding" Value="0"/>
@@ -124,7 +125,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Grid.Row="0" Background="{DynamicResource ABrush.Tone5.Background.Static}">
-                            <c:PlayheadPositionTextControl  x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0"/>
+                            <c:PlayheadPositionTextControl x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0"/>
                         </Border>
                         <ScrollViewer Grid.Column="0" Grid.Row="2"
                                       HorizontalScrollBarVisibility="Visible"
@@ -138,18 +139,18 @@
                                                     BorderThickness="0,0,0,1"
                                                     BorderBrush="{Binding RelativeSource={RelativeSource Self}, Path=Background}"/>
                         </ScrollViewer>
-                        <ScrollViewer x:Name="PART_ScrollViewer"
+                        <ScrollViewer x:Name="PART_SequenceScrollViewer"
                                       HorizontalScrollBarVisibility="Visible"
                                       VerticalScrollBarVisibility="Auto"
                                       ap:ScrollBinder.VerticalBindGroup="TimelineVerticalScrollGroup"
                                       Grid.Column="2" Grid.RowSpan="3">
-                            <Grid>
+                            <c:TimelineScrollableContentGrid x:Name="PART_Thingy" Timeline="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Timeline}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="38"/>
                                     <RowDefinition Height="1"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <Border Grid.Row="0" Background="{DynamicResource ABrush.Tone3.Background.Static}">
+                                <Border x:Name="PART_TimestampBoard" Grid.Row="0" Background="{DynamicResource ABrush.Tone3.Background.Static}">
                                     <!--
                                     MaxValue="{Binding ElementName=PART_PlayheadPositionPreviewControl, Path=TotalFrameDuration}"
                                     -->
@@ -163,13 +164,15 @@
                                                 UseLayoutRounding="True"
                                                 Background="{DynamicResource ABrush.Tone4.Background.Static}"/>
                                 </Border>
-                                <Border Grid.Row="2" Background="{DynamicResource ABrush.Tone1.Background.Static}"
+                                <Border Grid.Row="2"
+                                        x:Name="PART_TimelineSequenceBorder"
+                                        Background="{DynamicResource ABrush.Tone1.Background.Static}"
                                         BorderBrush="{DynamicResource ABrush.Tone5.Background.Static}"
                                         BorderThickness="0,0,0,1"
                                         VerticalAlignment="Top"
                                         HorizontalAlignment="Stretch"
                                         UseLayoutRounding="True">
-                                    <c:TimelineSequenceControl x:Name="PART_Timeline" ScrollViewer="{Binding ElementName=PART_ScrollViewer}"/>
+                                    <c:TimelineSequenceControl x:Name="PART_Timeline" ScrollViewer="{Binding ElementName=PART_SequenceScrollViewer}"/>
                                 </Border>
                                 <c:PlayHeadControl x:Name="PART_PlayHeadControl" Grid.RowSpan="3"
                                                    Background="{DynamicResource ABrush.Tone7.Border.Static}"
@@ -177,7 +180,7 @@
                                                    Margin="0" VerticalAlignment="Stretch"
                                                    VerticalContentAlignment="Stretch"
                                                    HorizontalAlignment="Left"/>
-                            </Grid>
+                            </c:TimelineScrollableContentGrid>
                         </ScrollViewer>
                         <GridSplitter Grid.Column="1" Grid.Row="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="-3,0" Background="Transparent" BorderThickness="0"/>
                     </Grid>
@@ -194,28 +197,30 @@
                     <Grid>
                         <Border Width="20" Background="{TemplateBinding TrackColourBrush}" HorizontalAlignment="Left" VerticalAlignment="Stretch"/>
                         <TextBlock Text="{TemplateBinding DisplayName}" Margin="24,4,0,0"/>
+                        <Button x:Name="PART_DeleteTrackButton" Content="x" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" Padding="5,1"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
     <Style TargetType="{x:Type c:PlayheadPositionTextControl}">
+        <Setter Property="FontFamily" Value="{StaticResource FontOxanium}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type c:PlayheadPositionTextControl}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=PlayHeadPosition}"
-                                   FontSize="13" VerticalAlignment="Center"/>
-                        <TextBlock Text=" / "  FontSize="13" VerticalAlignment="Center"/>
+                                   FontSize="14" VerticalAlignment="Center" FontWeight="Bold"/>
+                        <TextBlock Text=" / "  FontSize="12" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=TotalFrameDuration}"
-                                   FontSize="11" VerticalAlignment="Center"/>
+                                   FontSize="12" VerticalAlignment="Center" FontWeight="Bold"/>
                     </StackPanel>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
     <Style TargetType="{x:Type c:PlayHeadControl}">
-        <Setter Property="Background" Value="{DynamicResource ABrush.Foreground.Static}" />
+        <Setter Property="Background" Value="{DynamicResource ABrush.Tone7.Border.Static}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ABrush.Tone7.Border.Static}" />
         <Setter Property="MinWidth" Value="15" />
         <Setter Property="Template">

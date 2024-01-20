@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -6,11 +7,8 @@ using SkiaSharp;
 
 namespace FramePFX.Editors.Controls {
     public class TimelineTrackListBoxItemContent : Control {
-        public TimelineTrackListBoxItem ListItem { get; }
-
         private static readonly DependencyPropertyKey TrackColourBrushPropertyKey = DependencyProperty.RegisterReadOnly("TrackColourBrush", typeof(Brush), typeof(TimelineTrackListBoxItemContent), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty TrackColourBrushProperty = TrackColourBrushPropertyKey.DependencyProperty;
-
         public static readonly DependencyProperty DisplayNameProperty = DependencyProperty.Register("DisplayName", typeof(string), typeof(TimelineTrackListBoxItemContent), new PropertyMetadata(null));
 
         public Brush TrackColourBrush {
@@ -22,6 +20,8 @@ namespace FramePFX.Editors.Controls {
             get => (string) this.GetValue(DisplayNameProperty);
             set => this.SetValue(DisplayNameProperty, value);
         }
+
+        public TimelineTrackListBoxItem ListItem { get; }
 
         private readonly Binder<Track> displayNameBinder;
         private readonly Binder<Track> trackColourBinder;
@@ -39,6 +39,17 @@ namespace FramePFX.Editors.Controls {
                 element.ListItem.Track.Colour = new SKColor(col.R, col.G, col.B, col.A);
             });
             this.TrackColourBrush = new SolidColorBrush(Colors.Black);
+        }
+
+        public override void OnApplyTemplate() {
+            base.OnApplyTemplate();
+            if (!(this.GetTemplateChild("PART_DeleteTrackButton") is Button button))
+                throw new Exception("Missing PART_DeleteTrackButton");
+
+            button.Click += (sender, args) => {
+                Track track = this.ListItem.Track;
+                track.Timeline.RemoveTrack(track);
+            };
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {

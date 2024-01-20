@@ -5,6 +5,7 @@
                     xmlns:attached="clr-namespace:FramePFX.Themes.Attached"
                     xmlns:attachedProperties="clr-namespace:FramePFX.AttachedProperties"
                     xmlns:views="clr-namespace:FramePFX.Views">
+    <FontFamily x:Key="FontOxanium">pack://application:,,,/Resources/Fonts/Oxanium/#Oxanium</FontFamily>
     <BorderGapMaskConverter x:Key="BorderGapMaskConverter"/>
     <Style x:Key="FocusVisual">
         <Setter Property="Control.Template">

@@ -38,7 +38,7 @@ namespace FramePFX.Editors.Controls {
             }
         }
 
-        public double TimelineZoom => this.Track?.Timeline?.UnitZoom ?? 1d;
+        public double TimelineZoom => this.Model.Track?.Timeline?.Zoom ?? 1d;
         public double PixelBegin => this.frameBegin * this.TimelineZoom;
         public double PixelWidth => this.frameDuration * this.TimelineZoom;
 
@@ -242,7 +242,7 @@ namespace FramePFX.Editors.Controls {
             }
 
             if (this.dragState != DragState.None) {
-                double zoom = timelineCtrl.UnitZoom;
+                double zoom = this.Model.Track?.Timeline?.Zoom ?? 1.0;
                 Vector mdif = mpos - this.clickPoint;
                 FrameSpan oldSpan = this.Model.Span;
                 if (this.dragState == DragState.DragBody) {
