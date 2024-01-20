@@ -9,7 +9,7 @@ using System.Windows.Input;
 using FramePFX.Utils;
 using FramePFX.Utils.Expressions;
 
-namespace FramePFX.Editors.Controls.NumDragger {
+namespace FramePFX.Editors.Controls.Dragger {
     [TemplatePart(Name = nameof(PART_HintTextBlock), Type = typeof(TextBlock))]
     [TemplatePart(Name = nameof(PART_TextBlock), Type = typeof(TextBlock))]
     [TemplatePart(Name = nameof(PART_TextBox), Type = typeof(TextBox))]

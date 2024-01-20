@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace FramePFX.WPF.Utils {
+namespace FramePFX.Utils {
     public static class UIUtils {
         public static Rect GetVisibleRect(ScrollViewer scroller, UIElement element) {
             Rect rect;

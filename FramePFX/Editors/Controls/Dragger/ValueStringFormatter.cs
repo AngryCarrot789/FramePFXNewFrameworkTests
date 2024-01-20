@@ -1,4 +1,4 @@
-namespace FramePFX.Editors.Controls.NumDragger {
+namespace FramePFX.Editors.Controls.Dragger {
     public class ValueStringFormatter : IValueFormatter {
         public string Format { get; set; }
 

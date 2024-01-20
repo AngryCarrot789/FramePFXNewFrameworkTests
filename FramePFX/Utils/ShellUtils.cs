@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace FramePFX.WPF.Utils {
+namespace FramePFX.Utils {
     public static class ShellUtils {
         #region Structs
 

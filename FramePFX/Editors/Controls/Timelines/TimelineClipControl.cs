@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using Timeline = FramePFX.Editors.Timelines.Timeline;
@@ -56,16 +57,16 @@ namespace FramePFX.Editors.Controls.Timelines {
         private Point lastMousePos;
         private bool isUpdatingFrameSpanFromDrag;
 
-        private readonly Binder<Clip> displayNameBinder;
-
         private GlyphRun glyphRun;
         private FormattedText formattedText;
         private readonly RectangleGeometry renderSizeRectGeometry;
 
+        private readonly AutoUpdaterBinder<Clip> displayNameBinder = new AutoUpdaterBinder<Clip>(DisplayNameProperty, nameof(VideoClip.DisplayNameChanged), UpdateView, UpdateModel);
+        private readonly AutoUpdaterBinder<Clip> frameSpanBinder = new AutoUpdaterBinder<Clip>(nameof(VideoClip.FrameSpanChanged), obj => ((TimelineClipControl) obj.Control).SetSizeFromSpan(obj.Model.FrameSpan), null);
+
         public TimelineClipControl(Clip clip) {
             this.VerticalAlignment = VerticalAlignment.Stretch;
             this.Model = clip;
-            this.displayNameBinder = Binder<Clip>.Updaters(this, DisplayNameProperty, nameof(VideoClip.DisplayNameChanged), UpdateView, UpdateModel);
             this.GotFocus += this.OnGotFocus;
             this.LostFocus += this.OnLostFocus;
             this.renderSizeRectGeometry = new RectangleGeometry();
@@ -90,14 +91,14 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.Model.IsSelected = false;
         }
 
-        private static void UpdateView(Binder<Clip> obj) {
-            ((TimelineClipControl) obj.Element).glyphRun = null;
-            ((TimelineClipControl) obj.Element).formattedText = null;
-            ((TimelineClipControl) obj.Element).DisplayName = obj.Model.DisplayName;
+        private static void UpdateView(IBinder<Clip> binder) {
+            ((TimelineClipControl) binder.Control).glyphRun = null;
+            ((TimelineClipControl) binder.Control).formattedText = null;
+            ((TimelineClipControl) binder.Control).DisplayName = binder.Model.DisplayName;
         }
 
-        private static void UpdateModel(Binder<Clip> obj) {
-            obj.Model.DisplayName = ((TimelineClipControl) obj.Element).DisplayName;
+        private static void UpdateModel(IBinder<Clip> binder) {
+            binder.Model.DisplayName = ((TimelineClipControl) binder.Control).DisplayName;
         }
 
         #region Model Binding
@@ -107,25 +108,20 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.FrameDuration = span.Duration;
         }
 
-        private void OnClipSpanChanged(Clip clip, FrameSpan oldspan, FrameSpan newspan) {
-            this.SetSizeFromSpan(newspan);
-        }
-
         public void OnAdding() {
-            this.Model.FrameSpanChanged += this.OnClipSpanChanged;
-            this.SetSizeFromSpan(this.Model.FrameSpan);
         }
 
         public void OnAdded() {
-            this.displayNameBinder.Attach(this.Model);
+            this.displayNameBinder.Attach(this, this.Model);
+            this.frameSpanBinder.Attach(this, this.Model);
         }
 
         public void OnRemoving() {
-            this.Model.FrameSpanChanged -= this.OnClipSpanChanged;
         }
 
         public void OnRemoved() {
             this.displayNameBinder.Detatch();
+            this.frameSpanBinder.Detatch();
         }
 
         #endregion

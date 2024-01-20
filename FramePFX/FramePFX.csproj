@@ -97,8 +97,13 @@
     <Compile Include="AttachedProperties\TextBoxHelper.cs" />
     <Compile Include="AttachedProperties\ToggleButtonHelper.cs" />
     <Compile Include="AttachedProperties\TopmostFocus.cs" />
-    <Compile Include="Editors\Controls\BasicBinder.cs" />
-    <Compile Include="Editors\Controls\Binder.cs" />
+    <Compile Include="Editors\Controls\Binders\AutoUpdaterBinder.cs" />
+    <Compile Include="Editors\Controls\Binders\BaseObjectBinder.cs" />
+    <Compile Include="Editors\Controls\Binders\BinderUtils.cs" />
+    <Compile Include="Editors\Controls\Binders\IBaseBinder.cs" />
+    <Compile Include="Editors\Controls\Binders\IBinder.cs" />
+    <Compile Include="Editors\Controls\Binders\BasicAutoBinder.cs" />
+    <Compile Include="Editors\Controls\Binders\UpdaterBinder.cs" />
     <Compile Include="Editors\Controls\CancellableThumb.cs" />
     <Compile Include="Editors\Controls\GlyphGenerator.cs" />
     <Compile Include="Editors\Controls\IClipControl.cs" />
@@ -161,8 +166,6 @@
     <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />
     <Compile Include="Editors\Timelines\ZoomType.cs" />
     <Compile Include="Editors\TimelineUtils.cs" />
-    <Compile Include="Properties\Annotations.cs" />
-    <Compile Include="Properties\Annotations1.cs" />
     <Compile Include="Themes\Attached\CornerRadiusHelper.cs" />
     <Compile Include="Themes\Attached\MenuHelper.cs" />
     <Compile Include="Themes\Attached\PasswordBoxHelper.cs" />

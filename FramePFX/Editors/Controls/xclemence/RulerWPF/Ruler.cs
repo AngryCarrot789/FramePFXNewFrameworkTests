@@ -13,7 +13,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using FramePFX.Editors.Controls.xclemence.RulerWPF.PositionManagers;
-using FramePFX.WPF.Utils;
+using FramePFX.Utils;
 using Rect = System.Windows.Rect;
 
 namespace FramePFX.Editors.Controls.xclemence.RulerWPF {

@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Threading;
 
-namespace FramePFX.WPF.Utils {
+namespace FramePFX.Utils {
     public class DispatcherCallback {
         private volatile bool isScheduled;
         private readonly Action action;

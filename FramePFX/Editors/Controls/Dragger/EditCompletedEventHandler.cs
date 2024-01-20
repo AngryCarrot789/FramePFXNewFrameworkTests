@@ -1,3 +1,3 @@
-namespace FramePFX.Editors.Controls.NumDragger {
+namespace FramePFX.Editors.Controls.Dragger {
     public delegate void EditCompletedEventHandler(object sender, EditCompletedEventArgs e);
 }

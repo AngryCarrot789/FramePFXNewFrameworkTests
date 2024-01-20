@@ -6,7 +6,6 @@ using FramePFX.Editors.Controls.xclemence.RulerWPF;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Utils;
-using FramePFX.WPF.Utils;
 
 namespace FramePFX.Editors.Controls.Timelines {
     /// <summary>

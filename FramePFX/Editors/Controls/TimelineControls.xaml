@@ -3,7 +3,8 @@
                     xmlns:c="clr-namespace:FramePFX.Editors.Controls"
                     xmlns:ap="clr-namespace:FramePFX.AttachedProperties"
                     xmlns:r="clr-namespace:FramePFX.Editors.Controls.xclemence.RulerWPF"
-                    xmlns:ct="clr-namespace:FramePFX.Editors.Controls.Timelines" xmlns:nd="clr-namespace:FramePFX.Editors.Controls.NumDragger">
+                    xmlns:ct="clr-namespace:FramePFX.Editors.Controls.Timelines"
+                    xmlns:dragger="clr-namespace:FramePFX.Editors.Controls.Dragger">
     <Style TargetType="{x:Type c:CancellableThumb}" BasedOn="{StaticResource {x:Type Thumb}}"/>
     <Style TargetType="{x:Type ct:TimelineTrackListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone5.Border.Static}"/>
@@ -210,7 +211,7 @@
                         <Border Width="20" Background="{TemplateBinding TrackColourBrush}" HorizontalAlignment="Left" VerticalAlignment="Stretch"/>
                         <TextBlock Text="{TemplateBinding DisplayName}" Margin="24,4,0,0"/>
                         <Button x:Name="PART_DeleteTrackButton" Content="x" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" Padding="5,1"/>
-                        <nd:NumberDragger Width="64" Height="17" MaxWidth="64"
+                        <dragger:NumberDragger Width="64" Height="17" MaxWidth="64"
                                           VerticalAlignment="Top" HorizontalAlignment="Right"
                                           Margin="20,29,0,0" Minimum="0" Maximum="1"
                                           TinyChange="0.0001" SmallChange="0.001"

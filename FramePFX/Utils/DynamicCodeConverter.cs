@@ -6,9 +6,8 @@ using System.Reflection;
 using System.Windows.Data;
 using System.Windows.Markup;
 using Microsoft.CSharp;
-using FramePFX.Utils;
 
-namespace FramePFX.WPF.Utils {
+namespace FramePFX.Utils {
     /// <summary>
     /// A converter that uses a C# code generator to evaluate the converter output
     /// </summary>

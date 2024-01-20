@@ -1,4 +1,4 @@
-namespace FramePFX.Editors.Controls.NumDragger {
+namespace FramePFX.Editors.Controls.Dragger {
     public enum HorizontalIncrement {
         /// <summary>
         /// Decrement the value when dragged left, increment when dragged right (default)

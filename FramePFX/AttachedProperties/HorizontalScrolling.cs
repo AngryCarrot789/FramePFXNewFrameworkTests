@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using FramePFX.Utils;
-using FramePFX.WPF.Utils;
 
 namespace FramePFX.AttachedProperties {
     public static class HorizontalScrolling {

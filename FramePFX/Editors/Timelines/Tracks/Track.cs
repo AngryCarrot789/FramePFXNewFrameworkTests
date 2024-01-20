@@ -10,9 +10,7 @@ using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void TrackEventHandler(Track track);
-
     public delegate void TrackClipIndexEventHandler(Track track, Clip clip, int index);
-
     public delegate void ClipMovedEventHandler(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex);
 
     public abstract class Track : IDestroy {

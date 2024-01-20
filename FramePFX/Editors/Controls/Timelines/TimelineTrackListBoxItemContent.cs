@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using FramePFX.Editors.Controls.NumDragger;
+using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines.Tracks;
 using SkiaSharp;
 
@@ -24,22 +24,21 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TimelineTrackListBoxItem ListItem { get; }
 
-        private readonly Binder<Track> displayNameBinder;
-        private readonly Binder<Track> trackColourBinder;
+        private readonly BasicAutoBinder<Track> displayNameBinder = new BasicAutoBinder<Track>(DisplayNameProperty, nameof(Track.DisplayNameChanged), b => b.Model.DisplayName, (b, v) => b.Model.DisplayName = (string) v);
+
+        private readonly AutoUpdaterBinder<Track> trackColourBinder = new AutoUpdaterBinder<Track>(TrackColourBrushProperty, nameof(Track.ColourChanged), binder => {
+            TimelineTrackListBoxItemContent element = (TimelineTrackListBoxItemContent) binder.Control;
+            SKColor c = element.ListItem.Track?.Colour ?? SKColors.Black;
+            ((SolidColorBrush) element.TrackColourBrush).Color = Color.FromArgb(c.Alpha, c.Red, c.Green, c.Blue);
+        }, binder => {
+            TimelineTrackListBoxItemContent element = (TimelineTrackListBoxItemContent) binder.Control;
+            Color c = ((SolidColorBrush) element.TrackColourBrush).Color;
+            element.ListItem.Track.Colour = new SKColor(c.R, c.G, c.B, c.A);
+        });
 
         public TimelineTrackListBoxItemContent(TimelineTrackListBoxItem listItem) {
             this.ListItem = listItem;
             this.TrackColourBrush = new SolidColorBrush(Colors.Black);
-            this.displayNameBinder = Binder<Track>.AutoSet(this, DisplayNameProperty, nameof(Track.DisplayNameChanged), b => b.DisplayName, (b, v) => b.DisplayName = v);
-            this.trackColourBinder = Binder<Track>.Updaters(this, TrackColourBrushProperty, nameof(Track.ColourChanged), binder => {
-                TimelineTrackListBoxItemContent element = (TimelineTrackListBoxItemContent) binder.Element;
-                SKColor col = element.ListItem.Track?.Colour ?? SKColors.Black;
-                ((SolidColorBrush) element.TrackColourBrush).Color =  Color.FromArgb(col.Alpha, col.Red, col.Green, col.Blue);
-            }, binder => {
-                TimelineTrackListBoxItemContent element = (TimelineTrackListBoxItemContent) binder.Element;
-                Color col = ((SolidColorBrush) element.TrackColourBrush).Color;
-                element.ListItem.Track.Colour = new SKColor(col.R, col.G, col.B, col.A);
-            });
         }
 
         public override void OnApplyTemplate() {
@@ -64,8 +63,8 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public virtual void OnAddedToTimeline() {
             Track model = this.ListItem.Track;
-            this.displayNameBinder.Attach(model);
-            this.trackColourBinder.Attach(model);
+            this.displayNameBinder.Attach(this, model);
+            this.trackColourBinder.Attach(this, model);
         }
 
         public virtual void OnBeginRemovedFromTimeline() {

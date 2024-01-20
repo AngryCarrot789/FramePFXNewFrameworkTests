@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace FramePFX.WPF.Utils {
+namespace FramePFX.Utils {
     public class ThreadSafeDP {
         private volatile object value;
         private DependencyProperty Property { get; }

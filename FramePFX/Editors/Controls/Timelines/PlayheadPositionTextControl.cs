@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines;
 
 namespace FramePFX.Editors.Controls.Timelines {
@@ -29,14 +30,11 @@ namespace FramePFX.Editors.Controls.Timelines {
             set => this.SetValue(LargestFrameInUseProperty, value);
         }
 
-        private readonly Binder<Timeline> playHeadBinder;
-        private readonly Binder<Timeline> totalFramesBinder;
-        private readonly Binder<Timeline> largestFrameInUseBinder;
+        private readonly BasicAutoBinder<Timeline> playHeadBinder = new BasicAutoBinder<Timeline>(PlayHeadPositionProperty, nameof(PlayheadPositionTextControl.Timeline.PlayHeadChanged), (b) => b.Model.PlayHeadPosition, (b, v) => b.Model.PlayHeadPosition = (long) v);
+        private readonly BasicAutoBinder<Timeline> totalFramesBinder = new BasicAutoBinder<Timeline>(TotalFrameDurationProperty, nameof(PlayheadPositionTextControl.Timeline.TotalFramesChanged), (b) => b.Model.TotalFrames, (b, v) => b.Model.TotalFrames = (long) v);
+        private readonly AutoUpdaterBinder<Timeline> largestFrameInUseBinder = new AutoUpdaterBinder<Timeline>(LargestFrameInUseProperty, nameof(PlayheadPositionTextControl.Timeline.LargestFrameInUseChanged), obj => obj.Control.SetValue(LargestFrameInUseProperty, obj.Model.LargestFrameInUse), null);
 
         public PlayheadPositionTextControl() {
-            this.playHeadBinder = Binder<Timeline>.AutoSet(this, PlayHeadPositionProperty, nameof(this.Timeline.PlayHeadChanged), (b) => b.PlayHeadPosition, (b, v) => b.PlayHeadPosition = v);
-            this.totalFramesBinder = Binder<Timeline>.AutoSet(this, TotalFrameDurationProperty, nameof(this.Timeline.TotalFramesChanged), (b) => b.TotalFrames, (b, v) => b.TotalFrames = v);
-            this.largestFrameInUseBinder = Binder<Timeline>.Updaters(this, LargestFrameInUseProperty, nameof(this.Timeline.LargestFrameInUseChanged), obj => obj.Element.SetValue(LargestFrameInUseProperty, obj.Model.LargestFrameInUse), null);
         }
 
         static PlayheadPositionTextControl() {
@@ -51,9 +49,9 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
 
             if (newTimeline != null) {
-                this.totalFramesBinder.Attach(newTimeline);
-                this.playHeadBinder.Attach(newTimeline);
-                this.largestFrameInUseBinder.Attach(newTimeline);
+                this.totalFramesBinder.Attach(this, newTimeline);
+                this.playHeadBinder.Attach(this, newTimeline);
+                this.largestFrameInUseBinder.Attach(this, newTimeline);
             }
         }
     }

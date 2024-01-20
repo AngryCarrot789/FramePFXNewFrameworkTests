@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace FramePFX.WPF.Utils {
+namespace FramePFX.Utils {
     public class ResourceDictionaryDataTemplateSelector : DataTemplateSelector {
         public ResourceDictionary ResourceDictionary { get; set; } = new ResourceDictionary();
 

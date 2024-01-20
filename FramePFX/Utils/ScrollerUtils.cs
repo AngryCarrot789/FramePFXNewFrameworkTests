@@ -1,10 +1,9 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using FramePFX.Utils;
 using Rect = System.Windows.Rect;
 
-namespace FramePFX.WPF.Utils {
+namespace FramePFX.Utils {
     public static class ScrollerUtils {
         /// <summary>
         /// Calculates the amount of drawing space the element should use to draw

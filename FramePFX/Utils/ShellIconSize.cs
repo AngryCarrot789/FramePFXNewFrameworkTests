@@ -1,4 +1,4 @@
-namespace FramePFX.WPF.Utils {
+namespace FramePFX.Utils {
     public enum ShellIconSize {
         Small,
         Normal,
