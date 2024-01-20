@@ -1,4 +1,5 @@
 using System;
+using System.Windows;
 using FramePFX.Destroying;
 using FramePFX.Editors.Factories;
 
@@ -9,6 +10,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
     public abstract class Clip : IDestroy {
         private FrameSpan span;
         private string displayName;
+        private bool isSelected;
 
         public Track Track { get; private set; }
 
@@ -33,10 +35,21 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
             }
         }
 
+        public bool IsSelected {
+            get => this.isSelected;
+            set {
+                if (this.isSelected == value)
+                    return;
+                this.isSelected = value;
+                this.SelectionChanged?.Invoke(this);
+            }
+        }
+
         public string FactoryId => ClipFactory.Instance.GetId(this.GetType());
 
         public event ClipSpanChangedEventHandler SpanChanged;
         public event ClipEventHandler DisplayNameChanged;
+        public event ClipEventHandler SelectionChanged;
 
         public Clip() {
         }
@@ -83,6 +96,32 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
             }
 
             this.Track.MoveClipToTrack(index, dstTrack, dstIndex);
+        }
+
+        public bool IsPlayHeadIntersecting(long playHead) {
+            return this.span.Intersects(playHead);
+        }
+
+        /// <summary>
+        /// Shrinks this clips and creates a clone in front of this clip, effectively "splitting" this clip into 2
+        /// </summary>
+        /// <param name="offset">The frame to split this clip at, relative to this clip</param>
+        public void CutAt(long offset) {
+            if (offset < 0)
+                throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be negative");
+            if (offset == 0)
+                throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be zero");
+            if (offset >= this.span.Duration)
+                throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot exceed our span's range");
+            long begin = this.span.Begin;
+            FrameSpan spanLeft = FrameSpan.FromIndex(begin, begin + offset);
+            FrameSpan spanRight = FrameSpan.FromIndex(spanLeft.EndIndex, this.Span.EndIndex);
+
+            Clip clone = this.Clone();
+            this.Track.AddClip(clone);
+
+            this.Span = spanLeft;
+            clone.Span = spanRight;
         }
 
         public virtual void Destroy() {

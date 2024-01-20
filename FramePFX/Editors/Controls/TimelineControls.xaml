@@ -2,16 +2,17 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:c="clr-namespace:FramePFX.Editors.Controls"
                     xmlns:ap="clr-namespace:FramePFX.AttachedProperties"
-                    xmlns:ctrl="clr-namespace:FramePFX.Editors.Controls.xclemence.RulerWPF">
+                    xmlns:r="clr-namespace:FramePFX.Editors.Controls.xclemence.RulerWPF"
+                    xmlns:ct="clr-namespace:FramePFX.Editors.Controls.Timelines">
     <Style TargetType="{x:Type c:CancellableThumb}" BasedOn="{StaticResource {x:Type Thumb}}" />
-    <Style TargetType="{x:Type c:TimelineTrackListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
+    <Style TargetType="{x:Type ct:TimelineTrackListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone5.Border.Static}"/>
         <Setter Property="Padding" Value="0"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type c:TimelineTrackListBox}">
+                <ControlTemplate TargetType="{x:Type ct:TimelineTrackListBox}">
                     <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
@@ -35,7 +36,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="{x:Type c:TimelineTrackListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+    <Style TargetType="{x:Type ct:TimelineTrackListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone4.Background.Static}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="0"/>
@@ -45,7 +46,7 @@
         <Setter Property="VerticalContentAlignment" Value="Stretch"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type c:TimelineTrackListBoxItem}">
+                <ControlTemplate TargetType="{x:Type ct:TimelineTrackListBoxItem}">
                     <Border x:Name="Bd"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -72,21 +73,21 @@
         </Setter>
     </Style>
 
-    <Style TargetType="{x:Type c:TimelineSequenceControl}">
+    <Style TargetType="{x:Type ct:TimelineSequenceControl}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone4.Border.Static}"/>
     </Style>
 
-    <Style TargetType="{x:Type c:TimelineTrackControl}">
+    <Style TargetType="{x:Type ct:TimelineTrackControl}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone2.Background.Static}"/>
     </Style>
 
-    <Style TargetType="{x:Type c:TimelineClipControl}">
+    <Style TargetType="{x:Type ct:TimelineClipControl}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone5.Background.Static}"/>
         <Setter Property="Focusable" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="False"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type c:TimelineClipControl}">
+                <ControlTemplate TargetType="{x:Type ct:TimelineClipControl}">
                     <Grid>
                         <!--
                         <TextBlock VerticalAlignment="Top" IsHitTestVisible="False" Text="{TemplateBinding DisplayName}" FontSize="11" Padding="4,1"/>
@@ -107,11 +108,11 @@
         </Setter>
     </Style>
 
-    <Style TargetType="{x:Type c:FullTimelineControl}">
+    <Style TargetType="{x:Type ct:TimelineControl}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone1.Background.Static}"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type c:FullTimelineControl}">
+                <ControlTemplate TargetType="{x:Type ct:TimelineControl}">
                     <Grid VerticalAlignment="Stretch" Background="{TemplateBinding Background}"
                           x:Name="PART_RootGrid">
                         <Grid.RowDefinitions>
@@ -125,7 +126,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Grid.Row="0" Background="{DynamicResource ABrush.Tone5.Background.Static}">
-                            <c:PlayheadPositionTextControl x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0"/>
+                            <ct:PlayheadPositionTextControl x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0"/>
                         </Border>
                         <ScrollViewer Grid.Column="0" Grid.Row="2"
                                       HorizontalScrollBarVisibility="Visible"
@@ -133,7 +134,7 @@
                                       Background="{DynamicResource ABrush.Tone3.Background.Static}"
                                       x:Name="PART_TrackListScrollViewer"
                                       ap:ScrollBinder.VerticalBindGroup="TimelineVerticalScrollGroup">
-                            <c:TimelineTrackListBox x:Name="PART_TrackListBox"
+                            <ct:TimelineTrackListBox x:Name="PART_TrackListBox"
                                                     Padding="0"
                                                     VerticalAlignment="Top"
                                                     BorderThickness="0,0,0,1"
@@ -144,7 +145,10 @@
                                       VerticalScrollBarVisibility="Auto"
                                       ap:ScrollBinder.VerticalBindGroup="TimelineVerticalScrollGroup"
                                       Grid.Column="2" Grid.RowSpan="3">
-                            <c:TimelineScrollableContentGrid x:Name="PART_Thingy" Timeline="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Timeline}">
+                            <ct:TimelineScrollableContentGrid x:Name="PART_ContentGrid"
+                                                             Timeline="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Timeline}"
+                                                             ap:HandleRequestBringIntoView.IsEnabled="True"
+                                                             Background="Transparent">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="38"/>
                                     <RowDefinition Height="1"/>
@@ -154,7 +158,7 @@
                                     <!--
                                     MaxValue="{Binding ElementName=PART_PlayheadPositionPreviewControl, Path=TotalFrameDuration}"
                                     -->
-                                    <ctrl:Ruler x:Name="PART_Ruler" VerticalAlignment="Stretch"
+                                    <r:Ruler x:Name="PART_Ruler" VerticalAlignment="Stretch"
                                                 HorizontalAlignment="Stretch"
                                                 MarkerControlReference="{Binding ElementName=PART_RootGrid}"
                                                 MinorStepRatio="0.5"
@@ -172,15 +176,15 @@
                                         VerticalAlignment="Top"
                                         HorizontalAlignment="Stretch"
                                         UseLayoutRounding="True">
-                                    <c:TimelineSequenceControl x:Name="PART_Timeline" ScrollViewer="{Binding ElementName=PART_SequenceScrollViewer}"/>
+                                    <ct:TimelineSequenceControl x:Name="PART_Timeline" ScrollViewer="{Binding ElementName=PART_SequenceScrollViewer}"/>
                                 </Border>
-                                <c:PlayHeadControl x:Name="PART_PlayHeadControl" Grid.RowSpan="3"
+                                <ct:PlayHeadControl x:Name="PART_PlayHeadControl" Grid.RowSpan="3"
                                                    Background="{DynamicResource ABrush.Tone7.Border.Static}"
                                                    Width="1"
                                                    Margin="0" VerticalAlignment="Stretch"
                                                    VerticalContentAlignment="Stretch"
                                                    HorizontalAlignment="Left"/>
-                            </c:TimelineScrollableContentGrid>
+                            </ct:TimelineScrollableContentGrid>
                         </ScrollViewer>
                         <GridSplitter Grid.Column="1" Grid.Row="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="-3,0" Background="Transparent" BorderThickness="0"/>
                     </Grid>
@@ -188,12 +192,12 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type c:TimelineTrackListBoxItemContent}">
+    <Style TargetType="{x:Type ct:TimelineTrackListBoxItemContent}">
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="VerticalAlignment" Value="Stretch"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type c:TimelineTrackListBoxItemContent}">
+                <ControlTemplate TargetType="{x:Type ct:TimelineTrackListBoxItemContent}">
                     <Grid>
                         <Border Width="20" Background="{TemplateBinding TrackColourBrush}" HorizontalAlignment="Left" VerticalAlignment="Stretch"/>
                         <TextBlock Text="{TemplateBinding DisplayName}" Margin="24,4,0,0"/>
@@ -203,11 +207,11 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type c:PlayheadPositionTextControl}">
+    <Style TargetType="{x:Type ct:PlayheadPositionTextControl}">
         <Setter Property="FontFamily" Value="{StaticResource FontOxanium}"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type c:PlayheadPositionTextControl}">
+                <ControlTemplate TargetType="{x:Type ct:PlayheadPositionTextControl}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=PlayHeadPosition}"
                                    FontSize="14" VerticalAlignment="Center" FontWeight="Bold"/>
@@ -219,13 +223,13 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type c:PlayHeadControl}">
+    <Style TargetType="{x:Type ct:PlayHeadControl}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone7.Border.Static}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ABrush.Tone7.Border.Static}" />
         <Setter Property="MinWidth" Value="15" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type c:PlayHeadControl}">
+                <ControlTemplate TargetType="{x:Type ct:PlayHeadControl}">
                     <Grid Margin="-7,0,7,0" MinHeight="15">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="17" />

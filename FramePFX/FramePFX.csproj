@@ -36,6 +36,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
+    <Reference Include="OpenTK, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.3.3.3\lib\net20\OpenTK.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="SkiaSharp, Version=2.88.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
       <HintPath>..\packages\SkiaSharp.2.88.7\lib\net462\SkiaSharp.dll</HintPath>
@@ -95,19 +98,23 @@
     <Compile Include="AttachedProperties\TopmostFocus.cs" />
     <Compile Include="Editors\Controls\Binder.cs" />
     <Compile Include="Editors\Controls\CancellableThumb.cs" />
-    <Compile Include="Editors\Controls\FullTimelineControl.cs" />
     <Compile Include="Editors\Controls\GlyphGenerator.cs" />
     <Compile Include="Editors\Controls\IClipControl.cs" />
     <Compile Include="Editors\Controls\ITrackControl.cs" />
-    <Compile Include="Editors\Controls\PlayHeadControl.cs" />
-    <Compile Include="Editors\Controls\PlayheadPositionTextControl.cs" />
-    <Compile Include="Editors\Controls\TimelineScrollableContentGrid.cs" />
-    <Compile Include="Editors\Controls\TimelineTrackListBox.cs" />
-    <Compile Include="Editors\Controls\TimelineTrackListBoxItem.cs" />
-    <Compile Include="Editors\Controls\TimelineTrackListBoxItemContent.cs" />
-    <Compile Include="Editors\Controls\TimelineTrackListBoxItemPanel.cs" />
-    <Compile Include="Editors\Controls\ViewModels\IAttachable.cs" />
-    <Compile Include="Editors\Controls\ViewModels\TrackListTrackViewModel.cs" />
+    <Compile Include="Editors\Controls\Timelines\PlayHeadControl.cs" />
+    <Compile Include="Editors\Controls\Timelines\PlayheadPositionTextControl.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineClipControl.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineControl.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineScrollableContentGrid.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineSequenceControl.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineTrackControl.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineTrackListBox.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineTrackListBoxItem.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineTrackListBoxItemContent.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineTrackListBoxItemPanel.cs" />
+    <Compile Include="Editors\Controls\Viewports\AsyncEditorViewPort.cs" />
+    <Compile Include="Editors\Controls\Viewports\FreeMoveViewPortV2.cs" />
+    <Compile Include="Editors\Controls\Viewports\SKAsyncViewPort.cs" />
     <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\HorizontalRulerManager.cs" />
     <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\LeftRulerManager.cs" />
     <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\RenderData.cs" />
@@ -237,9 +244,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Destroying\IDestroy.cs" />
-    <Compile Include="Editors\Controls\TimelineClipControl.cs" />
-    <Compile Include="Editors\Controls\TimelineSequenceControl.cs" />
-    <Compile Include="Editors\Controls\TimelineTrackControl.cs" />
     <Compile Include="Editors\Project.cs" />
     <Compile Include="Editors\Timelines\FrameSpan.cs" />
     <Compile Include="Editors\Timelines\Timeline.cs" />
@@ -268,6 +272,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

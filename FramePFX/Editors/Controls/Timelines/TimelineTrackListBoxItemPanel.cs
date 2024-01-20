@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace FramePFX.Editors.Controls {
+namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBoxItemPanel : Panel {
         protected override Size MeasureOverride(Size availableSize) {
             Size size = new Size();

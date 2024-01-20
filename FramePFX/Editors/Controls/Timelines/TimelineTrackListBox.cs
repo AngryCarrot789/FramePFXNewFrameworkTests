@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 
-namespace FramePFX.Editors.Controls {
+namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBox : ListBox {
         public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(TimelineTrackListBox), new PropertyMetadata(null, (d, e) => ((TimelineTrackListBox) d).OnTimelineChanged((Timeline) e.OldValue, (Timeline) e.NewValue)));
 

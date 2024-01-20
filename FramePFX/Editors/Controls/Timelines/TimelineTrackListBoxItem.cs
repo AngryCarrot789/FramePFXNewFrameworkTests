@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using FramePFX.Editors.Timelines.Tracks;
 
-namespace FramePFX.Editors.Controls {
+namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBoxItem : ListBoxItem {
         public Track Track { get; }
 

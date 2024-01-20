@@ -6,7 +6,7 @@ using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using SkiaSharp;
 
-namespace FramePFX.Editors.Controls {
+namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackControl : Panel {
         private static readonly DependencyPropertyKey TrackColourBrushPropertyKey = DependencyProperty.RegisterReadOnly("TrackColourBrush", typeof(Brush), typeof(TimelineTrackControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty TrackColourBrushProperty = TrackColourBrushPropertyKey.DependencyProperty;
@@ -28,7 +28,8 @@ namespace FramePFX.Editors.Controls {
             this.VerticalAlignment = VerticalAlignment.Top;
 
             this.Track = track;
-            this.TrackColourBrush = new SolidColorBrush();
+            // this.TrackColourBrush = new SolidColorBrush();
+            this.TrackColourBrush = new LinearGradientBrush();
             this.UpdateTrackColour();
             this.UseLayoutRounding = true;
         }
@@ -42,7 +43,7 @@ namespace FramePFX.Editors.Controls {
         }
 
         private void OnClipRemoved(Track track, Clip clip, int index) {
-            this.RemoveClipInternal(clip, index);
+            this.RemoveClipInternal(index);
         }
 
         private void OnClipMovedTracks(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex) {
@@ -57,7 +58,7 @@ namespace FramePFX.Editors.Controls {
                 }
 
                 TimelineClipControl control = (TimelineClipControl) this.InternalChildren[oldIndex];
-                this.RemoveClipInternal(clip, oldIndex);
+                this.RemoveClipInternal(oldIndex);
                 dstTrack.clipBeingMoved = control;
             }
             else if (newTrack == this.Track) {
@@ -82,12 +83,19 @@ namespace FramePFX.Editors.Controls {
             control.OnAdded();
         }
 
-        private void RemoveClipInternal(Clip clip, int index) {
+        private void RemoveClipInternal(int index) {
             TimelineClipControl control = (TimelineClipControl) this.InternalChildren[index];
             control.OnRemoving();
             this.InternalChildren.RemoveAt(index);
             control.OnRemoved();
             control.Track = null;
+        }
+
+        private void ClearClipsInternal() {
+            int count = this.InternalChildren.Count;
+            for (int i = count - 1; i >= 0; i--) {
+                this.RemoveClipInternal(i);
+            }
         }
 
         protected override Size MeasureOverride(Size availableSize) {
@@ -118,7 +126,21 @@ namespace FramePFX.Editors.Controls {
 
         private void UpdateTrackColour() {
             SKColor col = this.Track.Colour;
-            ((SolidColorBrush) this.TrackColourBrush).Color = Color.FromArgb(col.Alpha, col.Red, col.Green, col.Blue);
+            // ((SolidColorBrush) this.TrackColourBrush).Color = Color.FromArgb(col.Alpha, col.Red, col.Green, col.Blue);
+
+            LinearGradientBrush brush = (LinearGradientBrush) this.TrackColourBrush;
+            brush.StartPoint = new Point(0, 0);
+            brush.EndPoint = new Point(1, 0);
+
+            const byte sub = 40;
+            Color primary = Color.FromArgb(col.Alpha, col.Red, col.Green, col.Blue);
+            Color secondary = Color.FromArgb(col.Alpha, (byte) Math.Max(col.Red - sub, 0), (byte) Math.Max(col.Green - sub, 0), (byte) Math.Max(col.Blue - sub, 0));
+
+            brush.GradientStops.Clear();
+            brush.GradientStops.Add(new GradientStop(secondary, 0.0));
+            brush.GradientStops.Add(new GradientStop(primary, 0.3));
+            brush.GradientStops.Add(new GradientStop(primary, 0.7));
+            brush.GradientStops.Add(new GradientStop(secondary, 1.0));
         }
 
         protected override void OnRender(DrawingContext dc) {
@@ -151,6 +173,7 @@ namespace FramePFX.Editors.Controls {
             this.Track.ClipMovedTracks -= this.OnClipMovedTracks;
             this.Track.HeightChanged -= this.OnTrackHeightChanged;
             this.Track.ColourChanged -= this.OnTrackColourChanged;
+            this.ClearClipsInternal();
         }
 
         public void OnRemovedFromTimeline() {

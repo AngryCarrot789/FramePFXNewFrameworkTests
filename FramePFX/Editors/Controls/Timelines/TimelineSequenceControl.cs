@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 
-namespace FramePFX.Editors.Controls {
+namespace FramePFX.Editors.Controls.Timelines {
     /// <summary>
-    /// A stack panel based control, that stacks a collection of tracks on top of each other, with a 1 pixel gap between each track
+    /// A stack panel based control, that stacks a collection of tracks on top of each other, with a 1 pixel gap between
+    /// each track. This is what presents the actual timeline, track and clip data
     /// </summary>
     public class TimelineSequenceControl : StackPanel {
         public static readonly DependencyProperty TimelineProperty =
@@ -40,9 +42,21 @@ namespace FramePFX.Editors.Controls {
             set => this.SetValue(ScrollViewerProperty, value);
         }
 
+        /// <summary>
+        /// Gets or sets the host timeline control that this sequence can access
+        /// </summary>
+        public TimelineControl TimelineControl { get; set; }
+
         public double TotalFramePixels => this.Timeline.Zoom * this.Timeline.TotalFrames;
 
         public TimelineSequenceControl() {
+        }
+
+        public void SetPlayHeadToMouseCursor(MouseDevice device) {
+            if (this.TimelineControl != null) {
+                Point point = device.GetPosition(this);
+                this.TimelineControl.SetPlayHeadToMouseCursor(point.X);
+            }
         }
 
         static TimelineSequenceControl() {

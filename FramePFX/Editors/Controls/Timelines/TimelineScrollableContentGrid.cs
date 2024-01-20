@@ -1,8 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using FramePFX.Editors.Timelines;
 
-namespace FramePFX.Editors.Controls {
+namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineScrollableContentGrid : Grid {
         public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(TimelineScrollableContentGrid), new PropertyMetadata(null, OnTimelineChanged));
 
@@ -11,7 +12,17 @@ namespace FramePFX.Editors.Controls {
             set => this.SetValue(TimelineProperty, value);
         }
 
+        public TimelineControl TimelineControl { get; set; }
+
         public TimelineScrollableContentGrid() {
+        }
+
+        protected override void OnMouseDown(MouseButtonEventArgs e) {
+            base.OnMouseDown(e);
+            if (!e.Handled && this.TimelineControl != null) {
+                Point point = e.GetPosition(this);
+                this.TimelineControl.SetPlayHeadToMouseCursor(point.X);
+            }
         }
 
         private static void OnTimelineChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {

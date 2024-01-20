@@ -11,19 +11,15 @@ namespace FramePFX.AttachedProperties {
                 typeof(HandleRequestBringIntoView),
                 new PropertyMetadata(BoolBox.False, PropertyChangedCallback));
 
-        public static void SetIsEnabled(DependencyObject element, bool value) {
-            element.SetValue(IsEnabledProperty, value);
-        }
+        public static void SetIsEnabled(DependencyObject element, bool value) => element.SetValue(IsEnabledProperty, value);
 
-        public static bool GetIsEnabled(DependencyObject element) {
-            return (bool) element.GetValue(IsEnabledProperty);
-        }
+        public static bool GetIsEnabled(DependencyObject element) => (bool) element.GetValue(IsEnabledProperty);
 
         private static void PropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-            if (d is Grid grid) {
-                grid.RequestBringIntoView -= GridOnRequestBringIntoView;
+            if (d is FrameworkElement element) {
+                element.RequestBringIntoView -= GridOnRequestBringIntoView;
                 if ((bool) e.NewValue) {
-                    grid.RequestBringIntoView += GridOnRequestBringIntoView;
+                    element.RequestBringIntoView += GridOnRequestBringIntoView;
                 }
             }
         }

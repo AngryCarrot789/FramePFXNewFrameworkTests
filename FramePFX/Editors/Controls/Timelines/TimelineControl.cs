@@ -8,9 +8,12 @@ using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Utils;
 using FramePFX.WPF.Utils;
 
-namespace FramePFX.Editors.Controls {
-    public class FullTimelineControl : Control {
-        public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(FullTimelineControl), new PropertyMetadata(null, (d, e) => ((FullTimelineControl) d).OnTimelineChanged((Timeline) e.OldValue, (Timeline) e.NewValue)));
+namespace FramePFX.Editors.Controls.Timelines {
+    /// <summary>
+    /// A control that represents the entire state of a timeline, with a timeline sequence editor, track list state editor, etc.
+    /// </summary>
+    public class TimelineControl : Control {
+        public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(TimelineControl), new PropertyMetadata(null, (d, e) => ((TimelineControl) d).OnTimelineChanged((Timeline) e.OldValue, (Timeline) e.NewValue)));
 
         public Timeline Timeline {
             get => (Timeline) this.GetValue(TimelineProperty);
@@ -23,7 +26,9 @@ namespace FramePFX.Editors.Controls {
 
         public ScrollViewer TimelineScrollViewer { get; private set; }
 
-        public TimelineSequenceControl TimelineControl { get; private set; }
+        public TimelineSequenceControl TimelineSequence { get; private set; }
+
+        public TimelineScrollableContentGrid TimelineContentGrid { get; private set; }
 
         // The border that the TimelineControl is placed in
         public Border TimelineBorder { get; private set; }
@@ -36,17 +41,19 @@ namespace FramePFX.Editors.Controls {
 
         public Border RulerContainerBorder { get; private set; } // contains the ruler
 
-        public FullTimelineControl() {
-            this.MouseLeftButtonDown += (s, e) => this.MovePlayheadForMouseButtonEvent(e.GetPosition((IInputElement) s).X + this.TimelineScrollViewer?.HorizontalOffset ?? 0d, e, false);
+        public TimelineControl() {
+            this.MouseLeftButtonDown += (s, e) => {
+                ((TimelineControl) s).MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X + this.TimelineScrollViewer?.HorizontalOffset ?? 0d, false);
+            };
         }
 
-        private void MovePlayheadForMouseButtonEvent(double x, MouseButtonEventArgs e, bool enableThumbDragging = true) {
+        private void MovePlayHeadToMouseCursor(double x, bool enableThumbDragging = true) {
             if (!(this.Timeline is Timeline timeline)) {
                 return;
             }
 
             if (x >= 0d) {
-                long frameX = TimelineUtils.PixelToFrame(x, timeline.Zoom);
+                long frameX = TimelineUtils.PixelToFrame(x, timeline.Zoom, true);
                 if (frameX >= 0 && frameX < timeline.TotalFrames) {
                     timeline.PlayHeadPosition = frameX;
                 }
@@ -57,8 +64,14 @@ namespace FramePFX.Editors.Controls {
             }
         }
 
-        static FullTimelineControl() {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(FullTimelineControl), new FrameworkPropertyMetadata(typeof(FullTimelineControl)));
+        public void SetPlayHeadToMouseCursor(double sequencePixelX) {
+            // no need to add scrollviewer offset, since the sequencePixelX
+            // will naturally include the horizontal offset kinda
+            this.MovePlayHeadToMouseCursor(sequencePixelX, false);
+        }
+
+        static TimelineControl() {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(TimelineControl), new FrameworkPropertyMetadata(typeof(TimelineControl)));
         }
 
         public override void OnApplyTemplate() {
@@ -81,9 +94,13 @@ namespace FramePFX.Editors.Controls {
                 throw new Exception("Missing PART_TimestampBoard");
             if (!(this.GetTemplateChild("PART_TimelineSequenceBorder") is Border timelineBorder))
                 throw new Exception("Missing PART_TimelineSequenceBorder");
+            if (!(this.GetTemplateChild("PART_ContentGrid") is TimelineScrollableContentGrid scrollableContent))
+                throw new Exception("Missing PART_ContentGrid");
 
             this.TrackList = listBox;
-            this.TimelineControl = timeline;
+            this.TimelineSequence = timeline;
+            timeline.TimelineControl = this;
+
             this.TimelineBorder = timelineBorder;
             this.TrackListScrollViewer = scrollViewer;
             this.PlayHeadPositionPreview = playheadPosPreview;
@@ -92,7 +109,10 @@ namespace FramePFX.Editors.Controls {
             this.TimelineScrollViewer = timelineScrollViewer;
             this.RulerContainerBorder = timeStampBoard;
 
-            timeStampBoard.MouseLeftButtonDown += (s, e) => this.MovePlayheadForMouseButtonEvent(e.GetPosition((IInputElement) s).X, e, true);
+            this.TimelineContentGrid = scrollableContent;
+            scrollableContent.TimelineControl = this;
+
+            timeStampBoard.MouseLeftButtonDown += (s, e) => this.MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X, true);
         }
 
         private void OnTimelineChanged(Timeline oldTimeline, Timeline newTimeline) {
@@ -103,7 +123,7 @@ namespace FramePFX.Editors.Controls {
                 oldTimeline.TrackRemoved -= this.OnTimelineTrackEvent;
             }
 
-            this.TimelineControl.Timeline = newTimeline;
+            this.TimelineSequence.Timeline = newTimeline;
             this.TrackList.Timeline = newTimeline;
             this.PlayHeadPositionPreview.Timeline = newTimeline;
             this.PlayHead.Timeline = newTimeline;

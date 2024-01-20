@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks.Clips;
+using Timeline = FramePFX.Editors.Timelines.Timeline;
 
-namespace FramePFX.Editors.Controls {
+namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineClipControl : Control {
         public static readonly DependencyProperty DisplayNameProperty = DependencyProperty.Register("DisplayName", typeof(string), typeof(TimelineClipControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
@@ -82,11 +82,12 @@ namespace FramePFX.Editors.Controls {
 
         private void OnGotFocus(object sender, RoutedEventArgs e) {
             Panel.SetZIndex(this, 2);
+            this.Model.IsSelected = true;
         }
 
         private void OnLostFocus(object sender, RoutedEventArgs e) {
-            KeyboardFocusChangedEventArgs ex;
             Panel.SetZIndex(this, 0);
+            this.Model.IsSelected = false;
         }
 
         private static void UpdateView(Binder<Clip> obj) {
@@ -142,6 +143,10 @@ namespace FramePFX.Editors.Controls {
 
         protected override void OnMouseUp(MouseButtonEventArgs e) {
             base.OnMouseUp(e);
+            if (this.dragState == DragState.Initiated) {
+                this.Track.Timeline.SetPlayHeadToMouseCursor(e.MouseDevice);
+            }
+
             this.SetDragState(DragState.None);
             this.SetCursorForMousePoint(e.GetPosition(this));
             this.ReleaseMouseCapture();

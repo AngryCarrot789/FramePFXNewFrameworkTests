@@ -5,7 +5,7 @@ using System.Windows.Media;
 using FramePFX.Editors.Timelines.Tracks;
 using SkiaSharp;
 
-namespace FramePFX.Editors.Controls {
+namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBoxItemContent : Control {
         private static readonly DependencyPropertyKey TrackColourBrushPropertyKey = DependencyProperty.RegisterReadOnly("TrackColourBrush", typeof(Brush), typeof(TimelineTrackListBoxItemContent), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty TrackColourBrushProperty = TrackColourBrushPropertyKey.DependencyProperty;
@@ -28,6 +28,7 @@ namespace FramePFX.Editors.Controls {
 
         public TimelineTrackListBoxItemContent(TimelineTrackListBoxItem listItem) {
             this.ListItem = listItem;
+            this.TrackColourBrush = new SolidColorBrush(Colors.Black);
             this.displayNameBinder = Binder<Track>.AutoSet(this, DisplayNameProperty, nameof(Track.DisplayNameChanged), b => b.DisplayName, (b, v) => b.DisplayName = v);
             this.trackColourBinder = Binder<Track>.Updaters(this, TrackColourBrushProperty, nameof(Track.ColourChanged), binder => {
                 TimelineTrackListBoxItemContent element = (TimelineTrackListBoxItemContent) binder.Element;
@@ -38,7 +39,6 @@ namespace FramePFX.Editors.Controls {
                 Color col = ((SolidColorBrush) element.TrackColourBrush).Color;
                 element.ListItem.Track.Colour = new SKColor(col.R, col.G, col.B, col.A);
             });
-            this.TrackColourBrush = new SolidColorBrush(Colors.Black);
         }
 
         public override void OnApplyTemplate() {
@@ -53,7 +53,8 @@ namespace FramePFX.Editors.Controls {
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
-            this.displayNameBinder.OnPropertyChanged(e);
+            this.displayNameBinder?.OnPropertyChanged(e);
+            this.trackColourBinder?.OnPropertyChanged(e);
             base.OnPropertyChanged(e);
         }
 
