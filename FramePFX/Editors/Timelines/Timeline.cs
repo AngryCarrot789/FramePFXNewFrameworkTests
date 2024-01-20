@@ -17,11 +17,13 @@ namespace FramePFX.Editors.Timelines {
         private long totalFrames;
         private long playHead;
         private double zoom;
+        private long largestFrameInUse;
 
         public event TimelineTrackIndexEventHandler TrackAdded;
         public event TimelineTrackIndexEventHandler TrackRemoved;
         public event TimelineTrackMovedEventHandler TrackMoved;
         public event TimelineEventHandler TotalFramesChanged;
+        public event TimelineEventHandler LargestFrameInUseChanged;
         public event PlayheadChangedEventHandler PlayHeadChanged;
         public event ZoomEventHandler ZoomTimeline;
 
@@ -63,13 +65,44 @@ namespace FramePFX.Editors.Timelines {
             }
         }
 
+        public long LargestFrameInUse {
+            get => this.largestFrameInUse;
+            private set {
+                if (this.largestFrameInUse == value)
+                    return;
+                this.largestFrameInUse = value;
+                this.LargestFrameInUseChanged?.Invoke(this);
+            }
+        }
+
         public double Zoom => this.zoom;
+
+        public PlaybackManager Playback { get; }
 
         public Timeline() {
             this.tracks = new List<Track>();
             this.Tracks = new ReadOnlyCollection<Track>(this.tracks);
             this.totalFrames = 5000L;
             this.zoom = 1.0d;
+            this.Playback = new PlaybackManager(this);
+            this.Playback.SetFrameRate(60.0);
+            this.Playback.StartTimer();
+        }
+
+        public void UpdateLargestFrame() {
+            IReadOnlyList<Track> list = this.Tracks;
+            int count = list.Count;
+            if (count > 0) {
+                long max = list[0].LargestFrameInUse;
+                for (int i = 1; i < count; i++) {
+                    max = Math.Max(max, list[i].LargestFrameInUse);
+                }
+
+                this.LargestFrameInUse = max;
+            }
+            else {
+                this.LargestFrameInUse = 0;
+            }
         }
 
         public void SetZoom(double zoom, ZoomType type) {
@@ -97,6 +130,7 @@ namespace FramePFX.Editors.Timelines {
             this.tracks.Insert(index, track);
             Track.OnAddedToTimeline(track, this);
             this.TrackAdded?.Invoke(this, track, index);
+            this.UpdateLargestFrame();
         }
 
         public bool RemoveTrack(Track track) {
@@ -112,6 +146,7 @@ namespace FramePFX.Editors.Timelines {
             this.tracks.RemoveAt(index);
             Track.OnRemovedFromTimeline(track, this);
             this.TrackRemoved?.Invoke(this, track, index);
+            this.UpdateLargestFrame();
         }
 
         public void MoveTrackIndex(int oldIndex, int newIndex) {

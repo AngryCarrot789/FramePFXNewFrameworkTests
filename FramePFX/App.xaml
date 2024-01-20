@@ -11,6 +11,8 @@
                 <ResourceDictionary Source="Themes/ControlColours.xaml"/>
                 <ResourceDictionary Source="Themes/Controls.xaml"/>
 
+                <ResourceDictionary Source="Editors/Controls/Dragger/NumberDraggerStyles.xaml"/>
+
                 <!-- Other Styles -->
                 <ResourceDictionary Source="Editors/Controls/TimelineControls.xaml"/>
             </ResourceDictionary.MergedDictionaries>

@@ -48,6 +48,9 @@ namespace FramePFX.Editors.Controls {
             this.eventInfo = info;
         }
 
+        /// <summary>
+        /// Automatically sets the dependency property value, and uses the given function and action to get/set the model value
+        /// </summary>
         public static Binder<TModel> AutoSet<TValue>(FrameworkElement element,
                                                      DependencyProperty property,
                                                      string eventName,
@@ -59,6 +62,9 @@ namespace FramePFX.Editors.Controls {
             return binder;
         }
 
+        /// <summary>
+        /// Similar to <see cref="AutoSet{TValue}"/> except you provide the actions that set the model and set the view values
+        /// </summary>
         public static Binder<TModel> Updaters(FrameworkElement element,
                                               DependencyProperty property,
                                               string eventName,
@@ -120,7 +126,7 @@ namespace FramePFX.Editors.Controls {
         }
 
         public void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
-            if (!this.isUpdatingView && e.Property == this.Property) {
+            if (!this.isUpdatingView && e.Property == this.Property && this.Property != null) {
                 if (this.updateModel != null) {
                     this.updateModel(this);
                 }

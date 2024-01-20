@@ -3,8 +3,8 @@
                     xmlns:c="clr-namespace:FramePFX.Editors.Controls"
                     xmlns:ap="clr-namespace:FramePFX.AttachedProperties"
                     xmlns:r="clr-namespace:FramePFX.Editors.Controls.xclemence.RulerWPF"
-                    xmlns:ct="clr-namespace:FramePFX.Editors.Controls.Timelines">
-    <Style TargetType="{x:Type c:CancellableThumb}" BasedOn="{StaticResource {x:Type Thumb}}" />
+                    xmlns:ct="clr-namespace:FramePFX.Editors.Controls.Timelines" xmlns:nd="clr-namespace:FramePFX.Editors.Controls.NumDragger">
+    <Style TargetType="{x:Type c:CancellableThumb}" BasedOn="{StaticResource {x:Type Thumb}}"/>
     <Style TargetType="{x:Type ct:TimelineTrackListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone5.Border.Static}"/>
         <Setter Property="Padding" Value="0"/>
@@ -74,7 +74,7 @@
     </Style>
 
     <Style TargetType="{x:Type ct:TimelineSequenceControl}">
-        <Setter Property="Background" Value="{DynamicResource ABrush.Tone4.Border.Static}"/>
+        <Setter Property="Background" Value="{DynamicResource ABrush.Tone6.Border.Static}"/>
     </Style>
 
     <Style TargetType="{x:Type ct:TimelineTrackControl}">
@@ -84,20 +84,22 @@
     <Style TargetType="{x:Type ct:TimelineClipControl}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone5.Background.Static}"/>
         <Setter Property="Focusable" Value="True"/>
-        <Setter Property="UseLayoutRounding" Value="False"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ct:TimelineClipControl}">
-                    <Grid>
-                        <!--
-                        <TextBlock VerticalAlignment="Top" IsHitTestVisible="False" Text="{TemplateBinding DisplayName}" FontSize="11" Padding="4,1"/>
-                        -->
+                    <Border Margin="0,0,-1,0" Padding="0,0,1,0" BorderThickness="1,0"
+                            BorderBrush="{DynamicResource ABrush.Tone6.Border.Static}"
+                            UseLayoutRounding="True" SnapsToDevicePixels="True">
                         <Border x:Name="PART_SelectionBorder" Margin="-1"
-                                BorderThickness="2" BorderBrush="YellowGreen"
+                                BorderThickness="2" 
+                                BorderBrush="YellowGreen"
                                 Visibility="Hidden"
-                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
                                 Panel.ZIndex="3"/>
-                    </Grid>
+                    </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="PART_SelectionBorder" Property="Visibility" Value="Visible"/>
@@ -179,11 +181,13 @@
                                     <ct:TimelineSequenceControl x:Name="PART_Timeline" ScrollViewer="{Binding ElementName=PART_SequenceScrollViewer}"/>
                                 </Border>
                                 <ct:PlayHeadControl x:Name="PART_PlayHeadControl" Grid.RowSpan="3"
-                                                   Background="{DynamicResource ABrush.Tone7.Border.Static}"
-                                                   Width="1"
-                                                   Margin="0" VerticalAlignment="Stretch"
-                                                   VerticalContentAlignment="Stretch"
-                                                   HorizontalAlignment="Left"/>
+                                                    Background="{DynamicResource ABrush.Tone7.Border.Static}"
+                                                    Width="1"
+                                                    Margin="0" VerticalAlignment="Stretch"
+                                                    VerticalContentAlignment="Stretch"
+                                                    HorizontalAlignment="Left"
+                                                    SnapsToDevicePixels="True"
+                                                    UseLayoutRounding="True"/>
                             </ct:TimelineScrollableContentGrid>
                         </ScrollViewer>
                         <GridSplitter Grid.Column="1" Grid.Row="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="-3,0" Background="Transparent" BorderThickness="0"/>
@@ -192,21 +196,33 @@
             </Setter.Value>
         </Setter>
     </Style>
+
     <Style TargetType="{x:Type ct:TimelineTrackListBoxItemContent}">
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="VerticalAlignment" Value="Stretch"/>
+    </Style>
+
+    <Style TargetType="{x:Type ct:TimelineTrackListBoxItemContent_Video}" BasedOn="{StaticResource {x:Type ct:TimelineTrackListBoxItemContent}}">
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type ct:TimelineTrackListBoxItemContent}">
+                <ControlTemplate TargetType="{x:Type ct:TimelineTrackListBoxItemContent_Video}">
                     <Grid>
                         <Border Width="20" Background="{TemplateBinding TrackColourBrush}" HorizontalAlignment="Left" VerticalAlignment="Stretch"/>
                         <TextBlock Text="{TemplateBinding DisplayName}" Margin="24,4,0,0"/>
                         <Button x:Name="PART_DeleteTrackButton" Content="x" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" Padding="5,1"/>
+                        <nd:NumberDragger Width="64" Height="17" MaxWidth="64"
+                                          VerticalAlignment="Top" HorizontalAlignment="Right"
+                                          Margin="20,29,0,0" Minimum="0" Maximum="1"
+                                          TinyChange="0.0001" SmallChange="0.001"
+                                          LargeChange="0.002" MassiveChange="0.01"
+                                          Style="{StaticResource AbletonNumberDraggerStyle}"
+                                          x:Name="PART_OpacitySlider"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
+
     <Style TargetType="{x:Type ct:PlayheadPositionTextControl}">
         <Setter Property="FontFamily" Value="{StaticResource FontOxanium}"/>
         <Setter Property="Template">
@@ -218,27 +234,29 @@
                         <TextBlock Text=" / "  FontSize="12" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=TotalFrameDuration}"
                                    FontSize="12" VerticalAlignment="Center" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=LargestFrameInUse, StringFormat='({0})'}"
+                                   FontSize="12" VerticalAlignment="Center" FontWeight="Bold" Padding="3,0,0,0"/>
                     </StackPanel>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
     <Style TargetType="{x:Type ct:PlayHeadControl}">
-        <Setter Property="Background" Value="{DynamicResource ABrush.Tone7.Border.Static}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ABrush.Tone7.Border.Static}" />
-        <Setter Property="MinWidth" Value="15" />
+        <Setter Property="Background" Value="{DynamicResource ABrush.Tone7.Border.Static}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ABrush.Tone7.Border.Static}"/>
+        <Setter Property="MinWidth" Value="15"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ct:PlayHeadControl}">
                     <Grid Margin="-7,0,7,0" MinHeight="15">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="17" />
-                            <RowDefinition Height="*" />
+                            <RowDefinition Height="17"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Border IsHitTestVisible="False" Grid.Row="0" Grid.RowSpan="2" Width="1" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="7,16,0,0" Background="{TemplateBinding Background}" />
-                        <Polygon IsHitTestVisible="False" Grid.Row="0" Points="0,0 15,0 15,10 8,17 7,17 0,10" Fill="{TemplateBinding Background}" HorizontalAlignment="Left" Width="15" />
-                        <c:CancellableThumb Grid.Row="0" x:Name="PART_ThumbHead" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Cursor="SizeWE" />
-                        <c:CancellableThumb Grid.Row="1" x:Name="PART_ThumbBody" IsHitTestVisible="False" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="5,0" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Cursor="SizeWE" />
+                        <Border IsHitTestVisible="False" Grid.Row="0" Grid.RowSpan="2" Width="1" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="7,16,0,0" Background="{TemplateBinding Background}"/>
+                        <Polygon IsHitTestVisible="False" Grid.Row="0" Points="0,0 15,0 15,10 8,17 7,17 0,10" Fill="{TemplateBinding Background}" HorizontalAlignment="Left" Width="15"/>
+                        <c:CancellableThumb Grid.Row="0" x:Name="PART_ThumbHead" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Cursor="SizeWE"/>
+                        <c:CancellableThumb Grid.Row="1" x:Name="PART_ThumbBody" IsHitTestVisible="False" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="5,0" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Cursor="SizeWE"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

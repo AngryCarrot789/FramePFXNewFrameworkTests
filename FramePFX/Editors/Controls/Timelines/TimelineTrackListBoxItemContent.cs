@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using FramePFX.Editors.Controls.NumDragger;
 using FramePFX.Editors.Timelines.Tracks;
 using SkiaSharp;
 
@@ -58,19 +59,19 @@ namespace FramePFX.Editors.Controls.Timelines {
             base.OnPropertyChanged(e);
         }
 
-        public void OnBeingAddedToTimeline() {
+        public virtual void OnBeingAddedToTimeline() {
         }
 
-        public void OnAddedToTimeline() {
+        public virtual void OnAddedToTimeline() {
             Track model = this.ListItem.Track;
             this.displayNameBinder.Attach(model);
             this.trackColourBinder.Attach(model);
         }
 
-        public void OnBeginRemovedFromTimeline() {
+        public virtual void OnBeginRemovedFromTimeline() {
         }
 
-        public void OnRemovedFromTimeline() {
+        public virtual void OnRemovedFromTimeline() {
             this.displayNameBinder.Detatch();
             this.trackColourBinder.Detatch();
         }

@@ -14,6 +14,7 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -96,11 +97,23 @@
     <Compile Include="AttachedProperties\TextBoxHelper.cs" />
     <Compile Include="AttachedProperties\ToggleButtonHelper.cs" />
     <Compile Include="AttachedProperties\TopmostFocus.cs" />
+    <Compile Include="Editors\Controls\BasicBinder.cs" />
     <Compile Include="Editors\Controls\Binder.cs" />
     <Compile Include="Editors\Controls\CancellableThumb.cs" />
     <Compile Include="Editors\Controls\GlyphGenerator.cs" />
     <Compile Include="Editors\Controls\IClipControl.cs" />
     <Compile Include="Editors\Controls\ITrackControl.cs" />
+    <Compile Include="Editors\Controls\Dragger\EditCompletedEventArgs.cs" />
+    <Compile Include="Editors\Controls\Dragger\EditCompletedEventHandler.cs" />
+    <Compile Include="Editors\Controls\Dragger\EditStartEventArgs.cs" />
+    <Compile Include="Editors\Controls\Dragger\EditStartEventHandler.cs" />
+    <Compile Include="Editors\Controls\Dragger\HorizontalIncrement.cs" />
+    <Compile Include="Editors\Controls\Dragger\IChangeMapper.cs" />
+    <Compile Include="Editors\Controls\Dragger\IValueFormatter.cs" />
+    <Compile Include="Editors\Controls\Dragger\IValuePreProcessor.cs" />
+    <Compile Include="Editors\Controls\Dragger\NumberDragger.cs" />
+    <Compile Include="Editors\Controls\Dragger\ValueStringFormatter.cs" />
+    <Compile Include="Editors\Controls\Dragger\VerticalIncrement.cs" />
     <Compile Include="Editors\Controls\Timelines\PlayHeadControl.cs" />
     <Compile Include="Editors\Controls\Timelines\PlayheadPositionTextControl.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineClipControl.cs" />
@@ -111,9 +124,12 @@
     <Compile Include="Editors\Controls\Timelines\TimelineTrackListBox.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineTrackListBoxItem.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineTrackListBoxItemContent.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineTrackListBoxItemContent_Video.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineTrackListBoxItemPanel.cs" />
-    <Compile Include="Editors\Controls\Viewports\AsyncEditorViewPort.cs" />
-    <Compile Include="Editors\Controls\Viewports\FreeMoveViewPortV2.cs" />
+    <Compile Include="Editors\Controls\Timelines\ViewModels\TrackListTrackViewModel.cs" />
+    <Compile Include="Editors\Controls\Timelines\ViewModels\TrackListVideoTrackViewModel.cs" />
+    <Compile Include="Editors\Controls\Viewports\VideoEditorViewPortPreview.cs" />
+    <Compile Include="Editors\Controls\Viewports\FreeMoveViewPort.cs" />
     <Compile Include="Editors\Controls\Viewports\SKAsyncViewPort.cs" />
     <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\HorizontalRulerManager.cs" />
     <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\LeftRulerManager.cs" />
@@ -130,11 +146,23 @@
     <Compile Include="Editors\Factories\ReflectiveObjectFactory.cs" />
     <Compile Include="Editors\Factories\ObjectFactory.cs" />
     <Compile Include="Editors\Factories\TrackFactory.cs" />
+    <Compile Include="Editors\Media\MediaSource.cs" />
+    <Compile Include="Editors\Media\MediaSourceTrack.cs" />
+    <Compile Include="Editors\Media\Images\ImageMediaSource.cs" />
+    <Compile Include="Editors\Media\Images\ImageMediaSourceTrack.cs" />
+    <Compile Include="Editors\Media\VideoMediaSourceTrack.cs" />
+    <Compile Include="Editors\PlaybackManager.cs" />
+    <Compile Include="Editors\PlaybackState.cs" />
+    <Compile Include="Editors\Rendering\TrackRenderState.cs" />
+    <Compile Include="Editors\RenderUtils.cs" />
+    <Compile Include="Editors\Timelines\RenderContext.cs" />
     <Compile Include="Editors\Timelines\Tracks\ClipCloneOptions.cs" />
+    <Compile Include="Editors\Timelines\Tracks\ClipRangeCache.cs" />
     <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />
     <Compile Include="Editors\Timelines\ZoomType.cs" />
     <Compile Include="Editors\TimelineUtils.cs" />
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Properties\Annotations1.cs" />
     <Compile Include="Themes\Attached\CornerRadiusHelper.cs" />
     <Compile Include="Themes\Attached\MenuHelper.cs" />
     <Compile Include="Themes\Attached\PasswordBoxHelper.cs" />
@@ -167,6 +195,7 @@
     <Compile Include="Utils\Collections\ReferenceDictionary.cs" />
     <Compile Include="Utils\Collections\TypeMultiTable.cs" />
     <Compile Include="Utils\CollectionUtils.cs" />
+    <Compile Include="Utils\CursorUtils.cs" />
     <Compile Include="Utils\DispatcherCallback.cs" />
     <Compile Include="Utils\DispatcherUtils.cs" />
     <Compile Include="Utils\DisposalException.cs" />
@@ -291,6 +320,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Editors\Controls\Dragger\NumberDraggerStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Editors\Controls\TimelineControls.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

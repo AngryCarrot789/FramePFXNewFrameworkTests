@@ -10,11 +10,14 @@ using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void TrackEventHandler(Track track);
+
     public delegate void TrackClipIndexEventHandler(Track track, Clip clip, int index);
+
     public delegate void ClipMovedEventHandler(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex);
 
     public abstract class Track : IDestroy {
         private readonly List<Clip> clips;
+        private readonly ClipRangeCache cache;
         private double height = 60d;
         private string displayName = "Track";
         private SKColor colour;
@@ -61,79 +64,18 @@ namespace FramePFX.Editors.Timelines.Tracks {
             }
         }
 
-        private static readonly Random Rnd = new Random();
-
-        private static readonly SKColor[] Colours = new SKColor[] {
-            SKColors.Black,
-            SKColors.Brown,
-            SKColors.CadetBlue,
-            SKColors.Chocolate,
-            SKColors.Coral,
-            SKColors.CornflowerBlue,
-            SKColors.Crimson,
-            SKColors.DarkBlue,
-            SKColors.DarkCyan,
-            SKColors.DarkGoldenrod,
-            SKColors.DarkGray,
-            SKColors.DarkGreen,
-            SKColors.DarkKhaki,
-            SKColors.DarkMagenta,
-            SKColors.DarkOliveGreen,
-            SKColors.DarkOrange,
-            SKColors.DarkOrchid,
-            SKColors.DarkRed,
-            SKColors.DarkSalmon,
-            SKColors.DarkSlateBlue,
-            SKColors.DarkSlateGray,
-            SKColors.DarkViolet,
-            SKColors.DeepPink,
-            SKColors.DeepSkyBlue,
-            SKColors.DimGray,
-            SKColors.DodgerBlue,
-            SKColors.Firebrick,
-            SKColors.ForestGreen,
-            SKColors.Fuchsia,
-            SKColors.Gray,
-            SKColors.Green,
-            SKColors.HotPink,
-            SKColors.IndianRed,
-            SKColors.Indigo,
-            SKColors.Magenta,
-            SKColors.Maroon,
-            SKColors.MediumPurple,
-            SKColors.MediumSlateBlue,
-            SKColors.MediumVioletRed,
-            SKColors.MidnightBlue,
-            SKColors.Navy,
-            SKColors.Olive,
-            SKColors.OliveDrab,
-            SKColors.Orange,
-            SKColors.OrangeRed,
-            SKColors.Orchid,
-            SKColors.PaleVioletRed,
-            SKColors.Peru,
-            SKColors.Plum,
-            SKColors.PowderBlue,
-            SKColors.Purple,
-            SKColors.RosyBrown,
-            SKColors.RoyalBlue,
-            SKColors.SaddleBrown,
-            SKColors.SeaGreen,
-            SKColors.Sienna,
-            SKColors.SkyBlue,
-            SKColors.SlateBlue,
-            SKColors.SlateGray,
-            SKColors.SteelBlue,
-            SKColors.Teal,
-            SKColors.Thistle,
-            SKColors.Tomato,
-        };
+        public long LargestFrameInUse => this.cache.LargestActiveFrame;
 
         protected Track() {
             this.clips = new List<Clip>();
             this.Clips = new ReadOnlyCollection<Clip>(this.clips);
-            // this.colour = new SKColor(255, (byte) Rnd.Next(256), (byte) Rnd.Next(256), (byte) Rnd.Next(256));
-            this.colour = Colours[Rnd.Next(Colours.Length)];
+            this.cache = new ClipRangeCache();
+            this.cache.FrameDataChanged += this.OnRangeCachedFrameDataChanged;
+            this.colour = RenderUtils.RandomColour();
+        }
+
+        private void OnRangeCachedFrameDataChanged(ClipRangeCache handler) {
+            this.Timeline?.UpdateLargestFrame();
         }
 
         public Track Clone() => this.Clone(TrackCloneOptions.Default);
@@ -162,6 +104,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
             if (this.clips.Contains(clip))
                 throw new InvalidOperationException("This track already contains the clip");
             this.clips.Insert(index, clip);
+            this.cache.OnClipAdded(clip);
             Clip.OnAddedToTrack(clip, this);
             this.ClipAdded?.Invoke(this, clip, index);
         }
@@ -177,6 +120,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public void RemoveClipAt(int index) {
             Clip clip = this.clips[index];
             this.clips.RemoveAt(index);
+            this.cache.OnClipRemoved(clip);
             Clip.OnRemovedFromTrack(clip, this);
             this.ClipRemoved?.Invoke(this, clip, index);
         }
@@ -188,7 +132,9 @@ namespace FramePFX.Editors.Timelines.Tracks {
                 throw new ArgumentOutOfRangeException(nameof(dstIndex), "dstIndex is out of range");
             Clip clip = this.clips[srcIndex];
             this.clips.RemoveAt(srcIndex);
+            this.cache.OnClipRemoved(clip);
             dstTrack.clips.Insert(dstIndex, clip);
+            dstTrack.cache.OnClipAdded(clip);
             Clip.OnMovedToTrack(clip, this, dstTrack);
             this.ClipMovedTracks?.Invoke(clip, this, srcIndex, dstTrack, dstIndex);
             dstTrack.ClipMovedTracks?.Invoke(clip, this, srcIndex, dstTrack, dstIndex);
@@ -200,6 +146,22 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public abstract bool IsClipTypeAccepted(Type type);
 
+        public bool IsRegionEmpty(FrameSpan span) => this.cache.IsRegionEmpty(span);
+
+        public Clip GetClipAtFrame(long frame) => this.cache.GetPrimaryClipAt(frame);
+
+        public virtual void Destroy() {
+            for (int i = this.clips.Count - 1; i >= 0; i--) {
+                Clip clip = this.clips[i];
+                clip.Destroy();
+                this.RemoveClipAt(i);
+            }
+        }
+
+        public override string ToString() {
+            return $"{this.GetType().Name} ({this.clips.Count.ToString()} clips between {this.cache.SmallestActiveFrame.ToString()} and {this.cache.LargestActiveFrame.ToString()})";
+        }
+
         internal static void OnAddedToTimeline(Track track, Timeline timeline) {
             track.Timeline = timeline;
         }
@@ -208,12 +170,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
             track.Timeline = null;
         }
 
-        public virtual void Destroy() {
-            for (int i = this.clips.Count - 1; i >= 0; i--) {
-                Clip clip = this.clips[i];
-                clip.Destroy();
-                this.RemoveClipAt(i);
-            }
+        internal static void OnClipSpanChanged(Clip clip, FrameSpan oldSpan) {
+            clip.Track?.cache.OnSpanChanged(clip, oldSpan);
         }
     }
 }

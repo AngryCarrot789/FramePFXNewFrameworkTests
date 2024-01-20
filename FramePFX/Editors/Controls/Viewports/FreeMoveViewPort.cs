@@ -11,7 +11,7 @@ using System.Windows.Media;
 using System.Windows;
 
 namespace FramePFX.Editors.Controls.Viewports {
-    public class FreeMoveViewPortV2 : Border {
+    public class FreeMoveViewPort : Border {
         private static readonly object ZeroDoubleBoxed = 0d;
 
         #region Dependency Properties
@@ -20,62 +20,62 @@ namespace FramePFX.Editors.Controls.Viewports {
             DependencyProperty.Register(
                 "MinimumZoomScale",
                 typeof(double),
-                typeof(FreeMoveViewPortV2),
+                typeof(FreeMoveViewPort),
                 new FrameworkPropertyMetadata(
                     0.05d,
                     FrameworkPropertyMetadataOptions.AffectsMeasure,
-                    (d, e) => OnMinimumZoomChanged((FreeMoveViewPortV2)d, (double)e.OldValue, (double)e.NewValue),
+                    (d, e) => OnMinimumZoomChanged((FreeMoveViewPort)d, (double)e.OldValue, (double)e.NewValue),
                     CoerceMinimumZoom));
 
         public static readonly DependencyProperty MaximumZoomScaleProperty =
             DependencyProperty.Register(
                 "MaximumZoomScale",
                 typeof(double),
-                typeof(FreeMoveViewPortV2),
+                typeof(FreeMoveViewPort),
                 new FrameworkPropertyMetadata(
                     double.PositiveInfinity,
                     FrameworkPropertyMetadataOptions.AffectsMeasure,
-                    (d, e) => OnMaximumZoomChanged((FreeMoveViewPortV2)d, (double)e.OldValue, (double)e.NewValue),
+                    (d, e) => OnMaximumZoomChanged((FreeMoveViewPort)d, (double)e.OldValue, (double)e.NewValue),
                     CoerceMaximumZoom));
 
         public static readonly DependencyProperty ZoomScaleProperty =
             DependencyProperty.Register(
                 "ZoomScale",
                 typeof(double),
-                typeof(FreeMoveViewPortV2),
+                typeof(FreeMoveViewPort),
                 new FrameworkPropertyMetadata(
                     1d,
                     FrameworkPropertyMetadataOptions.AffectsMeasure,
-                    (d, e) => OnZoomChanged((FreeMoveViewPortV2)d, (double)e.OldValue, (double)e.NewValue),
+                    (d, e) => OnZoomChanged((FreeMoveViewPort)d, (double)e.OldValue, (double)e.NewValue),
                     CoerceZoom));
 
         public static readonly DependencyProperty HorizontalOffsetProperty =
             DependencyProperty.Register(
                 "HorizontalOffset",
                 typeof(double),
-                typeof(FreeMoveViewPortV2),
+                typeof(FreeMoveViewPort),
                 new FrameworkPropertyMetadata(
                     ZeroDoubleBoxed,
                     FrameworkPropertyMetadataOptions.AffectsMeasure,
-                    (d, e) => OnHorizontalOffsetChanged((FreeMoveViewPortV2)d, (double)e.OldValue, (double)e.NewValue),
+                    (d, e) => OnHorizontalOffsetChanged((FreeMoveViewPort)d, (double)e.OldValue, (double)e.NewValue),
                     CoerceHorizontalOffset));
 
         public static readonly DependencyProperty VerticalOffsetProperty =
             DependencyProperty.Register(
                 "VerticalOffset",
                 typeof(double),
-                typeof(FreeMoveViewPortV2),
+                typeof(FreeMoveViewPort),
                 new FrameworkPropertyMetadata(
                     ZeroDoubleBoxed,
                     FrameworkPropertyMetadataOptions.AffectsMeasure,
-                    (d, e) => OnVerticalOffsetChanged((FreeMoveViewPortV2)d, (double)e.OldValue, (double)e.NewValue),
+                    (d, e) => OnVerticalOffsetChanged((FreeMoveViewPort)d, (double)e.OldValue, (double)e.NewValue),
                     CoerceVerticalOffset));
 
         public static readonly DependencyProperty PanToCursorOnUserZoomProperty =
             DependencyProperty.Register(
                 "PanToCursorOnUserZoom",
                 typeof(bool),
-                typeof(FreeMoveViewPortV2),
+                typeof(FreeMoveViewPort),
                 new PropertyMetadata(BoolBox.True));
 
         #endregion
@@ -164,7 +164,7 @@ namespace FramePFX.Editors.Controls.Viewports {
         private ContainerVisual _internalVisual;
         private Point lastMousePoint = new Point();
 
-        public FreeMoveViewPortV2() {
+        public FreeMoveViewPort() {
             this.Loaded += this.OnLoaded;
             this.PreviewMouseWheel += this.OnPreviewMouseWheel;
             this.Background = Brushes.Transparent;
@@ -363,26 +363,26 @@ namespace FramePFX.Editors.Controls.Viewports {
             return value;
         }
 
-        private static void OnMinimumZoomChanged(FreeMoveViewPortV2 port, double oldValue, double newValue) {
+        private static void OnMinimumZoomChanged(FreeMoveViewPort port, double oldValue, double newValue) {
             port.CoerceValue(MaximumZoomScaleProperty);
             port.CoerceValue(ZoomScaleProperty);
             port.OnMinimumZoomChanged(oldValue, newValue);
         }
 
-        private static void OnMaximumZoomChanged(FreeMoveViewPortV2 port, double oldValue, double newValue) {
+        private static void OnMaximumZoomChanged(FreeMoveViewPort port, double oldValue, double newValue) {
             port.CoerceValue(ZoomScaleProperty);
             port.OnMaximumZoomChanged(oldValue, newValue);
         }
 
-        private static void OnZoomChanged(FreeMoveViewPortV2 port, double oldValue, double newValue) {
+        private static void OnZoomChanged(FreeMoveViewPort port, double oldValue, double newValue) {
             port.OnZoomChanged(oldValue, newValue);
         }
 
-        private static void OnHorizontalOffsetChanged(FreeMoveViewPortV2 port, double oldValue, double newValue) {
+        private static void OnHorizontalOffsetChanged(FreeMoveViewPort port, double oldValue, double newValue) {
             port.OnHorizontalOffsetChanged(oldValue, newValue);
         }
 
-        private static void OnVerticalOffsetChanged(FreeMoveViewPortV2 port, double oldValue, double newValue) {
+        private static void OnVerticalOffsetChanged(FreeMoveViewPort port, double oldValue, double newValue) {
             port.OnVerticalOffsetChanged(oldValue, newValue);
         }
 

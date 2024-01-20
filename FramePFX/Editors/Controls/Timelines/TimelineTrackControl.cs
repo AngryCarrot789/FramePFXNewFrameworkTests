@@ -132,14 +132,17 @@ namespace FramePFX.Editors.Controls.Timelines {
             brush.StartPoint = new Point(0, 0);
             brush.EndPoint = new Point(1, 0);
 
-            const byte sub = 40;
+            // const byte sub = 40;
+            const byte sub = 80;
             Color primary = Color.FromArgb(col.Alpha, col.Red, col.Green, col.Blue);
             Color secondary = Color.FromArgb(col.Alpha, (byte) Math.Max(col.Red - sub, 0), (byte) Math.Max(col.Green - sub, 0), (byte) Math.Max(col.Blue - sub, 0));
 
             brush.GradientStops.Clear();
-            brush.GradientStops.Add(new GradientStop(secondary, 0.0));
-            brush.GradientStops.Add(new GradientStop(primary, 0.3));
-            brush.GradientStops.Add(new GradientStop(primary, 0.7));
+            // brush.GradientStops.Add(new GradientStop(secondary, 0.0));
+            // brush.GradientStops.Add(new GradientStop(primary, 0.3));
+            // brush.GradientStops.Add(new GradientStop(primary, 0.7));
+            // brush.GradientStops.Add(new GradientStop(secondary, 1.0));
+            brush.GradientStops.Add(new GradientStop(primary, 0.0));
             brush.GradientStops.Add(new GradientStop(secondary, 1.0));
         }
 

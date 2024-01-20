@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using FramePFX.Editors.Timelines.Tracks;
@@ -10,7 +11,12 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TimelineTrackListBoxItem(Track track) {
             this.Track = track;
-            this.Content = new TimelineTrackListBoxItemContent(this);
+            if (track is VideoTrack) {
+                this.Content = new TimelineTrackListBoxItemContent_Video(this);
+            }
+            else {
+                throw new Exception("Unsupported track type: " + track?.GetType().Name);
+            }
         }
 
         static TimelineTrackListBoxItem() {

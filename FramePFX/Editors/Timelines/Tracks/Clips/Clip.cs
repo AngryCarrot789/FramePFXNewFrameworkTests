@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using FramePFX.Destroying;
 using FramePFX.Editors.Factories;
+using FramePFX.Editors.Media;
 
 namespace FramePFX.Editors.Timelines.Tracks.Clips {
     public delegate void ClipSpanChangedEventHandler(Clip clip, FrameSpan oldSpan, FrameSpan newSpan);
@@ -14,14 +15,15 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
 
         public Track Track { get; private set; }
 
-        public FrameSpan Span {
+        public FrameSpan FrameSpan {
             get => this.span;
             set {
-                FrameSpan oldValue = this.span;
-                if (oldValue == value)
+                FrameSpan oldSpan = this.span;
+                if (oldSpan == value)
                     return;
                 this.span = value;
-                this.SpanChanged?.Invoke(this, oldValue, value);
+                Track.OnClipSpanChanged(this, oldSpan);
+                this.FrameSpanChanged?.Invoke(this, oldSpan, value);
             }
         }
 
@@ -47,7 +49,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
 
         public string FactoryId => ClipFactory.Instance.GetId(this.GetType());
 
-        public event ClipSpanChangedEventHandler SpanChanged;
+        public event ClipSpanChangedEventHandler FrameSpanChanged;
         public event ClipEventHandler DisplayNameChanged;
         public event ClipEventHandler SelectionChanged;
 
@@ -98,7 +100,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
             this.Track.MoveClipToTrack(index, dstTrack, dstIndex);
         }
 
-        public bool IsPlayHeadIntersecting(long playHead) {
+        public bool IntersectsFrameAt(long playHead) {
             return this.span.Intersects(playHead);
         }
 
@@ -115,13 +117,13 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
                 throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot exceed our span's range");
             long begin = this.span.Begin;
             FrameSpan spanLeft = FrameSpan.FromIndex(begin, begin + offset);
-            FrameSpan spanRight = FrameSpan.FromIndex(spanLeft.EndIndex, this.Span.EndIndex);
+            FrameSpan spanRight = FrameSpan.FromIndex(spanLeft.EndIndex, this.FrameSpan.EndIndex);
 
             Clip clone = this.Clone();
             this.Track.AddClip(clone);
 
-            this.Span = spanLeft;
-            clone.Span = spanRight;
+            this.FrameSpan = spanLeft;
+            clone.FrameSpan = spanRight;
         }
 
         public virtual void Destroy() {

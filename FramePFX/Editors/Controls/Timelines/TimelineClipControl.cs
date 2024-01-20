@@ -112,8 +112,8 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public void OnAdding() {
-            this.Model.SpanChanged += this.OnClipSpanChanged;
-            this.SetSizeFromSpan(this.Model.Span);
+            this.Model.FrameSpanChanged += this.OnClipSpanChanged;
+            this.SetSizeFromSpan(this.Model.FrameSpan);
         }
 
         public void OnAdded() {
@@ -121,7 +121,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public void OnRemoving() {
-            this.Model.SpanChanged -= this.OnClipSpanChanged;
+            this.Model.FrameSpanChanged -= this.OnClipSpanChanged;
         }
 
         public void OnRemoved() {
@@ -249,7 +249,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             if (this.dragState != DragState.None) {
                 double zoom = this.Model.Track?.Timeline?.Zoom ?? 1.0;
                 Vector mdif = mpos - this.clickPoint;
-                FrameSpan oldSpan = this.Model.Span;
+                FrameSpan oldSpan = this.Model.FrameSpan;
                 if (this.dragState == DragState.DragBody) {
                     if (Math.Abs(mdif.X) >= 1.0d) {
                         long offset = (long) Math.Round(mdif.X / zoom);
@@ -269,7 +269,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                                 }
 
                                 this.isUpdatingFrameSpanFromDrag = true;
-                                this.Model.Span = newSpan;
+                                this.Model.FrameSpan = newSpan;
                                 this.isUpdatingFrameSpanFromDrag = false;
                             }
                         }
@@ -321,7 +321,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                                     }
 
                                     this.isUpdatingFrameSpanFromDrag = true;
-                                    this.Model.Span = newSpan;
+                                    this.Model.FrameSpan = newSpan;
                                     this.isUpdatingFrameSpanFromDrag = false;
 
                                     // account for there being no "grip" control aligned to the right side;
@@ -351,7 +351,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                                     }
 
                                     this.isUpdatingFrameSpanFromDrag = true;
-                                    this.Model.Span = newSpan;
+                                    this.Model.FrameSpan = newSpan;
                                     this.isUpdatingFrameSpanFromDrag = false;
                                 }
                             }
@@ -392,9 +392,10 @@ namespace FramePFX.Editors.Controls.Timelines {
             // }
             // if (this.formattedText != null)
             //     dc.DrawText(this.formattedText, new Point());
-
+            
+            // glyph run is way faster than using formatted text
             if (this.glyphRun == null && this.DisplayName is string str)
-                this.glyphRun = GlyphGenerator.CreateText(str, 12d, this);
+                this.glyphRun = GlyphGenerator.CreateText(str, 12d, this, new Point(3, 12));
             if (this.glyphRun != null) {
                 dc.PushClip(this.renderSizeRectGeometry);
                 dc.DrawGlyphRun(Brushes.White, this.glyphRun);

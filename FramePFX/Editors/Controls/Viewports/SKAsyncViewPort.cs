@@ -10,6 +10,9 @@ using SkiaSharp;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace FramePFX.Editors.Controls.Viewports {
+    /// <summary>
+    /// A control that allows the use of SkiaSharp to draw into a <see cref="BitmapImage"/> which gets rendered as this control's content
+    /// </summary>
     public class SKAsyncViewPort : FrameworkElement {
         public static readonly DependencyProperty UseNearestNeighbourRenderingProperty =
             DependencyProperty.Register(
@@ -30,24 +33,12 @@ namespace FramePFX.Editors.Controls.Viewports {
         /// <remarks>The canvas size may be different to the view size as a result of the current device's pixel density.</remarks>
         public SKSize CanvasSize { get; private set; }
 
-        /// <summary>Gets or sets a value indicating whether the drawing canvas should be resized on high resolution displays.</summary>
-        /// <value />
-        /// <remarks>By default, when false, the canvas is resized to 1 canvas pixel per display pixel. When true, the canvas is resized to device independent pixels, and then stretched to fill the view. Although performance is improved and all objects are the same size on different display densities, blurring and pixelation may occur.</remarks>
-        public bool IgnorePixelScaling {
-            get => this.ignorePixelScaling;
-            set {
-                this.ignorePixelScaling = value;
-                this.InvalidateVisual();
-            }
-        }
-
         public SKImageInfo FrameInfo => this.skImageInfo;
 
         private volatile SKSurface targetSurface;
         private SKImageInfo skImageInfo;
         private readonly bool designMode;
         private WriteableBitmap bitmap;
-        private bool ignorePixelScaling;
         private bool isRendering;
 
         private readonly GameWindow gameWindow;
@@ -82,8 +73,7 @@ namespace FramePFX.Editors.Controls.Viewports {
             }
 
             SKSizeI scaledSize = this.CreateSize(out SKSizeI unscaledSize, out double scaleX, out double scaleY, source);
-            SKSizeI size = this.IgnorePixelScaling ? unscaledSize : scaledSize;
-            this.CanvasSize = size;
+            this.CanvasSize = scaledSize;
             if (scaledSize.Width <= 0 || scaledSize.Height <= 0) {
                 surface = null;
                 return false;
@@ -107,16 +97,6 @@ namespace FramePFX.Editors.Controls.Viewports {
                 surface = this.targetSurface;
             }
 
-            // bitmap.Lock();
-            // this.targetSurface = surface = SKSurface.Create(frameInfo, bitmap.BackBuffer, bitmap.BackBufferStride);
-            // // bitmap.Unlock();
-
-            if (this.IgnorePixelScaling) {
-                SKCanvas canvas = surface.Canvas;
-                canvas.Scale((float)scaleX, (float)scaleY);
-                canvas.Save();
-            }
-
             this.isRendering = true;
             this.OnBeginRender();
             return true;
@@ -134,8 +114,6 @@ namespace FramePFX.Editors.Controls.Viewports {
             this.bitmap.AddDirtyRect(new Int32Rect(0, 0, info.Width, info.Height));
             this.bitmap.Unlock();
             this.OnPostEndRender();
-            // this.targetSurface.Dispose();
-            // this.targetSurface = null;
             this.isRendering = false;
             this.InvalidateVisual();
         }

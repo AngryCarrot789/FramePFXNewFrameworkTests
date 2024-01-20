@@ -55,8 +55,8 @@ namespace FramePFX.Editors.Views {
                 }
 
                 long playHead = timeline.PlayHeadPosition;
-                if (selected != null && selected.IsPlayHeadIntersecting(playHead) && playHead != selected.Span.Begin && playHead != selected.Span.EndIndex) {
-                    selected.CutAt(playHead - selected.Span.Begin);
+                if (selected != null && selected.IntersectsFrameAt(playHead) && playHead != selected.FrameSpan.Begin && playHead != selected.FrameSpan.EndIndex) {
+                    selected.CutAt(playHead - selected.FrameSpan.Begin);
                 }
             }
         }
@@ -64,6 +64,7 @@ namespace FramePFX.Editors.Views {
         private void OnEditorChanged(VideoEditor oldEditor, VideoEditor newEditor) {
             if (oldEditor != null) {
                 oldEditor.ProjectChanged -= this.OnEditorProjectChanged;
+                this.ViewPortElement.VideoEditor = null;
             }
 
             if (newEditor != null) {
@@ -71,6 +72,8 @@ namespace FramePFX.Editors.Views {
                 if (newEditor.CurrentProject != null) {
                     this.OnCurrentTimelineChanged(newEditor.CurrentProject.MainTimeline);
                 }
+
+                this.ViewPortElement.VideoEditor = newEditor;
             }
         }
 
@@ -80,6 +83,35 @@ namespace FramePFX.Editors.Views {
 
         private void OnCurrentTimelineChanged(Timeline timeline) {
             this.TheTimeline.Timeline = timeline;
+        }
+
+        private void OnFitToContentClicked(object sender, RoutedEventArgs e) {
+            this.VPViewBox.FitContentToCenter();
+        }
+
+        private void TogglePlayPauseClick(object sender, RoutedEventArgs e) {
+            Timeline timeline = this.Editor?.CurrentProject?.MainTimeline;
+            if (timeline != null) {
+                if (timeline.Playback.PlaybackState == PlaybackState.Play) {
+                    timeline.Playback.Pause();
+                }
+                else {
+                    timeline.Playback.Play(timeline.PlayHeadPosition);
+                }
+            }
+        }
+
+        private void PlayClick(object sender, RoutedEventArgs e) {
+            Timeline timeline = this.Editor?.CurrentProject?.MainTimeline;
+            timeline?.Playback.Play(timeline.PlayHeadPosition);
+        }
+
+        private void PauseClick(object sender, RoutedEventArgs e) {
+            this.Editor?.CurrentProject?.MainTimeline.Playback.Pause();
+        }
+
+        private void StopClick(object sender, RoutedEventArgs e) {
+            this.Editor?.CurrentProject?.MainTimeline.Playback.Stop();
         }
     }
 }
