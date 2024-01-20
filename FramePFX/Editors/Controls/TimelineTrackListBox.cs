@@ -13,12 +13,15 @@ namespace FramePFX.Editors.Controls {
         }
 
         public TimelineTrackListBox() {
-            this.Padding = default;
-            this.BorderThickness = default;
+            this.ItemsPanel = new ItemsPanelTemplate(new FrameworkElementFactory(typeof(TimelineTrackListBoxItemPanel)));
         }
 
         static TimelineTrackListBox() {
             DefaultStyleKeyProperty.OverrideMetadata(typeof (TimelineTrackListBox), new FrameworkPropertyMetadata(typeof(TimelineTrackListBox)));
+        }
+
+        protected override Size MeasureOverride(Size constraint) {
+            return base.MeasureOverride(constraint);
         }
 
         private void OnTimelineChanged(Timeline oldTimeline, Timeline newTimeline) {

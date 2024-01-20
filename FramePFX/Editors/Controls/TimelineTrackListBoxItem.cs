@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using FramePFX.Editors.Timelines.Tracks;
 
 namespace FramePFX.Editors.Controls {
@@ -11,6 +10,7 @@ namespace FramePFX.Editors.Controls {
 
         public TimelineTrackListBoxItem(Track track) {
             this.Track = track;
+            this.Content = new TimelineTrackListBoxItemContent(this);
         }
 
         static TimelineTrackListBoxItem() {
@@ -25,17 +25,21 @@ namespace FramePFX.Editors.Controls {
 
         public void OnBeingAddedToTimeline() {
             this.Track.HeightChanged += this.OnTrackHeightChanged;
+            ((TimelineTrackListBoxItemContent) this.Content).OnBeingAddedToTimeline();
         }
 
         public void OnAddedToTimeline() {
             this.Height = this.Track.Height;
+            ((TimelineTrackListBoxItemContent) this.Content).OnAddedToTimeline();
         }
 
         public void OnBeginRemovedFromTimeline() {
             this.Track.HeightChanged -= this.OnTrackHeightChanged;
+            ((TimelineTrackListBoxItemContent) this.Content).OnBeginRemovedFromTimeline();
         }
 
         public void OnRemovedFromTimeline() {
+            ((TimelineTrackListBoxItemContent) this.Content).OnRemovedFromTimeline();
         }
 
         public void OnIndexMoving(int oldIndex, int newIndex) {

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Security.AccessControl;
+using System.Windows.Media;
 using FramePFX.Destroying;
 using FramePFX.Editors.Timelines.Tracks.Clips;
+using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void TrackEventHandler(Track track);
@@ -13,6 +16,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
         private readonly List<Clip> clips;
         private double height = 60d;
         private string displayName = "Track";
+        private SKColor colour;
 
         public event TrackClipIndexEventHandler ClipAdded;
         public event TrackClipIndexEventHandler ClipRemoved;
@@ -20,6 +24,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public event TrackEventHandler HeightChanged;
         public event TrackEventHandler DisplayNameChanged;
+        public event TrackEventHandler ColourChanged;
 
         public Timeline Timeline { get; private set; }
 
@@ -43,9 +48,89 @@ namespace FramePFX.Editors.Timelines.Tracks {
             }
         }
 
+        public SKColor Colour {
+            get => this.colour;
+            set {
+                if (this.colour == value)
+                    return;
+                this.colour = value;
+                this.ColourChanged?.Invoke(this);
+            }
+        }
+
+        private static readonly Random Rnd = new Random();
+
+        private static readonly SKColor[] Colours = new SKColor[] {
+            SKColors.Black,
+            SKColors.Brown,
+            SKColors.CadetBlue,
+            SKColors.Chocolate,
+            SKColors.Coral,
+            SKColors.CornflowerBlue,
+            SKColors.Crimson,
+            SKColors.DarkBlue,
+            SKColors.DarkCyan,
+            SKColors.DarkGoldenrod,
+            SKColors.DarkGray,
+            SKColors.DarkGreen,
+            SKColors.DarkKhaki,
+            SKColors.DarkMagenta,
+            SKColors.DarkOliveGreen,
+            SKColors.DarkOrange,
+            SKColors.DarkOrchid,
+            SKColors.DarkRed,
+            SKColors.DarkSalmon,
+            SKColors.DarkSlateBlue,
+            SKColors.DarkSlateGray,
+            SKColors.DarkViolet,
+            SKColors.DeepPink,
+            SKColors.DeepSkyBlue,
+            SKColors.DimGray,
+            SKColors.DodgerBlue,
+            SKColors.Firebrick,
+            SKColors.ForestGreen,
+            SKColors.Fuchsia,
+            SKColors.Gray,
+            SKColors.Green,
+            SKColors.HotPink,
+            SKColors.IndianRed,
+            SKColors.Indigo,
+            SKColors.Magenta,
+            SKColors.Maroon,
+            SKColors.MediumPurple,
+            SKColors.MediumSlateBlue,
+            SKColors.MediumVioletRed,
+            SKColors.MidnightBlue,
+            SKColors.Navy,
+            SKColors.Olive,
+            SKColors.OliveDrab,
+            SKColors.Orange,
+            SKColors.OrangeRed,
+            SKColors.Orchid,
+            SKColors.PaleVioletRed,
+            SKColors.Peru,
+            SKColors.Plum,
+            SKColors.PowderBlue,
+            SKColors.Purple,
+            SKColors.RosyBrown,
+            SKColors.RoyalBlue,
+            SKColors.SaddleBrown,
+            SKColors.SeaGreen,
+            SKColors.Sienna,
+            SKColors.SkyBlue,
+            SKColors.SlateBlue,
+            SKColors.SlateGray,
+            SKColors.SteelBlue,
+            SKColors.Teal,
+            SKColors.Thistle,
+            SKColors.Tomato,
+        };
+
         protected Track() {
             this.clips = new List<Clip>();
             this.Clips = new ReadOnlyCollection<Clip>(this.clips);
+            // this.colour = new SKColor(255, (byte) Rnd.Next(256), (byte) Rnd.Next(256), (byte) Rnd.Next(256));
+            this.colour = Colours[Rnd.Next(Colours.Length)];
         }
 
         public void AddClip(Clip clip) => this.InsertClip(this.clips.Count, clip);

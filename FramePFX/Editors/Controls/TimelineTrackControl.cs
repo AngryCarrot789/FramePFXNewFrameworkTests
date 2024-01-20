@@ -1,38 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
-using Expression = System.Linq.Expressions.Expression;
+using SkiaSharp;
 
 namespace FramePFX.Editors.Controls {
     public class TimelineTrackControl : Panel {
+        private static readonly DependencyPropertyKey TrackColourBrushPropertyKey = DependencyProperty.RegisterReadOnly("TrackColourBrush", typeof(Brush), typeof(TimelineTrackControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty TrackColourBrushProperty = TrackColourBrushPropertyKey.DependencyProperty;
+
+        public Brush TrackColourBrush {
+            get => (Brush) this.GetValue(TrackColourBrushProperty);
+            private set => this.SetValue(TrackColourBrushPropertyKey, value);
+        }
+
         private static readonly Random RANDOM_HEADER = new Random();
         private TimelineClipControl clipBeingMoved;
 
-        public TimelineControl Timeline { get; set; }
+        public TimelineSequenceControl Timeline { get; set; }
 
         public Track Track { get; }
-
-        public Brush ClipHeaderColour { get; }
 
         public TimelineTrackControl(Track track) {
             this.HorizontalAlignment = HorizontalAlignment.Stretch;
             this.VerticalAlignment = VerticalAlignment.Top;
 
             this.Track = track;
-            this.ClipHeaderColour = new SolidColorBrush(Color.FromArgb(255, (byte)RANDOM_HEADER.Next(256), (byte)RANDOM_HEADER.Next(256), (byte)RANDOM_HEADER.Next(256)));
-            this.ClipHeaderColour.Freeze();
-
-            this.Background = SystemColors.ControlBrush;
+            this.TrackColourBrush = new SolidColorBrush();
+            this.UpdateTrackColour();
             this.UseLayoutRounding = true;
+        }
+
+        static TimelineTrackControl() {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(TimelineTrackControl), new FrameworkPropertyMetadata(typeof(TimelineTrackControl)));
         }
 
         private void OnClipAdded(Track track, Clip clip, int index) {
@@ -44,6 +46,10 @@ namespace FramePFX.Editors.Controls {
         }
 
         private void OnClipMovedTracks(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex) {
+            // Instead of throwing, we could just remove the track or insert a new track, instead of
+            // trying to re-use existing controls, at the cost of performance.
+            // However, moving clips between tracks in different timelines is not directly supported
+            // so there's no need to support it here
             if (oldTrack == this.Track) {
                 TimelineTrackControl dstTrack = this.Timeline.GetTrackByModel(newTrack);
                 if (dstTrack == null) {
@@ -110,6 +116,11 @@ namespace FramePFX.Editors.Controls {
             return finalSize;
         }
 
+        private void UpdateTrackColour() {
+            SKColor col = this.Track.Colour;
+            ((SolidColorBrush) this.TrackColourBrush).Color = Color.FromArgb(col.Alpha, col.Red, col.Green, col.Blue);
+        }
+
         protected override void OnRender(DrawingContext dc) {
             base.OnRender(dc);
             // Size size = this.RenderSize;
@@ -123,6 +134,7 @@ namespace FramePFX.Editors.Controls {
             this.Track.ClipRemoved += this.OnClipRemoved;
             this.Track.ClipMovedTracks += this.OnClipMovedTracks;
             this.Track.HeightChanged += this.OnTrackHeightChanged;
+            this.Track.ColourChanged += this.OnTrackColourChanged;
             int i = 0;
             foreach (Clip clip in this.Track.Clips) {
                 this.InsertClipInternal(clip, i++);
@@ -138,10 +150,7 @@ namespace FramePFX.Editors.Controls {
             this.Track.ClipRemoved -= this.OnClipRemoved;
             this.Track.ClipMovedTracks -= this.OnClipMovedTracks;
             this.Track.HeightChanged -= this.OnTrackHeightChanged;
-        }
-
-        private void OnTrackHeightChanged(Track track) {
-            this.InvalidateMeasure();
+            this.Track.ColourChanged -= this.OnTrackColourChanged;
         }
 
         public void OnRemovedFromTimeline() {
@@ -162,6 +171,19 @@ namespace FramePFX.Editors.Controls {
             }
 
             this.InvalidateArrange();
+        }
+
+        private void OnTrackHeightChanged(Track track) {
+            this.InvalidateMeasure();
+            this.Timeline?.InvalidateVisual();
+        }
+
+        private void OnTrackColourChanged(Track track) {
+            this.UpdateTrackColour();
+            this.InvalidateVisual();
+            foreach (TimelineClipControl clip in this.InternalChildren) {
+                clip.InvalidateVisual();
+            }
         }
     }
 }

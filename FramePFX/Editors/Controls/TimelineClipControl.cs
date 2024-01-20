@@ -1,23 +1,20 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Converters;
-using System.Windows.Threading;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 
 namespace FramePFX.Editors.Controls {
-    public class TimelineClipControl : FrameworkElement {
-        private const double MinDragInitPx = 5d;
-        private const double EdgeGripSize = 8d;
-        private const double HeaderGripSize = 20;
+    public class TimelineClipControl : Control {
+        public static readonly DependencyProperty DisplayNameProperty = DependencyProperty.Register("DisplayName", typeof(string), typeof(TimelineClipControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
-        private long frameBegin;
-        private long frameDuration;
+        public string DisplayName {
+            get => (string) this.GetValue(DisplayNameProperty);
+            set => this.SetValue(DisplayNameProperty, value);
+        }
 
         public TimelineTrackControl Track { get; set; }
 
@@ -27,7 +24,6 @@ namespace FramePFX.Editors.Controls {
                 this.frameBegin = value;
                 this.InvalidateMeasure();
                 this.InvalidateArrange();
-                // this.InvalidateVisual();
                 this.Track.InvalidateArrange();
             }
         }
@@ -38,7 +34,6 @@ namespace FramePFX.Editors.Controls {
                 this.frameDuration = value;
                 this.InvalidateMeasure();
                 this.InvalidateArrange();
-                // this.InvalidateVisual();
                 this.Track.InvalidateArrange();
             }
         }
@@ -49,15 +44,59 @@ namespace FramePFX.Editors.Controls {
 
         public Clip Model { get; }
 
+        private const double MinDragInitPx = 5d;
+        private const double EdgeGripSize = 8d;
+        public const double HeaderSize = 20;
+
+        private long frameBegin;
+        private long frameDuration;
+
         private DragState dragState;
         private Point clickPoint;
         private Point lastMousePos;
         private bool isUpdatingFrameSpanFromDrag;
 
+        private readonly Binder<Clip> displayNameBinder;
+
+        private GlyphRun glyphRun;
+        private FormattedText formattedText;
+        private readonly RectangleGeometry renderSizeRectGeometry;
+
         public TimelineClipControl(Clip clip) {
             this.VerticalAlignment = VerticalAlignment.Stretch;
             this.Model = clip;
-            this.UseLayoutRounding = true;
+            this.displayNameBinder = Binder<Clip>.Updaters(this, DisplayNameProperty, nameof(VideoClip.DisplayNameChanged), UpdateView, UpdateModel);
+            this.GotFocus += this.OnGotFocus;
+            this.LostFocus += this.OnLostFocus;
+            this.renderSizeRectGeometry = new RectangleGeometry();
+        }
+
+        static TimelineClipControl() {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(TimelineClipControl), new FrameworkPropertyMetadata(typeof(TimelineClipControl)));
+        }
+
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
+            base.OnRenderSizeChanged(sizeInfo);
+            this.renderSizeRectGeometry.Rect = new Rect(sizeInfo.NewSize);
+        }
+
+        private void OnGotFocus(object sender, RoutedEventArgs e) {
+            Panel.SetZIndex(this, 2);
+        }
+
+        private void OnLostFocus(object sender, RoutedEventArgs e) {
+            KeyboardFocusChangedEventArgs ex;
+            Panel.SetZIndex(this, 0);
+        }
+
+        private static void UpdateView(Binder<Clip> obj) {
+            ((TimelineClipControl) obj.Element).glyphRun = null;
+            ((TimelineClipControl) obj.Element).formattedText = null;
+            ((TimelineClipControl) obj.Element).DisplayName = obj.Model.DisplayName;
+        }
+
+        private static void UpdateModel(Binder<Clip> obj) {
+            obj.Model.DisplayName = ((TimelineClipControl) obj.Element).DisplayName;
         }
 
         #region Model Binding
@@ -77,7 +116,7 @@ namespace FramePFX.Editors.Controls {
         }
 
         public void OnAdded() {
-
+            this.displayNameBinder.Attach(this.Model);
         }
 
         public void OnRemoving() {
@@ -85,17 +124,20 @@ namespace FramePFX.Editors.Controls {
         }
 
         public void OnRemoved() {
-
+            this.displayNameBinder.Detatch();
         }
 
         #endregion
 
         protected override void OnMouseDown(MouseButtonEventArgs e) {
             base.OnMouseDown(e);
+            this.Focus();
             this.clickPoint = e.GetPosition(this);
             this.SetDragState(DragState.Initiated);
             if (!this.IsMouseCaptured)
                 this.CaptureMouse();
+
+            e.Handled = true;
         }
 
         protected override void OnMouseUp(MouseButtonEventArgs e) {
@@ -103,6 +145,7 @@ namespace FramePFX.Editors.Controls {
             this.SetDragState(DragState.None);
             this.SetCursorForMousePoint(e.GetPosition(this));
             this.ReleaseMouseCapture();
+            e.Handled = true;
         }
 
         private void SetDragState(DragState state) {
@@ -146,7 +189,7 @@ namespace FramePFX.Editors.Controls {
             else if (mpos.X >= (renderSize.Width - EdgeGripSize)) {
                 this.SetCursorForDragState(DragState.DragRightEdge, true);
             }
-            else if (mpos.Y <= HeaderGripSize) {
+            else if (mpos.Y <= HeaderSize) {
                 this.SetCursorForDragState(DragState.DragBody, true);
             }
             else {
@@ -177,7 +220,7 @@ namespace FramePFX.Editors.Controls {
             }
 
             this.SetCursorForMousePoint(mpos);
-            TimelineControl timelineCtrl;
+            TimelineSequenceControl timelineCtrl;
             if (this.Track == null || (timelineCtrl = this.Track.Timeline) == null) {
                 return;
             }
@@ -193,7 +236,7 @@ namespace FramePFX.Editors.Controls {
                 else if (this.clickPoint.X >= (this.ActualWidth - EdgeGripSize)) {
                     this.SetDragState(DragState.DragRightEdge);
                 }
-                else if (this.clickPoint.Y <= HeaderGripSize) {
+                else if (this.clickPoint.Y <= HeaderSize) {
                     this.SetDragState(DragState.DragBody);
                 }
             }
@@ -254,7 +297,7 @@ namespace FramePFX.Editors.Controls {
                         if (offset != 0) {
                             if (this.dragState == DragState.DragRightEdge) {
                                 // Clamps the offset to ensure we don't end up with a negative duration
-                                if ((oldSpan.EndIndex + offset) < oldSpan.Begin) {
+                                if ((oldSpan.EndIndex + offset) <= oldSpan.Begin) {
                                     // add 1 to ensure clip is always 1 frame long, just because ;)
                                     offset = -oldSpan.Duration + 1;
                                 }
@@ -316,19 +359,41 @@ namespace FramePFX.Editors.Controls {
         public bool IsMovingBetweenTracks { get; set; }
 
         protected override Size MeasureOverride(Size availableSize) {
-            return new Size(this.PixelWidth, 0d);
+            Size size = new Size(this.PixelWidth, HeaderSize);
+            base.MeasureOverride(size);
+            return size;
         }
 
         protected override Size ArrangeOverride(Size finalSize) {
-            return new Size(this.PixelWidth, finalSize.Height);
+            Size size = new Size(this.PixelWidth, finalSize.Height);
+            base.ArrangeOverride(size);
+            return size;
         }
 
         protected override void OnRender(DrawingContext dc) {
             base.OnRender(dc);
             Rect rect = new Rect(new Point(), this.RenderSize);
-            dc.DrawRectangle(SystemColors.ControlDarkBrush, null, rect);
-            if (this.Track?.ClipHeaderColour is Brush headerBrush) {
-                dc.DrawRectangle(headerBrush, null, new Rect(0, 0, rect.Width, Math.Min(rect.Height, HeaderGripSize)));
+            if (this.Background is Brush background) {
+                dc.DrawRectangle(background, null, rect);
+            }
+
+            if (this.Track?.TrackColourBrush is Brush headerBrush) {
+                dc.DrawRectangle(headerBrush, null, new Rect(0, 0, rect.Width, Math.Min(rect.Height, HeaderSize)));
+            }
+
+            // if (this.formattedText == null && this.DisplayName is string str) {
+            //     Typeface typeface = new Typeface(this.FontFamily, this.FontStyle, this.FontWeight, this.FontStretch);
+            //     this.formattedText = new FormattedText(str, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 12d, this.Foreground, 12d);
+            // }
+            // if (this.formattedText != null)
+            //     dc.DrawText(this.formattedText, new Point());
+
+            if (this.glyphRun == null && this.DisplayName is string str)
+                this.glyphRun = GlyphGenerator.CreateText(str, 12d, this);
+            if (this.glyphRun != null) {
+                dc.PushClip(this.renderSizeRectGeometry);
+                dc.DrawGlyphRun(Brushes.White, this.glyphRun);
+                dc.Pop();
             }
 
             // Pen pen = new Pen(Brushes.Black, 1d);

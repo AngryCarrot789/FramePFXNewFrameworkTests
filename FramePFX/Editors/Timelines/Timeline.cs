@@ -9,15 +9,21 @@ namespace FramePFX.Editors.Timelines {
     public delegate void TimelineTrackIndexEventHandler(Timeline timeline, Track track, int index);
     public delegate void TimelineTrackMovedEventHandler(Timeline timeline, Track track, int oldIndex, int newIndex);
     public delegate void TimelineEventHandler(Timeline timeline);
+    public delegate void PlayheadChangedEventHandler(Timeline timeline, long oldValue, long newValue);
+    public delegate void ZoomEventHandler(Timeline timeline, double oldZoom, double newZoom, ZoomType zoomType);
 
     public class Timeline : IDestroy {
         private readonly List<Track> tracks;
         private long totalFrames;
+        private long playHead;
+        private double zoom;
 
         public event TimelineTrackIndexEventHandler TrackAdded;
         public event TimelineTrackIndexEventHandler TrackRemoved;
         public event TimelineTrackMovedEventHandler TrackMoved;
         public event TimelineEventHandler TotalFramesChanged;
+        public event PlayheadChangedEventHandler PlayHeadChanged;
+        public event ZoomEventHandler ZoomTimeline;
 
         public Project Project { get; private set; }
 
@@ -37,13 +43,53 @@ namespace FramePFX.Editors.Timelines {
             }
         }
 
+        /// <summary>
+        /// The position of the play head, in frames
+        /// </summary>
+        public long PlayHeadPosition {
+            get => this.playHead;
+            set {
+                if (this.playHead == value)
+                    return;
+
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Playhead cannot be negative");
+                if (value >= this.totalFrames)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Playhead exceeds the timeline duration range (0 to TotalFrames)");
+
+                long oldPlayHead = this.playHead;
+                this.playHead = value;
+                this.PlayHeadChanged?.Invoke(this, oldPlayHead, value);
+            }
+        }
+
+        public double Zoom => this.zoom;
+
         public Timeline() {
             this.tracks = new List<Track>();
             this.Tracks = new ReadOnlyCollection<Track>(this.tracks);
-            this.totalFrames = 1000L;
+            this.totalFrames = 5000L;
+            this.zoom = 1.0d;
         }
 
-        public void AddTrack(Track clip) => this.InsertTrack(this.tracks.Count, clip);
+        public void SetZoom(double zoom, ZoomType type) {
+            double oldZoom = this.zoom;
+            if (zoom > 200.0) {
+                zoom = 200;
+            }
+            else if (zoom < 0.1) {
+                zoom = 0.1;
+            }
+
+            if (Maths.Equals(oldZoom, zoom)) {
+                return;
+            }
+
+            this.zoom = zoom;
+            this.ZoomTimeline?.Invoke(this, oldZoom, zoom, type);
+        }
+
+        public void AddTrack(Track track) => this.InsertTrack(this.tracks.Count, track);
 
         public void InsertTrack(int index, Track track) {
             if (this.tracks.Contains(track))

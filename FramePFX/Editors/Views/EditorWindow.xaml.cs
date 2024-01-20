@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using FramePFX.Editors.Timelines;
+using FramePFX.Views;
 
 namespace FramePFX.Editors.Views {
     /// <summary>
     /// Interaction logic for EditorWindow.xaml
     /// </summary>
-    public partial class EditorWindow : Window {
+    public partial class EditorWindow : WindowEx {
         public static readonly DependencyProperty EditorProperty = DependencyProperty.Register("Editor", typeof(VideoEditor), typeof(EditorWindow), new PropertyMetadata(null, (o, e) => ((EditorWindow) o).OnEditorChanged((VideoEditor)e.OldValue, (VideoEditor)e.NewValue)));
 
         public VideoEditor Editor {
@@ -36,12 +37,7 @@ namespace FramePFX.Editors.Views {
         }
 
         private void OnCurrentTimelineChanged(Timeline timeline) {
-            this.TimelineElement.Timeline = timeline;
-            this.TrackListElement.Timeline = timeline;
-        }
-
-        private void TrackListElement_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) {
-
+            this.TheTimeline.Timeline = timeline;
         }
     }
 }

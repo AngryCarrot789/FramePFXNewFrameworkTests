@@ -26,26 +26,26 @@ namespace FramePFX.Editors {
             Project project = new Project();
 
             {
-                Track track = new VideoTrack();
-                track.AddClip(new VideoClip() {Span = new FrameSpan(0, 100)});
-                track.AddClip(new VideoClip() {Span = new FrameSpan(150, 100)});
-                track.AddClip(new VideoClip() {Span = new FrameSpan(300, 250)});
+                Track track = new VideoTrack() {DisplayName = "Vid Track 1"};
+                track.AddClip(new VideoClip() {Span = new FrameSpan(0, 100), DisplayName = "Clip 1"});
+                track.AddClip(new VideoClip() {Span = new FrameSpan(150, 100), DisplayName = "Clip 2"});
+                track.AddClip(new VideoClip() {Span = new FrameSpan(300, 250), DisplayName = "Clip 3"});
                 project.MainTimeline.AddTrack(track);
             }
 
             {
-                Track track = new VideoTrack();
-                track.AddClip(new VideoClip() {Span = new FrameSpan(100, 50)});
-                track.AddClip(new VideoClip() {Span = new FrameSpan(150, 200)});
-                track.AddClip(new VideoClip() {Span = new FrameSpan(500, 125)});
+                Track track = new VideoTrack() {DisplayName = "Vid Track 2"};
+                track.AddClip(new VideoClip() {Span = new FrameSpan(100, 50), DisplayName = "Clip 4"});
+                track.AddClip(new VideoClip() {Span = new FrameSpan(150, 200), DisplayName = "Clip 5"});
+                track.AddClip(new VideoClip() {Span = new FrameSpan(500, 125), DisplayName = "Clip 6"});
                 project.MainTimeline.AddTrack(track);
             }
 
             {
-                Track track = new VideoTrack();
-                track.AddClip(new VideoClip() {Span = new FrameSpan(20, 80)});
-                track.AddClip(new VideoClip() {Span = new FrameSpan(150, 100)});
-                track.AddClip(new VideoClip() {Span = new FrameSpan(350, 200)});
+                Track track = new VideoTrack() {DisplayName = "Vid Track 3!!"};
+                track.AddClip(new VideoClip() {Span = new FrameSpan(20, 80), DisplayName = "Clip 7"});
+                track.AddClip(new VideoClip() {Span = new FrameSpan(150, 100), DisplayName = "Clip 8"});
+                track.AddClip(new VideoClip() {Span = new FrameSpan(350, 200), DisplayName = "Clip 9"});
                 project.MainTimeline.AddTrack(track);
             }
 

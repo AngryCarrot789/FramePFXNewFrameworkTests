@@ -3,9 +3,11 @@ using FramePFX.Destroying;
 
 namespace FramePFX.Editors.Timelines.Tracks.Clips {
     public delegate void ClipSpanChangedEventHandler(Clip clip, FrameSpan oldSpan, FrameSpan newSpan);
+    public delegate void ClipEventHandler(Clip clip);
 
     public class Clip : IDestroy {
         private FrameSpan span;
+        private string displayName;
 
         public Track Track { get; private set; }
 
@@ -20,7 +22,18 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
             }
         }
 
+        public string DisplayName {
+            get => this.displayName;
+            set {
+                if (this.displayName == value)
+                    return;
+                this.displayName = value;
+                this.DisplayNameChanged?.Invoke(this);
+            }
+        }
+
         public event ClipSpanChangedEventHandler SpanChanged;
+        public event ClipEventHandler DisplayNameChanged;
 
         public Clip() {
         }
