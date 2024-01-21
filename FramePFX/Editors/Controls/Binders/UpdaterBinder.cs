@@ -3,8 +3,8 @@ using System.Windows;
 
 namespace FramePFX.Editors.Controls.Binders {
     public class UpdaterBinder<TModel> : BaseObjectBinder<TModel> where TModel : class {
-        private readonly Action<IBinder<TModel>> updateControl;
-        private readonly Action<IBinder<TModel>> updateModel;
+        public event Action<IBinder<TModel>> UpdateControl;
+        public event Action<IBinder<TModel>> UpdateModel;
 
         /// <summary>
         /// A dependency property, matched when <see cref="OnPropertyChanged"/> is called, which will
@@ -13,8 +13,8 @@ namespace FramePFX.Editors.Controls.Binders {
         public DependencyProperty Property { get; set; }
 
         public UpdaterBinder(Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) {
-            this.updateControl = updateControl;
-            this.updateModel = updateModel;
+            this.UpdateControl = updateControl;
+            this.UpdateModel = updateModel;
         }
 
         public UpdaterBinder(DependencyProperty property, Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) : this(updateControl, updateModel) {
@@ -36,11 +36,11 @@ namespace FramePFX.Editors.Controls.Binders {
         private void OnEvent() => this.OnModelValueChanged();
 
         protected override void UpdateModelCore() {
-            this.updateModel?.Invoke(this);
+            this.UpdateModel?.Invoke(this);
         }
 
         protected override void UpdateControlCore() {
-            this.updateControl?.Invoke(this);
+            this.UpdateControl?.Invoke(this);
         }
     }
 }

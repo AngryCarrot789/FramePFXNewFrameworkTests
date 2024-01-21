@@ -102,7 +102,7 @@
                                 Panel.ZIndex="3"/>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsFocused" Value="True">
+                        <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="PART_SelectionBorder" Property="Visibility" Value="Visible"/>
                         </Trigger>
                     </ControlTemplate.Triggers>

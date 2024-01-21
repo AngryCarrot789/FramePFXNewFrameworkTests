@@ -1,8 +1,6 @@
 using System;
-using System.Windows;
 using FramePFX.Destroying;
 using FramePFX.Editors.Factories;
-using FramePFX.Editors.Media;
 
 namespace FramePFX.Editors.Timelines.Tracks.Clips {
     public delegate void ClipSpanChangedEventHandler(Clip clip, FrameSpan oldSpan, FrameSpan newSpan);
@@ -43,7 +41,8 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
                 if (this.isSelected == value)
                     return;
                 this.isSelected = value;
-                this.SelectionChanged?.Invoke(this);
+                Track.OnIsClipSelectedChanged(this);
+                this.IsSelectedChanged?.Invoke(this);
             }
         }
 
@@ -51,9 +50,9 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
 
         public event ClipSpanChangedEventHandler FrameSpanChanged;
         public event ClipEventHandler DisplayNameChanged;
-        public event ClipEventHandler SelectionChanged;
+        public event ClipEventHandler IsSelectedChanged;
 
-        public Clip() {
+        protected Clip() {
         }
 
         public Clip Clone() => this.Clone(ClipCloneOptions.Default);
@@ -68,18 +67,6 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         protected virtual void LoadDataIntoClone(Clip clone, ClipCloneOptions options) {
             clone.span = this.span;
             clone.displayName = this.displayName;
-        }
-
-        internal static void OnAddedToTrack(Clip clip, Track track) {
-            clip.Track = track;
-        }
-
-        internal static void OnRemovedFromTrack(Clip clip, Track track) {
-            clip.Track = null;
-        }
-
-        internal static void OnMovedToTrack(Clip clip, Track oldTrack, Track newTrack) {
-            clip.Track = newTrack;
         }
 
         public void MoveToTrack(Track dstTrack) {
@@ -128,6 +115,18 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
 
         public virtual void Destroy() {
 
+        }
+
+        internal static void OnAddedToTrack(Clip clip, Track track) {
+            clip.Track = track;
+        }
+
+        internal static void OnRemovedFromTrack(Clip clip, Track track) {
+            clip.Track = null;
+        }
+
+        internal static void OnMovedToTrack(Clip clip, Track oldTrack, Track newTrack) {
+            clip.Track = newTrack;
         }
     }
 }

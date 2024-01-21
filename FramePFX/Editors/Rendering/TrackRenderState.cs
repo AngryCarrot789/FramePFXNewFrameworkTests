@@ -1,6 +1,5 @@
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
-using OpenTK.Platform.MacOS;
 
 namespace FramePFX.Editors.Rendering {
     /// <summary>

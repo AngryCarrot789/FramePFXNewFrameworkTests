@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Security.AccessControl;
-using System.Windows.Media;
 using FramePFX.Destroying;
 using FramePFX.Editors.Factories;
 using FramePFX.Editors.Timelines.Tracks.Clips;
@@ -16,17 +14,11 @@ namespace FramePFX.Editors.Timelines.Tracks {
     public abstract class Track : IDestroy {
         private readonly List<Clip> clips;
         private readonly ClipRangeCache cache;
+        private readonly HashSet<Clip> selection;
         private double height = 60d;
         private string displayName = "Track";
         private SKColor colour;
-
-        public event TrackClipIndexEventHandler ClipAdded;
-        public event TrackClipIndexEventHandler ClipRemoved;
-        public event ClipMovedEventHandler ClipMovedTracks;
-
-        public event TrackEventHandler HeightChanged;
-        public event TrackEventHandler DisplayNameChanged;
-        public event TrackEventHandler ColourChanged;
+        private bool isSelected;
 
         public string FactoryId => TrackFactory.Instance.GetId(this.GetType());
 
@@ -62,7 +54,36 @@ namespace FramePFX.Editors.Timelines.Tracks {
             }
         }
 
+        public bool IsSelected {
+            get => this.isSelected;
+            set {
+                if (this.isSelected == value)
+                    return;
+                this.isSelected = value;
+                Timeline.OnIsTrackSelectedChanged(this);
+                this.IsSelectedChanged?.Invoke(this);
+            }
+        }
+
         public long LargestFrameInUse => this.cache.LargestActiveFrame;
+
+        public IEnumerable<Clip> SelectedClips => this.selection;
+
+        public int SelectedClipCount => this.selection.Count;
+
+        /// <summary>
+        /// Gets the index of this track within our owner timeline
+        /// </summary>
+        public int IndexInTimeline => this.Timeline?.Tracks.IndexOf(this) ?? -1;
+
+        public event TrackClipIndexEventHandler ClipAdded;
+        public event TrackClipIndexEventHandler ClipRemoved;
+        public event ClipMovedEventHandler ClipMovedTracks;
+
+        public event TrackEventHandler HeightChanged;
+        public event TrackEventHandler DisplayNameChanged;
+        public event TrackEventHandler ColourChanged;
+        public event TrackEventHandler IsSelectedChanged;
 
         protected Track() {
             this.clips = new List<Clip>();
@@ -70,6 +91,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.cache = new ClipRangeCache();
             this.cache.FrameDataChanged += this.OnRangeCachedFrameDataChanged;
             this.colour = RenderUtils.RandomColour();
+            this.selection = new HashSet<Clip>();
         }
 
         private void OnRangeCachedFrameDataChanged(ClipRangeCache handler) {
@@ -101,8 +123,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public void InsertClip(int index, Clip clip) {
             if (this.clips.Contains(clip))
                 throw new InvalidOperationException("This track already contains the clip");
-            this.clips.Insert(index, clip);
-            this.cache.OnClipAdded(clip);
+            this.InternalInsertClipAt(index, clip);
             Clip.OnAddedToTrack(clip, this);
             this.ClipAdded?.Invoke(this, clip, index);
         }
@@ -117,8 +138,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public void RemoveClipAt(int index) {
             Clip clip = this.clips[index];
-            this.clips.RemoveAt(index);
-            this.cache.OnClipRemoved(clip);
+            this.InternalRemoveClipAt(index, clip);
             Clip.OnRemovedFromTrack(clip, this);
             this.ClipRemoved?.Invoke(this, clip, index);
         }
@@ -129,13 +149,26 @@ namespace FramePFX.Editors.Timelines.Tracks {
             if (dstIndex < 0 || dstIndex > dstTrack.clips.Count)
                 throw new ArgumentOutOfRangeException(nameof(dstIndex), "dstIndex is out of range");
             Clip clip = this.clips[srcIndex];
-            this.clips.RemoveAt(srcIndex);
-            this.cache.OnClipRemoved(clip);
-            dstTrack.clips.Insert(dstIndex, clip);
-            dstTrack.cache.OnClipAdded(clip);
+            this.InternalRemoveClipAt(srcIndex, clip);
+            dstTrack.InternalInsertClipAt(dstIndex, clip);
             Clip.OnMovedToTrack(clip, this, dstTrack);
             this.ClipMovedTracks?.Invoke(clip, this, srcIndex, dstTrack, dstIndex);
             dstTrack.ClipMovedTracks?.Invoke(clip, this, srcIndex, dstTrack, dstIndex);
+        }
+
+        private void InternalInsertClipAt(int index, Clip clip) {
+            this.clips.Insert(index, clip);
+            this.cache.OnClipAdded(clip);
+            if (clip.IsSelected)
+                this.selection.Add(clip);
+        }
+
+        private void InternalRemoveClipAt(int index, Clip clip) {
+            this.clips.RemoveAt(index);
+            this.cache.OnClipRemoved(clip);
+            if (clip.IsSelected)
+                this.selection.Remove(clip);
+            Timelines.Timeline.OnClipRemovedFromTrack(this, clip);
         }
 
         public virtual bool IsClipTypeAccepted(Clip clip) {
@@ -170,6 +203,33 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         internal static void OnClipSpanChanged(Clip clip, FrameSpan oldSpan) {
             clip.Track?.cache.OnSpanChanged(clip, oldSpan);
+        }
+
+        internal static void OnIsClipSelectedChanged(Clip clip) {
+            Track track = clip.Track;
+            if (clip.IsSelected) {
+                track.selection.Add(clip);
+            }
+            else {
+                track.selection.Remove(clip);
+            }
+
+            Timeline.OnIsClipSelectedChanged(track, clip);
+        }
+
+        /// <summary>
+        /// Adds all clips within the given frame span to the given list
+        /// </summary>
+        /// <param name="list">The destination list</param>
+        /// <param name="span">The span range</param>
+        public void CollectClipsInSpan(List<Clip> list, FrameSpan span) {
+            this.cache.GetClipsInRange(list, span);
+        }
+
+        public List<Clip> GetClipsInSpan(FrameSpan span) {
+            List<Clip> list = new List<Clip>();
+            this.CollectClipsInSpan(list, span);
+            return list;
         }
     }
 }

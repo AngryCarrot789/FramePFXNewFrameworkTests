@@ -1,9 +1,5 @@
-﻿using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using FramePFX.Editors;
-using FramePFX.Editors.Timelines;
-using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Editors.Views;
 
 namespace FramePFX {

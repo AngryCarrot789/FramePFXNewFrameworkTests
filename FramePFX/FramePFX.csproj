@@ -97,6 +97,7 @@
     <Compile Include="AttachedProperties\TextBoxHelper.cs" />
     <Compile Include="AttachedProperties\ToggleButtonHelper.cs" />
     <Compile Include="AttachedProperties\TopmostFocus.cs" />
+    <Compile Include="Editors\Collections\SelectionList.cs" />
     <Compile Include="Editors\Controls\Binders\AutoUpdaterBinder.cs" />
     <Compile Include="Editors\Controls\Binders\BaseObjectBinder.cs" />
     <Compile Include="Editors\Controls\Binders\BinderUtils.cs" />
@@ -161,6 +162,8 @@
     <Compile Include="Editors\Rendering\TrackRenderState.cs" />
     <Compile Include="Editors\RenderUtils.cs" />
     <Compile Include="Editors\Timelines\RenderContext.cs" />
+    <Compile Include="Editors\Timelines\SelectionType.cs" />
+    <Compile Include="Editors\Timelines\TrackFrameSpan.cs" />
     <Compile Include="Editors\Timelines\Tracks\ClipCloneOptions.cs" />
     <Compile Include="Editors\Timelines\Tracks\ClipRangeCache.cs" />
     <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />

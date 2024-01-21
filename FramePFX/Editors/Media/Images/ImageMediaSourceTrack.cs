@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using System.Windows.Markup;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Media.Images {

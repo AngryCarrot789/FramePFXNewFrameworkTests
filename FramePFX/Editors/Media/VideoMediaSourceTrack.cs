@@ -1,5 +1,4 @@
 using System;
-using OpenTK;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Media {

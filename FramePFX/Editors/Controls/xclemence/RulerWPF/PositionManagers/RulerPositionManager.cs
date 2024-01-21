@@ -11,7 +11,6 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using FramePFX.Utils;
-using Microsoft.SqlServer.Server;
 
 namespace FramePFX.Editors.Controls.xclemence.RulerWPF.PositionManagers {
     public abstract class RulerPositionManager {

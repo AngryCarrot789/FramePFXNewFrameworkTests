@@ -6,15 +6,22 @@ using System.Windows.Media;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Utils;
 using Timeline = FramePFX.Editors.Timelines.Timeline;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineClipControl : Control {
         public static readonly DependencyProperty DisplayNameProperty = DependencyProperty.Register("DisplayName", typeof(string), typeof(TimelineClipControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(bool), typeof(TimelineClipControl), new PropertyMetadata(BoolBox.False));
 
         public string DisplayName {
             get => (string) this.GetValue(DisplayNameProperty);
             set => this.SetValue(DisplayNameProperty, value);
+        }
+
+        public bool IsSelected {
+            get => (bool) this.GetValue(IsSelectedProperty);
+            set => this.SetValue(IsSelectedProperty, value);
         }
 
         public TimelineTrackControl Track { get; set; }
@@ -54,15 +61,20 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         private DragState dragState;
         private Point clickPoint;
-        private Point lastMousePos;
         private bool isUpdatingFrameSpanFromDrag;
+        private bool hasMadeRangedSelectionInMouseDown;
 
         private GlyphRun glyphRun;
-        private FormattedText formattedText;
         private readonly RectangleGeometry renderSizeRectGeometry;
 
-        private readonly AutoUpdaterBinder<Clip> displayNameBinder = new AutoUpdaterBinder<Clip>(DisplayNameProperty, nameof(VideoClip.DisplayNameChanged), UpdateView, UpdateModel);
+        private readonly AutoUpdaterBinder<Clip> displayNameBinder = new AutoUpdaterBinder<Clip>(DisplayNameProperty, nameof(VideoClip.DisplayNameChanged), b => {
+            TimelineClipControl control = (TimelineClipControl) b.Control;
+            control.glyphRun = null;
+            control.DisplayName = b.Model.DisplayName;
+        }, b => b.Model.DisplayName = ((TimelineClipControl) b.Control).DisplayName);
+
         private readonly AutoUpdaterBinder<Clip> frameSpanBinder = new AutoUpdaterBinder<Clip>(nameof(VideoClip.FrameSpanChanged), obj => ((TimelineClipControl) obj.Control).SetSizeFromSpan(obj.Model.FrameSpan), null);
+        private readonly BasicAutoBinder<Clip> isSelectedBinder = new BasicAutoBinder<Clip>(IsSelectedProperty, nameof(VideoClip.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
         public TimelineClipControl(Clip clip) {
             this.VerticalAlignment = VerticalAlignment.Stretch;
@@ -83,22 +95,10 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         private void OnGotFocus(object sender, RoutedEventArgs e) {
             Panel.SetZIndex(this, 2);
-            this.Model.IsSelected = true;
         }
 
         private void OnLostFocus(object sender, RoutedEventArgs e) {
             Panel.SetZIndex(this, 0);
-            this.Model.IsSelected = false;
-        }
-
-        private static void UpdateView(IBinder<Clip> binder) {
-            ((TimelineClipControl) binder.Control).glyphRun = null;
-            ((TimelineClipControl) binder.Control).formattedText = null;
-            ((TimelineClipControl) binder.Control).DisplayName = binder.Model.DisplayName;
-        }
-
-        private static void UpdateModel(IBinder<Clip> binder) {
-            binder.Model.DisplayName = ((TimelineClipControl) binder.Control).DisplayName;
         }
 
         #region Model Binding
@@ -114,6 +114,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         public void OnAdded() {
             this.displayNameBinder.Attach(this, this.Model);
             this.frameSpanBinder.Attach(this, this.Model);
+            this.isSelectedBinder.Attach(this, this.Model);
         }
 
         public void OnRemoving() {
@@ -122,31 +123,94 @@ namespace FramePFX.Editors.Controls.Timelines {
         public void OnRemoved() {
             this.displayNameBinder.Detatch();
             this.frameSpanBinder.Detatch();
+            this.isSelectedBinder.Detatch();
         }
 
         #endregion
 
         protected override void OnMouseDown(MouseButtonEventArgs e) {
             base.OnMouseDown(e);
+            e.Handled = true;
             this.Focus();
             this.clickPoint = e.GetPosition(this);
             this.SetDragState(DragState.Initiated);
             if (!this.IsMouseCaptured)
                 this.CaptureMouse();
 
-            e.Handled = true;
+            Timeline timeline = this.Model.Track?.Timeline;
+            if (timeline == null) {
+                return;
+            }
+
+            if (timeline.HasAnySelectedClips) {
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0 && this.Track?.Timeline is TimelineSequenceControl control) {
+                    long frameA = timeline.PlayHeadPosition;
+                    long frameB = TimelineUtils.PixelToFrame(e.GetPosition(control).X, timeline.Zoom, true);
+                    if (frameA > frameB) {
+                        Maths.Swap(ref frameA, ref frameB);
+                    }
+
+                    TrackFrameSpan anchor = timeline.RangedSelectionAnchor;
+                    if (anchor.TrackIndex != -1) {
+                        int idxA = anchor.TrackIndex;
+                        int idxB = timeline.Tracks.IndexOf(this.Model.Track);
+                        if (idxA > idxB) {
+                            Maths.Swap(ref idxA, ref idxB);
+                        }
+
+                        timeline.MakeFrameRangeSelection(FrameSpan.FromIndex(frameA, frameB), idxA, idxB + 1);
+                        // timeline.RangedSelectionAnchor = anchor;
+                    }
+                    else {
+                        timeline.MakeFrameRangeSelection(FrameSpan.FromIndex(frameA, frameB));
+                    }
+
+                    this.hasMadeRangedSelectionInMouseDown = true;
+                }
+                else if ((Keyboard.Modifiers & ModifierKeys.Control) == 0 && !this.Model.IsSelected) {
+                    timeline.MakeSingleSelection(this.Model);
+                }
+            }
+            else {
+                if ((Keyboard.Modifiers & ModifierKeys.Control) != 0) {
+                    this.Model.IsSelected = !this.Model.IsSelected;
+                }
+                else {
+                    timeline.MakeSingleSelection(this.Model);
+                }
+            }
         }
 
         protected override void OnMouseUp(MouseButtonEventArgs e) {
             base.OnMouseUp(e);
-            if (this.dragState == DragState.Initiated) {
+            e.Handled = true;
+            DragState lastDragState = this.dragState;
+            if (this.dragState == DragState.Initiated && !this.hasMadeRangedSelectionInMouseDown) {
                 this.Track.Timeline.SetPlayHeadToMouseCursor(e.MouseDevice);
             }
 
             this.SetDragState(DragState.None);
             this.SetCursorForMousePoint(e.GetPosition(this));
             this.ReleaseMouseCapture();
-            e.Handled = true;
+
+            if (this.hasMadeRangedSelectionInMouseDown) {
+                this.hasMadeRangedSelectionInMouseDown = false;
+            }
+            else {
+                Timeline timeline = this.Model.Track?.Timeline;
+                if (timeline == null) {
+                    return;
+                }
+
+                if (timeline.HasAnySelectedClips) {
+                    if ((Keyboard.Modifiers & ModifierKeys.Control) != 0) {
+                        this.Model.IsSelected = !this.Model.IsSelected;
+                    }
+                    else if (this.Model.IsSelected && (Keyboard.Modifiers & ModifierKeys.Shift) == 0 && (lastDragState == DragState.None || lastDragState == DragState.Initiated)) {
+                        timeline.MakeSingleSelection(this.Model);
+                    }
+                }
+            }
         }
 
         private void SetDragState(DragState state) {
@@ -388,7 +452,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             // }
             // if (this.formattedText != null)
             //     dc.DrawText(this.formattedText, new Point());
-            
+
             // glyph run is way faster than using formatted text
             if (this.glyphRun == null && this.DisplayName is string str)
                 this.glyphRun = GlyphGenerator.CreateText(str, 12d, this, new Point(3, 12));

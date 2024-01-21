@@ -1,10 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using FramePFX.Editors.Timelines;
 using FramePFX.Utils;
-using OpenTK.Graphics.OpenGL;
 
 namespace FramePFX.Editors {
     /// <summary>

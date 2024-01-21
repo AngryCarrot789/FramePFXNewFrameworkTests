@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;

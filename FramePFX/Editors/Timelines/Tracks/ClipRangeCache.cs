@@ -36,6 +36,22 @@ namespace FramePFX.Editors.Timelines.Tracks {
             return null;
         }
 
+        public void GetClipsInRange(List<Clip> dstList, FrameSpan span) {
+            long idxA = GetIndex(span.Begin);
+            long idxB = GetIndex(span.EndIndex);
+            for (long idx = idxA; idx <= idxB; idx++) {
+                if (!this.Map.TryGetValue(idx, out ClipList list)) {
+                    continue;
+                }
+
+                for (int i = list.size - 1; i >= 0; i--) {
+                    Clip clip = list.items[i];
+                    if (clip.FrameSpan.Intersects(span))
+                        dstList.Add(clip);
+                }
+            }
+        }
+
         public void OnClipAdded(Clip clip) => this.Add(clip);
 
         public void OnClipRemoved(Clip clip) => this.Remove(clip.FrameSpan, clip);

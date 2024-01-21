@@ -1,5 +1,4 @@
 using System;
-using System.Windows;
 using System.Windows.Controls.Primitives;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Controls.Dragger;

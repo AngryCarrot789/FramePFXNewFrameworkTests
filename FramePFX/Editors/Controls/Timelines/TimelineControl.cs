@@ -42,8 +42,12 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TimelineControl() {
             this.MouseLeftButtonDown += (s, e) => {
-                ((TimelineControl) s).MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X + this.TimelineScrollViewer?.HorizontalOffset ?? 0d, false);
+                ((TimelineControl) s).MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X + (this.TimelineScrollViewer?.HorizontalOffset ?? 0d), false);
             };
+        }
+
+        public Point GetTimelinePointFromClip(Point pointInClip) {
+            return new Point(pointInClip.X + (this.TimelineScrollViewer?.HorizontalOffset ?? 0d), pointInClip.Y);
         }
 
         private void MovePlayHeadToMouseCursor(double x, bool enableThumbDragging = true) {

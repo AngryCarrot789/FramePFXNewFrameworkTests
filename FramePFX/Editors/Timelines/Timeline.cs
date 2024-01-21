@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using FramePFX.Destroying;
 using FramePFX.Editors.Timelines.Tracks;
+using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Utils;
 
 namespace FramePFX.Editors.Timelines {
@@ -14,9 +16,9 @@ namespace FramePFX.Editors.Timelines {
 
     public class Timeline : IDestroy {
         private readonly List<Track> tracks;
+        private readonly List<Track> selection;
         private long totalFrames;
         private long playHead;
-        private double zoom;
         private long largestFrameInUse;
 
         public event TimelineTrackIndexEventHandler TrackAdded;
@@ -28,6 +30,8 @@ namespace FramePFX.Editors.Timelines {
         public event ZoomEventHandler ZoomTimeline;
 
         public Project Project { get; private set; }
+
+        public TrackFrameSpan RangedSelectionAnchor { get; set; } = TrackFrameSpan.Invalid;
 
         public ReadOnlyCollection<Track> Tracks { get; }
 
@@ -75,15 +79,65 @@ namespace FramePFX.Editors.Timelines {
             }
         }
 
-        public double Zoom => this.zoom;
+        /// <summary>
+        /// Returns an enumerable of selected tracks
+        /// </summary>
+        public IEnumerable<Track> SelectedTracks => this.selection;
+
+        /// <summary>
+        /// Returns an enumerable of all selected clips in all tracks
+        /// </summary>
+        public IEnumerable<Clip> SelectedClips => this.tracks.SelectMany(t => t.SelectedClips);
+
+        /// <summary>
+        /// Returns the track selection type based on how many tracks are selected.
+        /// Does not require enumerating the tracks as track selection is cached
+        /// </summary>
+        public SelectionType TrackSelectionType {
+            get {
+                int count = this.selection.Count;
+                if (count > 1)
+                    return SelectionType.Multi;
+                return count == 1 ? SelectionType.Single : SelectionType.None;
+            }
+        }
+
+        /// <summary>
+        /// Returns the clip selection type based on how many clips are selected in all tracks combined.
+        /// This may require enumerating all tracks, but not all clips (since selected clips are cached)
+        /// </summary>
+        public SelectionType ClipSelectionType {
+            get {
+                int count = 0;
+                foreach (Track track in this.tracks) {
+                    count += track.SelectedClipCount;
+                    if (count > 1) {
+                        return SelectionType.Multi;
+                    }
+                }
+
+                return count == 1 ? SelectionType.Single : SelectionType.None;
+            }
+        }
+
+        /// <summary>
+        /// Returns true when there is at least one selected clips in any track. This may
+        /// require enumerating all tracks, but not all clips (since selected clips are cached)
+        /// </summary>
+        public bool HasAnySelectedClips => this.tracks.Any(track => track.SelectedClipCount > 0);
+
+        public double Zoom { get; private set; }
 
         public PlaybackManager Playback { get; }
 
         public Timeline() {
             this.tracks = new List<Track>();
             this.Tracks = new ReadOnlyCollection<Track>(this.tracks);
+            this.selection = new List<Track>();
+
             this.totalFrames = 5000L;
-            this.zoom = 1.0d;
+            this.Zoom = 1.0d;
+
             this.Playback = new PlaybackManager(this);
             this.Playback.SetFrameRate(60.0);
             this.Playback.StartTimer();
@@ -106,7 +160,7 @@ namespace FramePFX.Editors.Timelines {
         }
 
         public void SetZoom(double zoom, ZoomType type) {
-            double oldZoom = this.zoom;
+            double oldZoom = this.Zoom;
             if (zoom > 200.0) {
                 zoom = 200;
             }
@@ -118,7 +172,7 @@ namespace FramePFX.Editors.Timelines {
                 return;
             }
 
-            this.zoom = zoom;
+            this.Zoom = zoom;
             this.ZoomTimeline?.Invoke(this, oldZoom, zoom, type);
         }
 
@@ -128,6 +182,17 @@ namespace FramePFX.Editors.Timelines {
             if (this.tracks.Contains(track))
                 throw new InvalidOperationException("This track already contains the track");
             this.tracks.Insert(index, track);
+            if (track.IsSelected)
+                this.selection.Add(track);
+
+            // update anchor
+            TrackFrameSpan anchor = this.RangedSelectionAnchor;
+            if (anchor.TrackIndex != -1) {
+                if (index <= anchor.TrackIndex) {
+                    this.RangedSelectionAnchor = new TrackFrameSpan(anchor.Span, anchor.TrackIndex + 1);
+                }
+            }
+
             Track.OnAddedToTimeline(track, this);
             this.TrackAdded?.Invoke(this, track, index);
             this.UpdateLargestFrame();
@@ -144,6 +209,20 @@ namespace FramePFX.Editors.Timelines {
         public void RemoveTrackAt(int index) {
             Track track = this.tracks[index];
             this.tracks.RemoveAt(index);
+            if (track.IsSelected)
+                this.selection.Remove(track);
+
+            // update anchor
+            TrackFrameSpan anchor = this.RangedSelectionAnchor;
+            if (anchor.TrackIndex != -1) {
+                if (this.tracks.Count == 0) {
+                    this.RangedSelectionAnchor = TrackFrameSpan.Invalid;
+                }
+                else if (index <= anchor.TrackIndex) {
+                    this.RangedSelectionAnchor = new TrackFrameSpan(anchor.Span, anchor.TrackIndex - 1);
+                }
+            }
+
             Track.OnRemovedFromTimeline(track, this);
             this.TrackRemoved?.Invoke(this, track, index);
             this.UpdateLargestFrame();
@@ -152,6 +231,13 @@ namespace FramePFX.Editors.Timelines {
         public void MoveTrackIndex(int oldIndex, int newIndex) {
             if (oldIndex != newIndex) {
                 this.tracks.MoveItem(oldIndex, newIndex);
+
+                // update anchor
+                TrackFrameSpan anchor = this.RangedSelectionAnchor;
+                if (anchor.TrackIndex != -1 && anchor.TrackIndex == oldIndex) {
+                    this.RangedSelectionAnchor = new TrackFrameSpan(anchor.Span, newIndex);
+                }
+
                 this.TrackMoved?.Invoke(this, this.tracks[newIndex], oldIndex, newIndex);
             }
         }
@@ -164,6 +250,17 @@ namespace FramePFX.Editors.Timelines {
             }
         }
 
+        // Called by the track directly, in order to guarantee that selection is
+        // handled before any track IsSelectedChanged event handlers
+        public static void OnIsTrackSelectedChanged(Track track) {
+            if (track.IsSelected) {
+                track.Timeline.selection.Add(track);
+            }
+            else {
+                track.Timeline.selection.Remove(track);
+            }
+        }
+
         public static void SetMainTimelineProjectReference(Timeline timeline, Project project) {
             // no need to tell clips or tracks that our project changed, since there is guaranteed
             // to be none, unless this method is called outside of the project's constructor
@@ -173,6 +270,50 @@ namespace FramePFX.Editors.Timelines {
         // TODO: composition timelines
         public static void SetCompositionTimelineProjectReference(Timeline timeline, Project project) {
 
+        }
+
+        public void ClearClipSelection() {
+            List<Clip> list = this.SelectedClips.ToList();
+            foreach (Clip clip in list) {
+                clip.IsSelected = false;
+            }
+        }
+
+        public void MakeSingleSelection(Clip clipToSelect, bool updateAnchor = true) {
+            this.ClearClipSelection();
+            clipToSelect.IsSelected = true;
+            if (updateAnchor) {
+                this.RangedSelectionAnchor = new TrackFrameSpan(clipToSelect);
+            }
+        }
+
+        public void MakeFrameRangeSelection(FrameSpan span, int trackSrcIdx = -1, int trackEndIndex = -1) {
+            this.ClearClipSelection();
+            List<Clip> clips = new List<Clip>();
+            if (trackSrcIdx == -1 || trackEndIndex == -1) {
+                foreach (Track track in this.tracks) {
+                    track.CollectClipsInSpan(clips, span);
+                }
+            }
+            else {
+                for (int i = trackSrcIdx; i < trackEndIndex; i++) {
+                    this.tracks[i].CollectClipsInSpan(clips, span);
+                }
+            }
+
+            foreach (Clip clip in clips) {
+                clip.IsSelected = true;
+            }
+        }
+
+        internal static void OnIsClipSelectedChanged(Track track, Clip clip) {
+            // track.Timeline.RangedSelectionAnchorClip = clip.IsSelected ? clip : null;
+        }
+
+        internal static void OnClipRemovedFromTrack(Track track, Clip clip) {
+            // if (track.Timeline.RangedSelectionAnchorClip == clip) {
+            //     track.Timeline.RangedSelectionAnchorClip = null;
+            // }
         }
     }
 }

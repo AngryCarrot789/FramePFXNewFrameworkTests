@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.Remoting.Messaging;
 
 namespace FramePFX.Editors.Factories {
     /// <summary>

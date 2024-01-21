@@ -1,6 +1,4 @@
 using System.IO;
-using System.Threading.Tasks;
-using System.Windows.Data;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Media.Images {
