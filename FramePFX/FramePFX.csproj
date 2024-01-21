@@ -174,7 +174,9 @@
     <Compile Include="Editors\Media_OLD\VideoMediaSourceTrack.cs" />
     <Compile Include="Editors\PlaybackManager.cs" />
     <Compile Include="Editors\PlayState.cs" />
+    <Compile Include="Editors\ProjectSettings.cs" />
     <Compile Include="Editors\Rendering\RenderFrameInfo.cs" />
+    <Compile Include="Editors\Rendering\RenderManager.cs" />
     <Compile Include="Editors\Rendering\TrackRenderState.cs" />
     <Compile Include="Editors\RenderUtils.cs" />
     <Compile Include="Editors\ResourceManaging\BaseResource.cs" />
@@ -191,7 +193,6 @@
     <Compile Include="Editors\ResourceManaging\Resources\ResourceTextStyle.cs" />
     <Compile Include="Editors\ResourceManaging\RLinkState.cs" />
     <Compile Include="Editors\Timelines\RenderContext.cs" />
-    <Compile Include="Editors\Timelines\RenderManager.cs" />
     <Compile Include="Editors\Timelines\SelectionType.cs" />
     <Compile Include="Editors\Timelines\TrackFrameSpan.cs" />
     <Compile Include="Editors\Timelines\TrackPoint.cs" />

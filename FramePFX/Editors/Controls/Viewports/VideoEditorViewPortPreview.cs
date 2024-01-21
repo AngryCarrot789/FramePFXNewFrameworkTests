@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using FramePFX.Editors.Rendering;
@@ -50,15 +52,17 @@ namespace FramePFX.Editors.Controls.Viewports {
             Project oldProject = this.activeProject;
             if (oldProject != null) {
                 oldProject.MainTimeline.PlayHeadChanged -= this.OnTimelineSeeked;
+                oldProject.RenderManager.FrameRendered -= this.OnFrameAvailable;
             }
 
             this.activeProject = project;
             if (project != null) {
                 project.MainTimeline.PlayHeadChanged += this.OnTimelineSeeked;
+                project.RenderManager.FrameRendered += this.OnFrameAvailable;
             }
         }
 
-        private void OnTimelineSeeked(Timeline timeline, long oldFrame, long frame) {
+        private void OnFrameAvailable(RenderManager manager) {
             if (!this.BeginRender(out SKSurface surface)) {
                 return;
             }
@@ -66,43 +70,16 @@ namespace FramePFX.Editors.Controls.Viewports {
             // this is horrible... for now
 
             try {
-                RenderContext render = new RenderContext(surface, surface.Canvas, this.FrameInfo);
-                render.ClearPixels();
-
-                int timelineCanvasSaveIndex = render.Canvas.Save();
-                try {
-                    RenderFrameInfo info = new RenderFrameInfo(render.FrameInfo, frame);
-                    List<VideoTrack> tracks = new List<VideoTrack>();
-                    render.Canvas.ClipRect(new SKRect(0, 0, render.FrameSize.X, render.FrameSize.Y));
-                    for (int i = timeline.Tracks.Count - 1; i >= 0; i--) {
-                        Track track = timeline.Tracks[i];
-                        if (!(track is VideoTrack videoTrack)) {
-                            continue;
-                        }
-
-                        if (videoTrack.BeginRenderFrame(info)) {
-                            tracks.Add(videoTrack);
-                        }
-                    }
-
-                    foreach (VideoTrack track in tracks) {
-                        track.RenderFrame(info);
-                    }
-
-                    SKPaint trackPaint = null;
-                    foreach (VideoTrack track in tracks) {
-                        int trackSaveCount = BeginTrackOpacityLayer(render, track, ref trackPaint);
-                        track.DrawFrameIntoSurface(render.Surface);
-                        EndOpacityLayer(render, trackSaveCount, ref trackPaint);
-                    }
-                }
-                finally {
-                    render.Canvas.RestoreToCount(timelineCanvasSaveIndex);
-                }
+                surface.Canvas.Clear(SKColors.Black);
+                manager.Draw(surface);
             }
             finally {
                 this.EndRender();
             }
+        }
+
+        private void OnTimelineSeeked(Timeline timeline, long oldFrame, long frame) {
+            timeline.Project.RenderManager.InvalidateRender();
         }
 
         // SaveLayer requires a temporary drawing bitmap, which can slightly
@@ -113,25 +90,22 @@ namespace FramePFX.Editors.Controls.Viewports {
             }));
         }
 
-        private static int BeginClipOpacityLayer(RenderContext render, VideoClip clip, ref SKPaint paint) {
+        private static int BeginClipOpacityLayer(SKCanvas canvas, VideoClip clip, ref SKPaint paint) {
             if (clip.UsesCustomOpacityCalculation || Maths.Equals(clip.Opacity, 1d)) {
-                return render.Canvas.Save();
+                return canvas.Save();
             }
             else {
-                return SaveLayerForOpacity(render.Canvas, clip.Opacity, ref paint);
+                return SaveLayerForOpacity(canvas, clip.Opacity, ref paint);
             }
         }
 
-        private static int BeginTrackOpacityLayer(RenderContext render, VideoTrack track, ref SKPaint paint) {
-            return !Maths.Equals(track.Opacity, 1d)
-                // TODO: optimise this, because it adds about 3ms of extra lag per layer with an opacity less than 1
-                // (due to bitmap allocation obviously). Not even
-                ? SaveLayerForOpacity(render.Canvas, track.Opacity, ref paint)
-                : render.Canvas.Save();
+        private static int BeginTrackOpacityLayer(SKCanvas canvas, VideoTrack track, ref SKPaint paint) {
+            // TODO: optimise this, because it adds about 3ms of extra lag per layer with an opacity less than 1 (due to bitmap allocation obviously)
+            return !Maths.Equals(track.Opacity, 1d) ? SaveLayerForOpacity(canvas, track.Opacity, ref paint) : canvas.Save();
         }
 
-        private static void EndOpacityLayer(RenderContext render, int count, ref SKPaint paint) {
-            render.Canvas.RestoreToCount(count);
+        private static void EndOpacityLayer(SKCanvas canvas, int count, ref SKPaint paint) {
+            canvas.RestoreToCount(count);
             if (paint != null) {
                 paint.Dispose();
                 paint = null;
@@ -146,7 +120,7 @@ namespace FramePFX.Editors.Controls.Viewports {
             //             if (!(clip is VideoClip) || !(((VideoClip)clip.Model).GetFrameSize() is Vector2 frameSize)) {
             //                 continue;
             //             }
-            // 
+            //
             //             SKRect rect = ((VideoClip)clip.Model).TransformationMatrix.MapRect(frameSize.ToRectAsSize(0, 0));
             //             Point pos = new Point(Math.Floor(rect.Left) - half_thickness, Math.Floor(rect.Top) - half_thickness);
             //             Size size = new Size(Math.Ceiling(rect.Width) + thickness, Math.Ceiling(rect.Height) + thickness);

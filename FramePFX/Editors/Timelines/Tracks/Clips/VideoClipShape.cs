@@ -16,7 +16,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         public VideoClipShape() {
         }
 
-        protected override void OnBeginRender(RenderFrameInfo info, long frame) {
+        protected override void OnPrepareRender(RenderFrameInfo info, long frame) {
             this.renderData = new RenderProxy() {
                 opacity = this.Opacity,
                 shapePos = this.Point,

@@ -129,6 +129,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.InternalInsertClipAt(index, clip);
             Clip.OnAddedToTrack(clip, this);
             this.ClipAdded?.Invoke(this, clip, index);
+            this.InvalidateRender();
         }
 
         public bool RemoveClip(Clip clip) {
@@ -144,6 +145,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.InternalRemoveClipAt(index, clip);
             Clip.OnRemovedFromTrack(clip, this);
             this.ClipRemoved?.Invoke(this, clip, index);
+            this.InvalidateRender();
         }
 
         public void MoveClipToTrack(int srcIndex, Track dstTrack, int dstIndex) {
@@ -157,6 +159,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
             Clip.OnMovedToTrack(clip, this, dstTrack);
             this.ClipMovedTracks?.Invoke(clip, this, srcIndex, dstTrack, dstIndex);
             dstTrack.ClipMovedTracks?.Invoke(clip, this, srcIndex, dstTrack, dstIndex);
+            this.InvalidateRender();
+            dstTrack.InvalidateRender();
         }
 
         private void InternalInsertClipAt(int index, Clip clip) {
@@ -268,6 +272,10 @@ namespace FramePFX.Editors.Timelines.Tracks {
             for (int i = list.Count - 1; i >= 0; i--) {
                 list[i].IsSelected = false;
             }
+        }
+
+        public void InvalidateRender() {
+            this.Timeline?.Project?.RenderManager.InvalidateRender();
         }
     }
 }

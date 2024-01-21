@@ -21,7 +21,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
                     return;
                 this.span = value;
                 Track.OnClipSpanChanged(this, oldSpan);
-                this.FrameSpanChanged?.Invoke(this, oldSpan, value);
+                this.OnFrameSpanChanged(oldSpan, value);
             }
         }
 
@@ -53,6 +53,10 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         public event ClipEventHandler IsSelectedChanged;
 
         protected Clip() {
+        }
+
+        protected virtual void OnFrameSpanChanged(FrameSpan oldSpan, FrameSpan newSpan) {
+            this.FrameSpanChanged?.Invoke(this, oldSpan, newSpan);
         }
 
         public Clip Clone() => this.Clone(ClipCloneOptions.Default);

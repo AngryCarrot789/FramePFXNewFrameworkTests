@@ -5,6 +5,7 @@ using FramePFX.Editors.ResourceManaging.Resources;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
+using SkiaSharp;
 
 namespace FramePFX.Editors {
     public delegate void ProjectChangedEventHandler(VideoEditor editor, Project oldProject, Project newProject);
@@ -81,6 +82,11 @@ namespace FramePFX.Editors {
             this.Project = project;
             Project.OnOpened(this, project);
             this.ProjectChanged?.Invoke(this, null, project);
+
+            ProjectSettings settings = project.Settings;
+            project.RenderManager.UpdateFrameInfo(new SKImageInfo(settings.Width, settings.Height, SKColorType.Bgra8888));
+
+            project.RenderManager.InvalidateRender();
         }
 
         public void CloseProject() {

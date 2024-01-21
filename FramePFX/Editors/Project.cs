@@ -1,4 +1,5 @@
 using FramePFX.Destroying;
+using FramePFX.Editors.Rendering;
 using FramePFX.Editors.ResourceManaging;
 using FramePFX.Editors.Timelines;
 
@@ -19,7 +20,13 @@ namespace FramePFX.Editors {
         /// </summary>
         public VideoEditor Editor { get; private set; }
 
+        public ProjectSettings Settings { get; }
+
+        public RenderManager RenderManager { get; }
+
         public Project() {
+            this.Settings = ProjectSettings.Default;
+            this.RenderManager = new RenderManager(this);
             this.ResourceManager = new ResourceManager(this);
             this.MainTimeline = new Timeline();
             Timeline.SetMainTimelineProjectReference(this.MainTimeline, this);

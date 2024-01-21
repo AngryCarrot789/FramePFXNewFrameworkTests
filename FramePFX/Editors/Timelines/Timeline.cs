@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using FramePFX.Destroying;
+using FramePFX.Editors.Rendering;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Utils;
@@ -153,7 +154,6 @@ namespace FramePFX.Editors.Timelines {
             this.tracks = new List<Track>();
             this.Tracks = new ReadOnlyCollection<Track>(this.tracks);
             this.selectedTracks = new List<Track>();
-
             this.totalFrames = 5000L;
             this.Zoom = 1.0d;
         }

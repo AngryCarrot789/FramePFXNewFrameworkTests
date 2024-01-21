@@ -29,13 +29,12 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public VideoTrack() {
             this.opacity = 1.0;
-            this.isCanvasClear = true;
         }
 
         public bool BeginRenderFrame(RenderFrameInfo info) {
             VideoClip clip = (VideoClip) this.GetClipAtFrame(info.PlayHeadFrame);
             if (clip != null) {
-                clip.BeginRenderFrame(info);
+                clip.PrepareRenderFrame(info);
                 this.theClipToRender = clip;
                 return true;
             }
@@ -44,23 +43,22 @@ namespace FramePFX.Editors.Timelines.Tracks {
         }
 
         public void RenderFrame(RenderFrameInfo info) {
-            if (this.surface != null && !this.isCanvasClear) {
+            if (this.surface == null || this.surfaceInfo != info.ImageInfo) {
+                this.surface?.Dispose();
+                this.surfaceInfo = info.ImageInfo;
+                this.surface = SKSurface.Create(info.ImageInfo);
+            }
+
+            if (!this.isCanvasClear) {
                 this.surface.Canvas.Clear(SKColors.Transparent);
                 this.isCanvasClear = true;
             }
 
-            if (this.theClipToRender == null) {
-                return;
+            if (this.theClipToRender != null) {
+                this.theClipToRender.RenderFrame(info, this.surface);
+                this.theClipToRender = null;
+                this.isCanvasClear = false;
             }
-
-            if (this.surface == null) {
-                this.surfaceInfo = new SKImageInfo(1280, 720, SKColorType.Bgra8888, SKAlphaType.Opaque);
-                this.surface = SKSurface.Create(this.surfaceInfo);
-            }
-
-            this.theClipToRender.RenderFrame(info, this.surface);
-            this.theClipToRender = null;
-            this.isCanvasClear = false;
         }
 
         public void DrawFrameIntoSurface(SKSurface dstSurface) {
