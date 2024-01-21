@@ -220,5 +220,20 @@ namespace FramePFX.Utils {
             int index = str.LastIndexOf(ch);
             return index == -1 ? str : str.Substring(index + 1);
         }
+
+        public static unsafe string InjectOrUseChars(string src, int srcIndex, char* arg, int argc) {
+            if (src == null) {
+                return new string(arg, 0, argc);
+            }
+            else {
+                char[] chars = new char[src.Length + argc];
+                src.CopyTo(0, chars, 0, srcIndex);
+                for (int i = 0; i < argc; i++)
+                    chars[srcIndex + i] = arg[i];
+                int j = srcIndex + argc;
+                src.CopyTo(srcIndex, chars, j, chars.Length - j);
+                return new string(chars);
+            }
+        }
     }
 }

@@ -1,9 +1,12 @@
 ﻿using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using FramePFX.Editors.ResourceManaging;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Themes;
 using FramePFX.Views;
 using SkiaSharp;
 
@@ -41,7 +44,7 @@ namespace FramePFX.Editors.Views {
         protected override void OnKeyDown(KeyEventArgs e) {
             base.OnKeyDown(e);
             if (e.Key == Key.S) {
-                Timeline timeline = this.Editor?.CurrentProject?.MainTimeline;
+                Timeline timeline = this.Editor?.Project?.MainTimeline;
                 if (timeline == null) {
                     return;
                 }
@@ -63,24 +66,52 @@ namespace FramePFX.Editors.Views {
         private void OnEditorChanged(VideoEditor oldEditor, VideoEditor newEditor) {
             if (oldEditor != null) {
                 oldEditor.ProjectChanged -= this.OnEditorProjectChanged;
+                oldEditor.Playback.PlaybackStateChanged -= this.OnEditorPlaybackStateChanged;
                 this.ViewPortElement.VideoEditor = null;
             }
 
             if (newEditor != null) {
                 newEditor.ProjectChanged += this.OnEditorProjectChanged;
-                if (newEditor.CurrentProject != null) {
-                    this.OnCurrentTimelineChanged(newEditor.CurrentProject.MainTimeline);
+                newEditor.Playback.PlaybackStateChanged += this.OnEditorPlaybackStateChanged;
+                Project project = newEditor.Project;
+                if (project != null) {
+                    this.UpdateResourceManager(project.ResourceManager);
+                    this.UpdateTimeline(project.MainTimeline);
                 }
 
                 this.ViewPortElement.VideoEditor = newEditor;
             }
+
+            this.UpdatePlayBackButtons(newEditor?.Playback);
+        }
+
+        private void OnEditorPlaybackStateChanged(PlaybackManager sender, PlayState state, long frame) {
+            this.UpdatePlayBackButtons(sender);
+        }
+
+        private void UpdatePlayBackButtons(PlaybackManager manager) {
+            if (manager != null) {
+                this.PlayBackButton_Play.IsEnabled = manager.CanSetPlayStateTo(PlayState.Play);
+                this.PlayBackButton_Pause.IsEnabled = manager.CanSetPlayStateTo(PlayState.Pause);
+                this.PlayBackButton_Stop.IsEnabled = manager.CanSetPlayStateTo(PlayState.Stop);
+            }
+            else {
+                this.PlayBackButton_Play.IsEnabled = false;
+                this.PlayBackButton_Pause.IsEnabled = false;
+                this.PlayBackButton_Stop.IsEnabled = false;
+            }
         }
 
         private void OnEditorProjectChanged(VideoEditor editor, Project oldProject, Project newProject) {
-            this.OnCurrentTimelineChanged(newProject?.MainTimeline);
+            this.UpdateResourceManager(newProject?.ResourceManager);
+            this.UpdateTimeline(newProject?.MainTimeline);
         }
 
-        private void OnCurrentTimelineChanged(Timeline timeline) {
+        private void UpdateResourceManager(ResourceManager manager) {
+            this.TheResourcePanel.ResourceManager = manager;
+        }
+
+        private void UpdateTimeline(Timeline timeline) {
             this.TheTimeline.Timeline = timeline;
         }
 
@@ -89,28 +120,47 @@ namespace FramePFX.Editors.Views {
         }
 
         private void TogglePlayPauseClick(object sender, RoutedEventArgs e) {
-            Timeline timeline = this.Editor?.CurrentProject?.MainTimeline;
-            if (timeline != null) {
-                if (timeline.Playback.PlaybackState == PlaybackState.Play) {
-                    timeline.Playback.Pause();
+            if (this.Editor is VideoEditor editor) {
+                if (editor.Playback.PlayState == PlayState.Play) {
+                    editor.Playback.Pause();
                 }
-                else {
-                    timeline.Playback.Play(timeline.PlayHeadPosition);
+                else if (editor.Project != null) {
+                    editor.Playback.Play(editor.Project.MainTimeline.PlayHeadPosition);
                 }
             }
         }
 
         private void PlayClick(object sender, RoutedEventArgs e) {
-            Timeline timeline = this.Editor?.CurrentProject?.MainTimeline;
-            timeline?.Playback.Play(timeline.PlayHeadPosition);
+            if (this.Editor is VideoEditor editor && editor.Project != null) {
+                editor.Playback.Play(editor.Project.MainTimeline.PlayHeadPosition);
+            }
         }
 
         private void PauseClick(object sender, RoutedEventArgs e) {
-            this.Editor?.CurrentProject?.MainTimeline.Playback.Pause();
+            if (this.Editor is VideoEditor editor && editor.Project != null) {
+                editor.Playback.Pause();
+            }
         }
 
         private void StopClick(object sender, RoutedEventArgs e) {
-            this.Editor?.CurrentProject?.MainTimeline.Playback.Stop();
+            if (this.Editor is VideoEditor editor && editor.Project != null) {
+                editor.Playback.Stop();
+            }
+        }
+
+        private void SetThemeClick(object sender, RoutedEventArgs e) {
+            ThemeType type;
+            switch (((MenuItem)sender).Uid) {
+                case "0": type = ThemeType.DeepDark;      break;
+                case "1": type = ThemeType.SoftDark;      break;
+                case "2": type = ThemeType.DarkGreyTheme; break;
+                case "3": type = ThemeType.GreyTheme;     break;
+                case "4": type = ThemeType.RedBlackTheme; break;
+                case "5": type = ThemeType.LightTheme;    break;
+                default: return;
+            }
+
+            ThemeController.SetTheme(type);
         }
     }
 }

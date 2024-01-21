@@ -11,7 +11,7 @@ namespace FramePFX.Editors {
     /// <param name="state">The new state. Play may be repeatedly sent</param>
     /// <param name="frame">The starting frame when playing, the current frame when pausing, and the last play or jump frame when stopping</param>
     /// </summary>
-    public delegate void PlaybackStateEventHandler(PlaybackManager sender, PlaybackState state, long frame);
+    public delegate void PlaybackStateEventHandler(PlaybackManager sender, PlayState state, long frame);
 
     /// <summary>
     /// A class that manages the playback functionality of the editor, which manages the timer and play/pause/stop states
@@ -27,20 +27,33 @@ namespace FramePFX.Editors {
         private long nextTickTime;
         private Thread thread;
 
-        // regular state stuff
-        private long lastPlayFrame;
+        public PlayState PlayState { get; private set; } = PlayState.Stop;
 
-        public PlaybackState PlaybackState { get; private set; } = PlaybackState.Stop;
-
-        public Timeline Timeline { get; }
+        /// <summary>
+        /// The editor which owns this playback manager object. This does not change
+        /// </summary>
+        public VideoEditor Editor { get; }
 
         /// <summary>
         /// An event fired when the play, pause or stop methods are called, if the current playback state does not match the matching function
         /// </summary>
         public event PlaybackStateEventHandler PlaybackStateChanged;
 
-        public PlaybackManager(Timeline timeline) {
-            this.Timeline = timeline;
+        public PlaybackManager(VideoEditor editor) {
+            this.Editor = editor;
+        }
+
+        public bool CanSetPlayStateTo(PlayState newState) {
+            if (this.Editor.Project == null) {
+                return false;
+            }
+
+            switch (newState) {
+                case PlayState.Play: return this.PlayState != PlayState.Play;
+                case PlayState.Pause:
+                case PlayState.Stop: return this.PlayState == PlayState.Play;
+                default: throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
+            }
         }
 
         public void StartTimer() {
@@ -67,42 +80,64 @@ namespace FramePFX.Editors {
         }
 
         public void Play(long frame) {
-            if (this.PlaybackState == PlaybackState.Play && this.Timeline.PlayHeadPosition == frame) {
+            if (!(this.Editor.Project is Project project)) {
                 return;
             }
 
-            this.lastPlayFrame = frame;
-            this.PlaybackState = PlaybackState.Play;
-            this.PlaybackStateChanged?.Invoke(this, PlaybackState.Play, frame);
+            if (this.PlayState == PlayState.Play && project.MainTimeline.PlayHeadPosition == frame) {
+                return;
+            }
+
+            project.MainTimeline.LastPlayBackStartFrame = frame;
+            this.PlayState = PlayState.Play;
+            this.PlaybackStateChanged?.Invoke(this, this.PlayState, frame);
             this.thread_IsPlaying = true;
         }
 
         public void Pause() {
-            if (this.PlaybackState != PlaybackState.Play) {
+            if (this.PlayState != PlayState.Play) {
                 return;
             }
 
-            this.lastPlayFrame = this.Timeline.PlayHeadPosition;
-            this.PlaybackState = PlaybackState.Pause;
-            this.PlaybackStateChanged?.Invoke(this, PlaybackState.Pause, this.lastPlayFrame);
+            if (!(this.Editor.Project is Project project)) {
+                return;
+            }
+
             this.thread_IsPlaying = false;
+            project.MainTimeline.LastPlayBackStartFrame = project.MainTimeline.PlayHeadPosition;
+            this.PlayState = PlayState.Pause;
+            this.PlaybackStateChanged?.Invoke(this, this.PlayState, project.MainTimeline.LastPlayBackStartFrame);
         }
 
         public void Stop() {
-            if (this.PlaybackState != PlaybackState.Play) {
+            if (this.PlayState != PlayState.Play) {
                 return;
             }
 
-            this.PlaybackState = PlaybackState.Stop;
-            this.PlaybackStateChanged?.Invoke(this, PlaybackState.Stop, this.lastPlayFrame);
-            this.Timeline.PlayHeadPosition = this.lastPlayFrame;
+            if (!(this.Editor.Project is Project project)) {
+                return;
+            }
+
+            this.PlayState = PlayState.Stop;
+            this.PlaybackStateChanged?.Invoke(this, this.PlayState, project.MainTimeline.LastPlayBackStartFrame);
+            project.MainTimeline.PlayHeadPosition = project.MainTimeline.LastPlayBackStartFrame;
             this.thread_IsPlaying = false;
         }
 
         private void OnTimerFrame() {
             Application.Current.Dispatcher.Invoke(() => {
-                if (this.thread_IsPlaying)
-                    this.Timeline.PlayHeadPosition++;
+                if (this.thread_IsPlaying && this.Editor.Project is Project project) {
+                    Timeline timeline = project.MainTimeline;
+
+                    // Increment or wrap to beginning
+                    if (timeline.PlayHeadPosition == (timeline.TotalFrames - 1)) {
+                        timeline.PlayHeadPosition = 0;
+                    }
+                    else {
+                        // This is not how I indent to cause a re-render, but for now, changing the play head triggers a render
+                        timeline.PlayHeadPosition++;
+                    }
+                }
             });
         }
 

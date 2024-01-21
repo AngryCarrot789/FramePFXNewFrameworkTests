@@ -4,8 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
-using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Controls.Timelines {

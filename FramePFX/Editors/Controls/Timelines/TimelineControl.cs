@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using FramePFX.Editors.Controls.xclemence.RulerWPF;
+using FramePFX.Editors.Controls.Rulers;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Utils;
@@ -42,7 +42,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TimelineControl() {
             this.MouseLeftButtonDown += (s, e) => {
-                ((TimelineControl) s).MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X + (this.TimelineScrollViewer?.HorizontalOffset ?? 0d), false);
+                // ((TimelineControl) s).MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X + (this.TimelineScrollViewer?.HorizontalOffset ?? 0d), false);
             };
         }
 
@@ -108,6 +108,9 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.TrackListScrollViewer = scrollViewer;
             this.PlayHeadPositionPreview = playheadPosPreview;
             this.Ruler = ruler;
+            if (this.Timeline is Timeline myTimeline)
+                this.Ruler.MaxValue = myTimeline.TotalFrames;
+
             this.PlayHead = playHead;
             this.TimelineScrollViewer = timelineScrollViewer;
             this.RulerContainerBorder = timeStampBoard;
@@ -135,7 +138,8 @@ namespace FramePFX.Editors.Controls.Timelines {
                 newTimeline.ZoomTimeline += this.OnTimelineZoomed;
                 newTimeline.TrackAdded += this.OnTimelineTrackEvent;
                 newTimeline.TrackRemoved += this.OnTimelineTrackEvent;
-                this.Ruler.MaxValue = newTimeline.TotalFrames;
+                if (this.Ruler != null)
+                    this.Ruler.MaxValue = newTimeline.TotalFrames;
                 this.UpdateBorderThicknesses(newTimeline);
             }
         }
@@ -152,7 +156,8 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void OnTimelineTotalFramesChanged(Timeline timeline) {
-            this.Ruler.MaxValue = timeline.TotalFrames;
+            if (this.Ruler != null)
+                this.Ruler.MaxValue = timeline.TotalFrames;
         }
 
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e) {

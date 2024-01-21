@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace FramePFX.Utils {
     public static class TextIncrement {
@@ -125,6 +126,64 @@ namespace FramePFX.Utils {
 
             output = null;
             return false;
+        }
+
+        /// <summary>
+        /// Generates a completely randomised ID that is accepted by a predicate
+        /// <para>
+        /// If <see cref="loop"/> is, for example, <see cref="int.MaxValue"/> and <see cref="length"/> is the default (20), then
+        /// the chances of this function failing are so low that you're more likely to get hit by a near light-speed black hole head-on
+        /// </para>
+        /// <para>
+        /// When <see cref="src"/> is non-null, the random string will be inserted into <see cref="src"/> at <see cref="srcIndex"/>
+        /// </para>
+        /// </summary>
+        /// <param name="accept">Whether the output can be accepted or not</param>
+        /// <param name="src">Source string. May be null, to set output directly</param>
+        /// <param name="srcIndex">Used when <see cref="src"/> is not null, as the index within <see cref="src"/> to insert the random string at</param>
+        /// <param name="length">The length of the random id</param>
+        /// <param name="loop">Maximum number of times to generate a random ID before throwing, default is 32</param>
+        /// <returns>True if the <see cref="accept"/> predicate accepted the output string before the loop counter reached 0</returns>
+        public static unsafe bool GetRandomDisplayName(Predicate<string> accept, string src, int srcIndex, out string output, int length = 20, int loop = 32) {
+            Random random = new Random();
+            char* chars = stackalloc char[length];
+            while (loop > 0) {
+                RandomUtils.RandomLetters(random, chars, 0, length);
+                output = StringUtils.InjectOrUseChars(src, srcIndex, chars, length);
+                if (accept(output)) {
+                    return true;
+                }
+
+                loop--;
+            }
+
+            output = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Generates a string for a specific file
+        /// </summary>
+        /// <param name="accept">A predicate that checks if the output string can be accepted or not</param>
+        /// <param name="filePath">Input file path</param>
+        /// <param name="output">
+        /// Output file name, file name with a bracketed number, file path, file path with a bracketed
+        /// number, file name with a random string on the end, or null (and the function returns false)
+        /// </param>
+        /// <returns>True if the given predicate accepted any of the possible output strings</returns>
+        public static bool GenerateFileString(Predicate<string> accept, string filePath, out string output, ulong incrementCounter = 10000UL) {
+            string fileName = Path.GetFileName(filePath);
+            if (!string.IsNullOrEmpty(fileName)) {
+                // checks if the predicate accepts the raw fileName
+                if (GetIncrementableString(accept, fileName, out output, incrementCounter))
+                    return true;
+            }
+
+            if (GetIncrementableString(accept, filePath, out output, incrementCounter))
+                return true;
+
+            // what the ass. last resort
+            return GetRandomDisplayName(accept, fileName + "_", fileName.Length + 1, out output, 16, 128);
         }
     }
 }

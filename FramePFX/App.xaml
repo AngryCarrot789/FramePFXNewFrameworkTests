@@ -11,10 +11,13 @@
                 <ResourceDictionary Source="Themes/ControlColours.xaml"/>
                 <ResourceDictionary Source="Themes/Controls.xaml"/>
 
+                <!-- General styles that don't really rely on that many other styles -->
+                <ResourceDictionary Source="Editors/Controls/GeneralControlStyles.xaml"/>
                 <ResourceDictionary Source="Editors/Controls/Dragger/NumberDraggerStyles.xaml"/>
 
-                <!-- Other Styles -->
-                <ResourceDictionary Source="Editors/Controls/TimelineControls.xaml"/>
+                <!-- Advanced styles, some of these should probably be user controls -->
+                <ResourceDictionary Source="Editors/Controls/Resources/ResourceStyles.xaml"/>
+                <ResourceDictionary Source="Editors/Controls/Timelines/TimelineStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

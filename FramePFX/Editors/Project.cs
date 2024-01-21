@@ -1,13 +1,26 @@
 using FramePFX.Destroying;
+using FramePFX.Editors.ResourceManaging;
 using FramePFX.Editors.Timelines;
 
 namespace FramePFX.Editors {
     public class Project : IDestroy {
+        /// <summary>
+        /// Gets this project's primary timeline. This does not change
+        /// </summary>
         public Timeline MainTimeline { get; }
 
+        /// <summary>
+        /// Gets this project's resource manager. This does not change
+        /// </summary>
+        public ResourceManager ResourceManager { get; }
+
+        /// <summary>
+        /// Gets a reference to the video editor that this project is currently loaded in
+        /// </summary>
         public VideoEditor Editor { get; private set; }
 
         public Project() {
+            this.ResourceManager = new ResourceManager(this);
             this.MainTimeline = new Timeline();
             Timeline.SetMainTimelineProjectReference(this.MainTimeline, this);
         }

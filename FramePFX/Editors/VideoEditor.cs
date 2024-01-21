@@ -1,4 +1,6 @@
 using System;
+using FramePFX.Editors.ResourceManaging;
+using FramePFX.Editors.ResourceManaging.Resources;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
@@ -10,20 +12,38 @@ namespace FramePFX.Editors {
     /// The class which stores all of the data for the video editor application
     /// </summary>
     public class VideoEditor {
-        public Project CurrentProject { get; private set; }
+        /// <summary>
+        /// Gets the project that is currently loaded
+        /// </summary>
+        public Project Project { get; private set; }
+
+        public PlaybackManager Playback { get; }
 
         public event ProjectChangedEventHandler ProjectChanged;
 
         public VideoEditor() {
-
+            this.Playback = new PlaybackManager(this);
+            this.Playback.SetFrameRate(60.0);
+            this.Playback.StartTimer();
         }
 
         public void LoadDefaultProject() {
-            if (this.CurrentProject != null) {
+            if (this.Project != null) {
                 throw new Exception("A project is already loaded");
             }
 
             Project project = new Project();
+
+            ResourceManager manager = project.ResourceManager;
+            ulong id_r = manager.RegisterEntry(manager.RootFolder.AddItemAndRet(new ResourceColour(220, 25, 25) {DisplayName = "colour_red"}));
+            ulong id_g = manager.RegisterEntry(manager.RootFolder.AddItemAndRet(new ResourceColour(25, 220, 25) {DisplayName = "colour_green"}));
+            ulong id_b = manager.RegisterEntry(manager.RootFolder.AddItemAndRet(new ResourceColour(25, 25, 220) {DisplayName = "colour_blue"}));
+
+            ResourceFolder folder = new ResourceFolder("Extra Colours");
+            manager.RootFolder.AddItem(folder);
+            ulong id_w = manager.RegisterEntry(folder.AddItemAndRet(new ResourceColour(220, 220, 220) {DisplayName = "white colour"}));
+            ulong id_d = manager.RegisterEntry(folder.AddItemAndRet(new ResourceColour(50, 100, 220) {DisplayName = "idek"}));
+
 
             {
                 Track track = new VideoTrack() {DisplayName = "Vid Track 1"};
@@ -53,23 +73,23 @@ namespace FramePFX.Editors {
         }
 
         public void SetProject(Project project) {
-            if (this.CurrentProject != null) {
+            if (this.Project != null) {
                 throw new Exception("A project is already loaded; it must be unloaded first");
             }
 
-            this.CurrentProject = project;
+            this.Project = project;
             Project.OnOpened(this, project);
             this.ProjectChanged?.Invoke(this, null, project);
         }
 
         public void CloseProject() {
-            Project oldProject = this.CurrentProject;
+            Project oldProject = this.Project;
             if (oldProject == null) {
                 throw new Exception("There is no project opened");
             }
 
             oldProject.Destroy();
-            this.CurrentProject = null;
+            this.Project = null;
             Project.OnClosed(this, oldProject);
             this.ProjectChanged?.Invoke(this, oldProject, null);
         }

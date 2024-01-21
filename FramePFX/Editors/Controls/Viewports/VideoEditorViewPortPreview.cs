@@ -36,7 +36,7 @@ namespace FramePFX.Editors.Controls.Viewports {
 
             if (e.NewValue is VideoEditor newEditor) {
                 newEditor.ProjectChanged += control.OnProjectChanged;
-                control.SetProject(newEditor.CurrentProject);
+                control.SetProject(newEditor.Project);
             }
         }
 

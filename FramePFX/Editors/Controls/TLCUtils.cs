@@ -1,6 +1,5 @@
 using System;
 using FramePFX.Editors.Controls.Timelines;
-using OpenTK.Input;
 using Mouse = System.Windows.Input.Mouse;
 
 namespace FramePFX.Editors.Controls {

@@ -930,6 +930,9 @@
         <Setter Property="VerticalOffset" Value="15"/>
         <Setter Property="ToolTipService.ShowDuration" Value="30000"/>
         <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="Medium"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">

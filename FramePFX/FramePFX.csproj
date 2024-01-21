@@ -127,6 +127,21 @@
     <Compile Include="Editors\Controls\Dragger\NumberDragger.cs" />
     <Compile Include="Editors\Controls\Dragger\ValueStringFormatter.cs" />
     <Compile Include="Editors\Controls\Dragger\VerticalIncrement.cs" />
+    <Compile Include="Editors\Controls\Resources\ResourceDropRegistry.cs" />
+    <Compile Include="Editors\Controls\Resources\ResourceListItemContentControl.cs" />
+    <Compile Include="Editors\Controls\Resources\ResourceItemControl.cs" />
+    <Compile Include="Editors\Controls\Resources\ResourceListControl.cs" />
+    <Compile Include="Editors\Controls\Resources\ResourceListItemControl.cs" />
+    <Compile Include="Editors\Controls\Resources\ResourcePanelControl.cs" />
+    <Compile Include="Editors\Controls\Rulers\Rulers\HorizontalRulerManager.cs" />
+    <Compile Include="Editors\Controls\Rulers\Rulers\LeftRulerManager.cs" />
+    <Compile Include="Editors\Controls\Rulers\Rulers\RulerPosition.cs" />
+    <Compile Include="Editors\Controls\Rulers\Rulers\RulerPositionManager.cs" />
+    <Compile Include="Editors\Controls\Rulers\Rulers\TopRulerManager.cs" />
+    <Compile Include="Editors\Controls\Rulers\Rulers\VerticalRulerManager.cs" />
+    <Compile Include="Editors\Controls\Rulers\Ruler.cs" />
+    <Compile Include="Editors\Controls\Rulers\RulerBase.cs" />
+    <Compile Include="Editors\Controls\Rulers\RulerStepProperties.cs" />
     <Compile Include="Editors\Controls\Timelines\PlayHeadControl.cs" />
     <Compile Include="Editors\Controls\Timelines\PlayheadPositionTextControl.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineClipControl.cs" />
@@ -145,20 +160,10 @@
     <Compile Include="Editors\Controls\Viewports\VideoEditorViewPortPreview.cs" />
     <Compile Include="Editors\Controls\Viewports\FreeMoveViewPort.cs" />
     <Compile Include="Editors\Controls\Viewports\SKAsyncViewPort.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\HorizontalRulerManager.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\LeftRulerManager.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\RenderData.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\RulerPosition.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\RulerPositionManager.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\TopRulerManager.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\PositionManagers\VerticalRulerManager.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\Ruler.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\RulerBase.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\RulerStepProperties.cs" />
-    <Compile Include="Editors\Controls\xclemence\RulerWPF\RulerTextOverflow.cs" />
     <Compile Include="Editors\Factories\ClipFactory.cs" />
     <Compile Include="Editors\Factories\ReflectiveObjectFactory.cs" />
     <Compile Include="Editors\Factories\ObjectFactory.cs" />
+    <Compile Include="Editors\Factories\ResourceTypeFactory.cs" />
     <Compile Include="Editors\Factories\TrackFactory.cs" />
     <Compile Include="Editors\Media\MediaSource.cs" />
     <Compile Include="Editors\Media\MediaSourceTrack.cs" />
@@ -166,9 +171,22 @@
     <Compile Include="Editors\Media\Images\ImageMediaSourceTrack.cs" />
     <Compile Include="Editors\Media\VideoMediaSourceTrack.cs" />
     <Compile Include="Editors\PlaybackManager.cs" />
-    <Compile Include="Editors\PlaybackState.cs" />
+    <Compile Include="Editors\PlayState.cs" />
     <Compile Include="Editors\Rendering\TrackRenderState.cs" />
     <Compile Include="Editors\RenderUtils.cs" />
+    <Compile Include="Editors\ResourceManaging\BaseResource.cs" />
+    <Compile Include="Editors\ResourceManaging\Events\ResourceEvents.cs" />
+    <Compile Include="Editors\ResourceManaging\Events\ResourceManagerEvents.cs" />
+    <Compile Include="Editors\ResourceManaging\ResourceChangedEventHandler.cs" />
+    <Compile Include="Editors\ResourceManaging\ResourceFolder.cs" />
+    <Compile Include="Editors\ResourceManaging\ResourceItem.cs" />
+    <Compile Include="Editors\ResourceManaging\ResourceManager.cs" />
+    <Compile Include="Editors\ResourceManaging\ResourceObjectUtils.cs" />
+    <Compile Include="Editors\ResourceManaging\ResourceRemoveFlags.cs" />
+    <Compile Include="Editors\ResourceManaging\Resources\ResourceColour.cs" />
+    <Compile Include="Editors\ResourceManaging\Resources\ResourceImage.cs" />
+    <Compile Include="Editors\ResourceManaging\Resources\ResourceTextStyle.cs" />
+    <Compile Include="Editors\ResourceManaging\RLinkState.cs" />
     <Compile Include="Editors\Timelines\RenderContext.cs" />
     <Compile Include="Editors\Timelines\SelectionType.cs" />
     <Compile Include="Editors\Timelines\TrackFrameSpan.cs" />
@@ -178,6 +196,29 @@
     <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />
     <Compile Include="Editors\Timelines\ZoomType.cs" />
     <Compile Include="Editors\TimelineUtils.cs" />
+    <Compile Include="Interactivity\DataContext.cs" />
+    <Compile Include="Interactivity\DataObjectWrapper.cs" />
+    <Compile Include="Interactivity\DragDropRegistry.cs" />
+    <Compile Include="Interactivity\DropMetadata.cs" />
+    <Compile Include="Interactivity\DropUtils.cs" />
+    <Compile Include="Interactivity\EmptyContext.cs" />
+    <Compile Include="Interactivity\EnumDropType.cs" />
+    <Compile Include="Interactivity\IDataContext.cs" />
+    <Compile Include="Interactivity\IDataObjekt.cs" />
+    <Compile Include="Interactivity\IFileDropHandler.cs" />
+    <Compile Include="Interactivity\NativeDropTypes.cs" />
+    <Compile Include="RBC\BinaryUtils.cs" />
+    <Compile Include="RBC\Events\ReadFromRBEEventHandler.cs" />
+    <Compile Include="RBC\Events\WriteToRBEEventHandler.cs" />
+    <Compile Include="RBC\RBEArray.cs" />
+    <Compile Include="RBC\RBEBase.cs" />
+    <Compile Include="RBC\RBEDictionary.cs" />
+    <Compile Include="RBC\RBEGuid.cs" />
+    <Compile Include="RBC\RBEList.cs" />
+    <Compile Include="RBC\RBEPrimitive.cs" />
+    <Compile Include="RBC\RBEStruct.cs" />
+    <Compile Include="RBC\RBEType.cs" />
+    <Compile Include="RBC\RBEUtils.cs" />
     <Compile Include="Themes\Attached\CornerRadiusHelper.cs" />
     <Compile Include="Themes\Attached\MenuHelper.cs" />
     <Compile Include="Themes\Attached\PasswordBoxHelper.cs" />
@@ -340,13 +381,17 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Editors\Controls\TimelineControls.xaml">
+    <Page Include="Editors\Controls\GeneralControlStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Editors\Controls\xclemence\RulerWPF\RulerStyle.xaml">
-      <Generator>MSBuild:Compile</Generator>
+    <Page Include="Editors\Controls\Resources\ResourceStyles.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Editors\Controls\Timelines\TimelineStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Editors\Views\EditorWindow.xaml">
       <SubType>Designer</SubType>

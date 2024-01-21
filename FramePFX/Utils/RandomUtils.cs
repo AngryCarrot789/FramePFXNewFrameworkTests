@@ -30,6 +30,12 @@ namespace FramePFX.Utils {
             }
         }
 
+        public static unsafe void RandomLetters(Random random, char* ptr, int offset, int count) {
+            for (int i = 0; i < count; i++) {
+                ptr[offset + i] = (char) random.Next('a', 'z' + 1);
+            }
+        }
+
         public static void RandomLettersAndNumbers(char[] chars) => RandomLettersAndNumbers(RANDOM, chars, 0, chars.Length);
 
         public static void RandomLettersAndNumbers(char[] chars, int offset, int count) => RandomLettersAndNumbers(RANDOM, chars, offset, count);

@@ -35,6 +35,8 @@ namespace FramePFX.Editors.Timelines {
             }
         }
 
+        public long LastPlayBackStartFrame { get; set; }
+
         /// <summary>
         /// The position of the play head, in frames
         /// </summary>
@@ -116,8 +118,6 @@ namespace FramePFX.Editors.Timelines {
 
         public double Zoom { get; private set; }
 
-        public PlaybackManager Playback { get; }
-
         public event TimelineTrackIndexEventHandler TrackAdded;
         public event TimelineTrackIndexEventHandler TrackRemoved;
         public event TimelineTrackMovedEventHandler TrackMoved;
@@ -139,10 +139,6 @@ namespace FramePFX.Editors.Timelines {
 
             this.totalFrames = 5000L;
             this.Zoom = 1.0d;
-
-            this.Playback = new PlaybackManager(this);
-            this.Playback.SetFrameRate(60.0);
-            this.Playback.StartTimer();
         }
 
         public void UpdateLargestFrame() {
