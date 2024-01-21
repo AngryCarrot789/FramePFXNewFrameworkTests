@@ -1,13 +1,13 @@
 using System;
+using FramePFX.Editors.Rendering;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Utils;
+using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void VideoTrackEventHandler(VideoTrack track);
 
     public class VideoTrack : Track {
-        private double opacity;
-
         public double Opacity {
             get => this.opacity;
             set {
@@ -20,8 +20,53 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public event VideoTrackEventHandler OpacityChanged;
 
+        private double opacity;
+        private SKSurface surface;
+        private SKImageInfo surfaceInfo;
+        private bool isCanvasClear;
+
+        private VideoClip theClipToRender;
+
         public VideoTrack() {
             this.opacity = 1.0;
+            this.isCanvasClear = true;
+        }
+
+        public bool BeginRenderFrame(RenderFrameInfo info) {
+            VideoClip clip = (VideoClip) this.GetClipAtFrame(info.PlayHeadFrame);
+            if (clip != null) {
+                clip.BeginRenderFrame(info);
+                this.theClipToRender = clip;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void RenderFrame(RenderFrameInfo info) {
+            if (this.surface != null && !this.isCanvasClear) {
+                this.surface.Canvas.Clear(SKColors.Transparent);
+                this.isCanvasClear = true;
+            }
+
+            if (this.theClipToRender == null) {
+                return;
+            }
+
+            if (this.surface == null) {
+                this.surfaceInfo = new SKImageInfo(1280, 720, SKColorType.Bgra8888, SKAlphaType.Opaque);
+                this.surface = SKSurface.Create(this.surfaceInfo);
+            }
+
+            this.theClipToRender.RenderFrame(info, this.surface);
+            this.theClipToRender = null;
+            this.isCanvasClear = false;
+        }
+
+        public void DrawFrameIntoSurface(SKSurface dstSurface) {
+            if (this.surface != null) {
+                this.surface.Draw(dstSurface.Canvas, 0, 0, null);
+            }
         }
 
         public override bool IsClipTypeAccepted(Type type) {

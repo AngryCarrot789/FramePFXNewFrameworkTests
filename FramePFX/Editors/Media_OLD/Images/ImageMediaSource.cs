@@ -1,7 +1,7 @@
 using System.IO;
 using SkiaSharp;
 
-namespace FramePFX.Editors.Media.Images {
+namespace FramePFX.Editors.Media_OLD.Images {
     public class ImageMediaSource : MediaSource {
         public string FilePath { get; private set; }
 

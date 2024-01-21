@@ -1,7 +1,7 @@
 using System;
 using SkiaSharp;
 
-namespace FramePFX.Editors.Media.Images {
+namespace FramePFX.Editors.Media_OLD.Images {
     public class ImageMediaSourceTrack : VideoMediaSourceTrack {
         public ImageMediaSource MediaSource { get; }
 

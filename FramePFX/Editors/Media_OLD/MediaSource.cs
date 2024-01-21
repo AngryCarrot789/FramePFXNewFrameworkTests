@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace FramePFX.Editors.Media {
+namespace FramePFX.Editors.Media_OLD {
     /// <summary>
     /// A class used to 'fetch' a media frame from some sort of unknown source.
     /// This is used by things like clips in order to generate an output

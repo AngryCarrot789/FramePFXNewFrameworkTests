@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Media;
+using FramePFX.Editors.Rendering;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
@@ -69,23 +71,28 @@ namespace FramePFX.Editors.Controls.Viewports {
 
                 int timelineCanvasSaveIndex = render.Canvas.Save();
                 try {
+                    RenderFrameInfo info = new RenderFrameInfo(render.FrameInfo, frame);
+                    List<VideoTrack> tracks = new List<VideoTrack>();
                     render.Canvas.ClipRect(new SKRect(0, 0, render.FrameSize.X, render.FrameSize.Y));
-
-                    SKPaint trackPaint = null;
-                    SKPaint clipPaint = null;
-                    foreach (Track track in timeline.Tracks) {
-                        if (!(track is VideoTrack videoTrack))
+                    for (int i = timeline.Tracks.Count - 1; i >= 0; i--) {
+                        Track track = timeline.Tracks[i];
+                        if (!(track is VideoTrack videoTrack)) {
                             continue;
-
-                        int trackSaveCount = BeginTrackOpacityLayer(render, videoTrack, ref trackPaint);
-                        foreach (VideoClip clip in videoTrack.Clips) {
-                            if (clip.FrameSpan.Intersects(frame)) {
-                                int clipSaveCount = BeginClipOpacityLayer(render, clip, ref clipPaint);
-                                clip.Render(render);
-                                EndOpacityLayer(render, clipSaveCount, ref clipPaint);
-                            }
                         }
 
+                        if (videoTrack.BeginRenderFrame(info)) {
+                            tracks.Add(videoTrack);
+                        }
+                    }
+
+                    foreach (VideoTrack track in tracks) {
+                        track.RenderFrame(info);
+                    }
+
+                    SKPaint trackPaint = null;
+                    foreach (VideoTrack track in tracks) {
+                        int trackSaveCount = BeginTrackOpacityLayer(render, track, ref trackPaint);
+                        track.DrawFrameIntoSurface(render.Surface);
                         EndOpacityLayer(render, trackSaveCount, ref trackPaint);
                     }
                 }
