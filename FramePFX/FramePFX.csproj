@@ -97,6 +97,13 @@
     <Compile Include="AttachedProperties\TextBoxHelper.cs" />
     <Compile Include="AttachedProperties\ToggleButtonHelper.cs" />
     <Compile Include="AttachedProperties\TopmostFocus.cs" />
+    <Compile Include="Converters\BoolConverter.cs" />
+    <Compile Include="Converters\BoolConverterAND.cs" />
+    <Compile Include="Converters\DbToVolumeConverter.cs" />
+    <Compile Include="Converters\EnumConverter.cs" />
+    <Compile Include="Converters\FloatToDoubleConverter.cs" />
+    <Compile Include="Converters\NullConverter.cs" />
+    <Compile Include="Converters\VolumeToDbConverter.cs" />
     <Compile Include="Editors\Collections\SelectionList.cs" />
     <Compile Include="Editors\Controls\Binders\AutoUpdaterBinder.cs" />
     <Compile Include="Editors\Controls\Binders\BaseObjectBinder.cs" />
@@ -134,6 +141,7 @@
     <Compile Include="Editors\Controls\Timelines\TimelineTrackListBoxItemPanel.cs" />
     <Compile Include="Editors\Controls\Timelines\ViewModels\TrackListTrackViewModel.cs" />
     <Compile Include="Editors\Controls\Timelines\ViewModels\TrackListVideoTrackViewModel.cs" />
+    <Compile Include="Editors\Controls\TLCUtils.cs" />
     <Compile Include="Editors\Controls\Viewports\VideoEditorViewPortPreview.cs" />
     <Compile Include="Editors\Controls\Viewports\FreeMoveViewPort.cs" />
     <Compile Include="Editors\Controls\Viewports\SKAsyncViewPort.cs" />
@@ -164,6 +172,7 @@
     <Compile Include="Editors\Timelines\RenderContext.cs" />
     <Compile Include="Editors\Timelines\SelectionType.cs" />
     <Compile Include="Editors\Timelines\TrackFrameSpan.cs" />
+    <Compile Include="Editors\Timelines\TrackPoint.cs" />
     <Compile Include="Editors\Timelines\Tracks\ClipCloneOptions.cs" />
     <Compile Include="Editors\Timelines\Tracks\ClipRangeCache.cs" />
     <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />
@@ -240,6 +249,7 @@
     <Compile Include="Utils\Reference.cs" />
     <Compile Include="Utils\ReferenceEqualityComparer.cs" />
     <Compile Include="Utils\ResourceDictionaryDataTemplateSelector.cs" />
+    <Compile Include="Utils\RoundingMode.cs" />
     <Compile Include="Utils\ScrollerUtils.cs" />
     <Compile Include="Utils\ShellIconSize.cs" />
     <Compile Include="Utils\ShellUtils.cs" />

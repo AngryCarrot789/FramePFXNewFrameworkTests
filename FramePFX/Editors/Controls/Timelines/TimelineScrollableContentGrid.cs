@@ -22,6 +22,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             if (!e.Handled && this.TimelineControl != null) {
                 Point point = e.GetPosition(this);
                 this.TimelineControl.SetPlayHeadToMouseCursor(point.X);
+                this.TimelineControl.Timeline?.ClearClipSelection();
             }
         }
 

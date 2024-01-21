@@ -62,7 +62,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         private DragState dragState;
         private Point clickPoint;
         private bool isUpdatingFrameSpanFromDrag;
-        private bool hasMadeRangedSelectionInMouseDown;
+        private bool hasMadeExceptionalSelectionInMouseDown;
 
         private GlyphRun glyphRun;
         private readonly RectangleGeometry renderSizeRectGeometry;
@@ -82,6 +82,11 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.GotFocus += this.OnGotFocus;
             this.LostFocus += this.OnLostFocus;
             this.renderSizeRectGeometry = new RectangleGeometry();
+        }
+
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
+            base.OnPropertyChanged(e);
+            this.isSelectedBinder?.OnPropertyChanged(e);
         }
 
         static TimelineClipControl() {
@@ -134,49 +139,57 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.Focus();
             this.clickPoint = e.GetPosition(this);
             this.SetDragState(DragState.Initiated);
-            if (!this.IsMouseCaptured)
+            if (!this.IsMouseCaptured) {
                 this.CaptureMouse();
+            }
 
             Timeline timeline = this.Model.Track?.Timeline;
-            if (timeline == null) {
+            if (timeline == null || this.Track?.Timeline == null) {
                 return;
             }
 
+            long mouseFrame = TLCUtils.GetCursorFrame(this);
             if (timeline.HasAnySelectedClips) {
-                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0 && this.Track?.Timeline is TimelineSequenceControl control) {
-                    long frameA = timeline.PlayHeadPosition;
-                    long frameB = TimelineUtils.PixelToFrame(e.GetPosition(control).X, timeline.Zoom, true);
-                    if (frameA > frameB) {
-                        Maths.Swap(ref frameA, ref frameB);
-                    }
-
-                    TrackFrameSpan anchor = timeline.RangedSelectionAnchor;
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0) {
+                    TrackPoint anchor = timeline.RangedSelectionAnchor;
                     if (anchor.TrackIndex != -1) {
                         int idxA = anchor.TrackIndex;
-                        int idxB = timeline.Tracks.IndexOf(this.Model.Track);
+                        int idxB = this.Model.Track.IndexInTimeline;
                         if (idxA > idxB) {
                             Maths.Swap(ref idxA, ref idxB);
                         }
 
-                        timeline.MakeFrameRangeSelection(FrameSpan.FromIndex(frameA, frameB), idxA, idxB + 1);
-                        // timeline.RangedSelectionAnchor = anchor;
+                        long frameA = anchor.Frame;
+                        if (frameA > mouseFrame) {
+                            Maths.Swap(ref frameA, ref mouseFrame);
+                        }
+
+                        timeline.MakeFrameRangeSelection(FrameSpan.FromIndex(frameA, mouseFrame), idxA, idxB + 1);
                     }
                     else {
-                        timeline.MakeFrameRangeSelection(FrameSpan.FromIndex(frameA, frameB));
+                        long frameA = timeline.PlayHeadPosition;
+                        if (frameA > mouseFrame) {
+                            Maths.Swap(ref frameA, ref mouseFrame);
+                        }
+
+                        timeline.MakeFrameRangeSelection(FrameSpan.FromIndex(frameA, mouseFrame));
                     }
 
-                    this.hasMadeRangedSelectionInMouseDown = true;
+                    this.hasMadeExceptionalSelectionInMouseDown = true;
                 }
                 else if ((Keyboard.Modifiers & ModifierKeys.Control) == 0 && !this.Model.IsSelected) {
                     timeline.MakeSingleSelection(this.Model);
+                    timeline.RangedSelectionAnchor = new TrackPoint(this.Model, mouseFrame);
                 }
             }
             else {
                 if ((Keyboard.Modifiers & ModifierKeys.Control) != 0) {
                     this.Model.IsSelected = !this.Model.IsSelected;
+                    this.hasMadeExceptionalSelectionInMouseDown = true;
                 }
                 else {
                     timeline.MakeSingleSelection(this.Model);
+                    timeline.RangedSelectionAnchor = new TrackPoint(this.Model, mouseFrame);
                 }
             }
         }
@@ -185,7 +198,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             base.OnMouseUp(e);
             e.Handled = true;
             DragState lastDragState = this.dragState;
-            if (this.dragState == DragState.Initiated && !this.hasMadeRangedSelectionInMouseDown) {
+            if (this.dragState == DragState.Initiated && !this.hasMadeExceptionalSelectionInMouseDown) {
                 this.Track.Timeline.SetPlayHeadToMouseCursor(e.MouseDevice);
             }
 
@@ -193,21 +206,22 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.SetCursorForMousePoint(e.GetPosition(this));
             this.ReleaseMouseCapture();
 
-            if (this.hasMadeRangedSelectionInMouseDown) {
-                this.hasMadeRangedSelectionInMouseDown = false;
+            if (this.hasMadeExceptionalSelectionInMouseDown) {
+                this.hasMadeExceptionalSelectionInMouseDown = false;
             }
             else {
                 Timeline timeline = this.Model.Track?.Timeline;
-                if (timeline == null) {
+                if (timeline == null || this.Track?.Timeline == null) {
                     return;
                 }
 
-                if (timeline.HasAnySelectedClips) {
+                if ((lastDragState == DragState.None || lastDragState == DragState.Initiated) && timeline.HasAnySelectedClips) {
                     if ((Keyboard.Modifiers & ModifierKeys.Control) != 0) {
                         this.Model.IsSelected = !this.Model.IsSelected;
                     }
-                    else if (this.Model.IsSelected && (Keyboard.Modifiers & ModifierKeys.Shift) == 0 && (lastDragState == DragState.None || lastDragState == DragState.Initiated)) {
+                    else if (this.Model.IsSelected && (Keyboard.Modifiers & ModifierKeys.Shift) == 0) {
                         timeline.MakeSingleSelection(this.Model);
+                        timeline.RangedSelectionAnchor = new TrackPoint(this.Model, TLCUtils.GetCursorFrame(this));
                     }
                 }
             }
@@ -435,6 +449,8 @@ namespace FramePFX.Editors.Controls.Timelines {
             return size;
         }
 
+        private static readonly FontFamily SegoeUI = new FontFamily("Segoe UI");
+
         protected override void OnRender(DrawingContext dc) {
             base.OnRender(dc);
             Rect rect = new Rect(new Point(), this.RenderSize);
@@ -454,8 +470,12 @@ namespace FramePFX.Editors.Controls.Timelines {
             //     dc.DrawText(this.formattedText, new Point());
 
             // glyph run is way faster than using formatted text
-            if (this.glyphRun == null && this.DisplayName is string str)
-                this.glyphRun = GlyphGenerator.CreateText(str, 12d, this, new Point(3, 12));
+            if (this.glyphRun == null && this.DisplayName is string str) {
+                Typeface typeface = new Typeface(SegoeUI, this.FontStyle, FontWeights.SemiBold, this.FontStretch);
+                Point origin = new Point(3, 14); // hard coded offset for Segoe UI and header size of 20 px
+                this.glyphRun = GlyphGenerator.CreateText(str, 12d, typeface, origin);
+            }
+
             if (this.glyphRun != null) {
                 dc.PushClip(this.renderSizeRectGeometry);
                 dc.DrawGlyphRun(Brushes.White, this.glyphRun);

@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines.Tracks;
+using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Controls.Timelines {
@@ -53,9 +55,9 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
+            base.OnPropertyChanged(e);
             this.displayNameBinder?.OnPropertyChanged(e);
             this.trackColourBinder?.OnPropertyChanged(e);
-            base.OnPropertyChanged(e);
         }
 
         public virtual void OnBeingAddedToTimeline() {

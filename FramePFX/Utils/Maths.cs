@@ -146,6 +146,22 @@ namespace FramePFX.Utils {
             int tmp = a; a = b; b = tmp;
         }
 
+        public static float Swap(ref float a, float b) {
+            float oA = a; a = b; return oA;
+        }
+
+        public static double Swap(ref double a, double b) {
+            double oA = a; a = b; return oA;
+        }
+
+        public static long Swap(ref long a, long b) {
+            long oA = a; a = b; return oA;
+        }
+
+        public static int Swap(ref int a, int b) {
+            int oA = a; a = b; return oA;
+        }
+
         public static double GetRange(float min, float max) {
             return max < min ? (min - max) : (max - min);
         }
@@ -156,6 +172,39 @@ namespace FramePFX.Utils {
 
         public static double GetRange(long min, long max) {
             return max < min ? (min - max) : (max - min);
+        }
+
+        public static int Round(float value, RoundingMode mode = RoundingMode.Cast) {
+            switch (mode) {
+                case RoundingMode.None:
+                case RoundingMode.Cast:  return (int) value;
+                case RoundingMode.Floor: return (int) Math.Floor(value);
+                case RoundingMode.Ceil:  return (int) Math.Ceiling(value);
+                case RoundingMode.Round: return (int) Math.Round(value);
+                default: throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+            }
+        }
+
+        public static int Round(double value, RoundingMode mode = RoundingMode.Cast) {
+            switch (mode) {
+                case RoundingMode.None:
+                case RoundingMode.Cast:  return (int) value;
+                case RoundingMode.Floor: return (int) Math.Floor(value);
+                case RoundingMode.Ceil:  return (int) Math.Ceiling(value);
+                case RoundingMode.Round: return (int) Math.Round(value);
+                default: throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+            }
+        }
+
+        public static long RoundLong(double value, RoundingMode mode = RoundingMode.Cast) {
+            switch (mode) {
+                case RoundingMode.None:
+                case RoundingMode.Cast:  return (long) value;
+                case RoundingMode.Floor: return (long) Math.Floor(value);
+                case RoundingMode.Ceil:  return (long) Math.Ceiling(value);
+                case RoundingMode.Round: return (long) Math.Round(value);
+                default: throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+            }
         }
     }
 }

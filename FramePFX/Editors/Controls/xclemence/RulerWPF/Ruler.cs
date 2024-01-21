@@ -98,6 +98,13 @@ namespace FramePFX.Editors.Controls.xclemence.RulerWPF {
                 return;
             }
 
+            // Size oldSize = this.RenderSize;
+            // if (this.isRenderClean && oldSize == this.lastRenderSize) {
+            //     return;
+            // }
+            // this.lastRenderSize = this.RenderSize;
+            // this.isRenderClean = true;
+
             // When zooming, OnRender gets called 3 times... this is why zooming is laggy
             // calculate visible pixel bounds
             Rect rect = UIUtils.GetVisibleRect(this.scroller, this);

@@ -14,14 +14,21 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TimelineTrackListBox() {
             this.ItemsPanel = new ItemsPanelTemplate(new FrameworkElementFactory(typeof(TimelineTrackListBoxItemPanel)));
+            this.SelectionMode = SelectionMode.Extended;
         }
 
         static TimelineTrackListBox() {
             DefaultStyleKeyProperty.OverrideMetadata(typeof (TimelineTrackListBox), new FrameworkPropertyMetadata(typeof(TimelineTrackListBox)));
         }
 
+        // I override the measuere/arrange functions to help with debugging sometimes
+
         protected override Size MeasureOverride(Size constraint) {
             return base.MeasureOverride(constraint);
+        }
+
+        protected override Size ArrangeOverride(Size arrangeBounds) {
+            return base.ArrangeOverride(arrangeBounds);
         }
 
         private void OnTimelineChanged(Timeline oldTimeline, Timeline newTimeline) {
@@ -59,7 +66,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         private void InsertTrackInternal(Track track, int index) {
             TimelineTrackListBoxItem control = new TimelineTrackListBoxItem(track);
             control.TrackList = this;
-            control.OnBeingAddedToTimeline();
+            control.OnAddingToTimeline();
             this.Items.Insert(index, control);
             control.OnAddedToTimeline();
             control.InvalidateMeasure();
@@ -68,7 +75,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         private void RemoveTrackInternal(Track track, int index) {
             TimelineTrackListBoxItem control = (TimelineTrackListBoxItem) this.Items[index];
-            control.OnBeginRemovedFromTimeline();
+            control.OnRemovingFromTimeline();
             this.Items.RemoveAt(index);
             control.OnRemovedFromTimeline();
             control.TrackList = null;

@@ -12,14 +12,6 @@ namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void ClipMovedEventHandler(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex);
 
     public abstract class Track : IDestroy {
-        private readonly List<Clip> clips;
-        private readonly ClipRangeCache cache;
-        private readonly HashSet<Clip> selection;
-        private double height = 60d;
-        private string displayName = "Track";
-        private SKColor colour;
-        private bool isSelected;
-
         public string FactoryId => TrackFactory.Instance.GetId(this.GetType());
 
         public Timeline Timeline { get; private set; }
@@ -67,9 +59,9 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public long LargestFrameInUse => this.cache.LargestActiveFrame;
 
-        public IEnumerable<Clip> SelectedClips => this.selection;
+        public IEnumerable<Clip> SelectedClips => this.selectedClips;
 
-        public int SelectedClipCount => this.selection.Count;
+        public int SelectedClipCount => this.selectedClips.Count;
 
         /// <summary>
         /// Gets the index of this track within our owner timeline
@@ -79,11 +71,22 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public event TrackClipIndexEventHandler ClipAdded;
         public event TrackClipIndexEventHandler ClipRemoved;
         public event ClipMovedEventHandler ClipMovedTracks;
-
         public event TrackEventHandler HeightChanged;
         public event TrackEventHandler DisplayNameChanged;
         public event TrackEventHandler ColourChanged;
         public event TrackEventHandler IsSelectedChanged;
+
+        // Not sure if this will ever be used since track removal should typically be
+        // handled at a higher level, but this could work for lazy event handler removal
+        public event TimelineTrackIndexEventHandler Removed;
+
+        private readonly List<Clip> clips;
+        private readonly ClipRangeCache cache;
+        private readonly List<Clip> selectedClips;
+        private double height = 60d;
+        private string displayName = "Track";
+        private SKColor colour;
+        private bool isSelected;
 
         protected Track() {
             this.clips = new List<Clip>();
@@ -91,7 +94,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.cache = new ClipRangeCache();
             this.cache.FrameDataChanged += this.OnRangeCachedFrameDataChanged;
             this.colour = RenderUtils.RandomColour();
-            this.selection = new HashSet<Clip>();
+            this.selectedClips = new List<Clip>();
         }
 
         private void OnRangeCachedFrameDataChanged(ClipRangeCache handler) {
@@ -160,14 +163,14 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.clips.Insert(index, clip);
             this.cache.OnClipAdded(clip);
             if (clip.IsSelected)
-                this.selection.Add(clip);
+                this.selectedClips.Add(clip);
         }
 
         private void InternalRemoveClipAt(int index, Clip clip) {
             this.clips.RemoveAt(index);
             this.cache.OnClipRemoved(clip);
             if (clip.IsSelected)
-                this.selection.Remove(clip);
+                this.selectedClips.Remove(clip);
             Timelines.Timeline.OnClipRemovedFromTrack(this, clip);
         }
 
@@ -193,30 +196,6 @@ namespace FramePFX.Editors.Timelines.Tracks {
             return $"{this.GetType().Name} ({this.clips.Count.ToString()} clips between {this.cache.SmallestActiveFrame.ToString()} and {this.cache.LargestActiveFrame.ToString()})";
         }
 
-        internal static void OnAddedToTimeline(Track track, Timeline timeline) {
-            track.Timeline = timeline;
-        }
-
-        internal static void OnRemovedFromTimeline(Track track, Timeline timeline) {
-            track.Timeline = null;
-        }
-
-        internal static void OnClipSpanChanged(Clip clip, FrameSpan oldSpan) {
-            clip.Track?.cache.OnSpanChanged(clip, oldSpan);
-        }
-
-        internal static void OnIsClipSelectedChanged(Clip clip) {
-            Track track = clip.Track;
-            if (clip.IsSelected) {
-                track.selection.Add(clip);
-            }
-            else {
-                track.selection.Remove(clip);
-            }
-
-            Timeline.OnIsClipSelectedChanged(track, clip);
-        }
-
         /// <summary>
         /// Adds all clips within the given frame span to the given list
         /// </summary>
@@ -230,6 +209,65 @@ namespace FramePFX.Editors.Timelines.Tracks {
             List<Clip> list = new List<Clip>();
             this.CollectClipsInSpan(list, span);
             return list;
+        }
+
+        internal static void OnAddedToTimeline(Track track, Timeline timeline) {
+            track.Timeline = timeline;
+        }
+
+        #region Internal Access Helpers -- Used internally only
+
+        internal static void OnRemovedFromTimeline1(Track track, Timeline timeline) {
+            track.Timeline = null;
+        }
+
+        internal static void OnClipSpanChanged(Clip clip, FrameSpan oldSpan) {
+            clip.Track?.cache.OnSpanChanged(clip, oldSpan);
+        }
+
+        // A 2nd version is required because the timeline's TrackRemoved event must be called after
+        // the timeline reference is set to null, but before the track' own removed event is fired
+        internal static void OnRemovedFromTimeline2(Timeline timeline, Track track, int index) {
+            track.Removed?.Invoke(timeline, track, index);
+        }
+
+        internal static void OnIsClipSelectedChanged(Clip clip) {
+            // If the track is null, it means the clip was either removed previously
+            // and therefore its selection has already been processed, or has never been
+            // added and therefore we don't care about the new selected state
+            if (clip.Track == null)
+                return;
+
+            List<Clip> list = clip.Track.selectedClips;
+            if (clip.IsSelected) {
+                list.Add(clip);
+            }
+            else if (list.Count > 0) {
+                if (list[0] == clip) {
+                    list.RemoveAt(0);
+                }
+                else { // assume back to front removal
+                    int index = list.LastIndexOf(clip);
+                    if (index == -1) {
+                        throw new Exception("Track was never selected");
+                    }
+
+                    list.RemoveAt(index);
+                }
+            }
+
+            Timeline.OnIsClipSelectedChanged(clip);
+        }
+
+        #endregion
+
+        public void ClearClipSelection() {
+            // Use back to front removal since OnIsClipSelectedChanged can process
+            // that more efficiently, and in general, back to front is more efficient
+            List<Clip> list = this.selectedClips;
+            for (int i = list.Count - 1; i >= 0; i--) {
+                list[i].IsSelected = false;
+            }
         }
     }
 }

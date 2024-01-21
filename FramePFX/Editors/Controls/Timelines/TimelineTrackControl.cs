@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
@@ -34,6 +35,18 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.UseLayoutRounding = true;
         }
 
+        protected override void OnMouseDown(MouseButtonEventArgs e) {
+            base.OnMouseDown(e);
+        }
+
+        protected override void OnPreviewMouseDown(MouseButtonEventArgs e) {
+            base.OnPreviewMouseDown(e);
+            if (this.Track.Timeline.HasAnySelectedTracks)
+                this.Track.Timeline.ClearTrackSelection();
+
+            this.Track.IsSelected = true;
+        }
+
         static TimelineTrackControl() {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(TimelineTrackControl), new FrameworkPropertyMetadata(typeof(TimelineTrackControl)));
         }
@@ -47,13 +60,13 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void OnClipMovedTracks(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex) {
-            // Instead of throwing, we could just remove the track or insert a new track, instead of
-            // trying to re-use existing controls, at the cost of performance.
-            // However, moving clips between tracks in different timelines is not directly supported
-            // so there's no need to support it here
             if (oldTrack == this.Track) {
                 TimelineTrackControl dstTrack = this.Timeline.GetTrackByModel(newTrack);
                 if (dstTrack == null) {
+                    // Instead of throwing, we could just remove the track or insert a new track, instead of
+                    // trying to re-use existing controls, at the cost of performance.
+                    // However, moving clips between tracks in different timelines is not directly supported
+                    // so there's no need to support it here
                     throw new Exception("Could not find destination track. Is the UI timeline corrupted or did the clip move between timelines?");
                 }
 

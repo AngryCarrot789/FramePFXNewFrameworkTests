@@ -4,13 +4,15 @@
                     xmlns:ap="clr-namespace:FramePFX.AttachedProperties"
                     xmlns:r="clr-namespace:FramePFX.Editors.Controls.xclemence.RulerWPF"
                     xmlns:ct="clr-namespace:FramePFX.Editors.Controls.Timelines"
-                    xmlns:dragger="clr-namespace:FramePFX.Editors.Controls.Dragger">
+                    xmlns:dragger="clr-namespace:FramePFX.Editors.Controls.Dragger"
+                    xmlns:co="clr-namespace:FramePFX.Converters">
     <Style TargetType="{x:Type c:CancellableThumb}" BasedOn="{StaticResource {x:Type Thumb}}"/>
     <Style TargetType="{x:Type ct:TimelineTrackListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone5.Border.Static}"/>
         <Setter Property="Padding" Value="0"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="SelectionMode" Value="Extended"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ct:TimelineTrackListBox}">
@@ -129,7 +131,11 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Grid.Row="0" Background="{DynamicResource ABrush.Tone5.Background.Static}">
-                            <ct:PlayheadPositionTextControl x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0"/>
+                            <Grid>
+                                <ct:PlayheadPositionTextControl x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0"/>
+                                <CheckBox HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0,3,3,3" Content="RULER"
+                                          IsChecked="{Binding ElementName=PART_Ruler, Path=Visibility, Converter={x:Static co:VisibilityToBoolConverter.VisibleOrCollapsed}}"/>
+                            </Grid>
                         </Border>
                         <ScrollViewer Grid.Column="0" Grid.Row="2"
                                       HorizontalScrollBarVisibility="Visible"
