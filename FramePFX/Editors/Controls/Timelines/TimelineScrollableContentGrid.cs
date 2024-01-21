@@ -19,9 +19,9 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         protected override void OnMouseDown(MouseButtonEventArgs e) {
             base.OnMouseDown(e);
-            if (!e.Handled && this.TimelineControl != null) {
+            if (!e.Handled && e.LeftButton == MouseButtonState.Pressed && this.TimelineControl != null) {
                 Point point = e.GetPosition(this);
-                this.TimelineControl.SetPlayHeadToMouseCursor(point.X);
+                this.TimelineControl.SetPlayHeadToMouseCursor(point.X, point.Y > this.TimelineControl.Ruler.ActualHeight);
                 this.TimelineControl.Timeline?.ClearClipSelection();
             }
         }

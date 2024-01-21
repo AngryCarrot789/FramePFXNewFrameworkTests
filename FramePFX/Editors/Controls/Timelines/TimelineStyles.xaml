@@ -199,6 +199,15 @@
                                         UseLayoutRounding="True">
                                     <ct:TimelineSequenceControl x:Name="PART_Timeline" ScrollViewer="{Binding ElementName=PART_SequenceScrollViewer}"/>
                                 </Border>
+                                <ct:StopHeadControl x:Name="PART_StopHeadControl" Grid.Row="2"
+                                                    Background="{DynamicResource ABrush.Tone7.Border.Static}"
+                                                    Width="1"
+                                                    Margin="0"
+                                                    VerticalAlignment="Stretch"
+                                                    VerticalContentAlignment="Stretch"
+                                                    HorizontalAlignment="Left"
+                                                    SnapsToDevicePixels="True"
+                                                    UseLayoutRounding="True"/>
                                 <ct:PlayHeadControl x:Name="PART_PlayHeadControl" Grid.RowSpan="3"
                                                     Background="{DynamicResource ABrush.Tone7.Border.Static}"
                                                     Width="1"
@@ -288,6 +297,19 @@
                         <c:CancellableThumb Grid.Row="0" x:Name="PART_ThumbHead" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Cursor="SizeWE"/>
                         <c:CancellableThumb Grid.Row="1" x:Name="PART_ThumbBody" IsHitTestVisible="False" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="5,0" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Cursor="SizeWE"/>
                     </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="{x:Type ct:StopHeadControl}">
+        <Setter Property="Background" Value="{DynamicResource ABrush.Tone7.Border.Static}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="MaxWidth" Value="1"/>
+        <Setter Property="Cursor" Value="SizeWE"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ct:StopHeadControl}">
+                    <Border Width="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="{TemplateBinding Background}"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

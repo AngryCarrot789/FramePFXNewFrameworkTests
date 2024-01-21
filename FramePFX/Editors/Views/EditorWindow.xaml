@@ -67,9 +67,9 @@
                                 <!-- Right Panel -->
                                 <Grid Margin="0,0,5,0" DockPanel.Dock="Right">
                                     <CheckBox Focusable="False" HorizontalAlignment="Right"
-                                  Content="Use NN Render" Padding="1,0,0,0"
-                                  IsChecked="{Binding UseNearestNeighbourRendering, ElementName=ViewPortElement, Mode=TwoWay}"
-                                  ToolTip="Toggle between Nearest-Neighbour and Linear scaling for the VIEW PORT ONLY. Nearest-neighbour does not use smoothing between pixels, and is closer to what you will see in the final render. This is only really apparent when zoomed in or with low resolution frames"/>
+                                              Content="Use NN Render" Padding="1,0,0,0"
+                                              IsChecked="{Binding UseNearestNeighbourRendering, ElementName=ViewPortElement, Mode=TwoWay}"
+                                              ToolTip="Toggle between Nearest-Neighbour and Linear scaling for the VIEW PORT ONLY. Nearest-neighbour does not use smoothing between pixels, and is closer to what you will see in the final render. This is only really apparent when zoomed in or with low resolution frames"/>
                                 </Grid>
 
                                 <!-- Center Panel -->
@@ -91,13 +91,11 @@
                             </DockPanel>
                         </Border>
                         <Border DockPanel.Dock="Top" Height="24" 
-                    Background="{DynamicResource PanelBackground3}" 
-                    BorderBrush="{DynamicResource PanelBorderBrush}" 
-                    BorderThickness="0,1,0,0">
+                                Background="{DynamicResource PanelBackground3}"
+                                BorderBrush="{DynamicResource PanelBorderBrush}"
+                                BorderThickness="0,1,0,0">
                             <Grid>
-                                <ComboBox HorizontalAlignment="Left" 
-                              BorderThickness="0"
-                              ToolTip="Rendering quality"/>
+                                <ComboBox HorizontalAlignment="Left" BorderThickness="0" ToolTip="Rendering quality"/>
                             </Grid>
                         </Border>
                         <Grid Background="Transparent">

@@ -88,7 +88,6 @@ namespace FramePFX.Editors {
                 return;
             }
 
-            project.MainTimeline.LastPlayBackStartFrame = frame;
             this.PlayState = PlayState.Play;
             this.PlaybackStateChanged?.Invoke(this, this.PlayState, frame);
             this.thread_IsPlaying = true;
@@ -104,9 +103,9 @@ namespace FramePFX.Editors {
             }
 
             this.thread_IsPlaying = false;
-            project.MainTimeline.LastPlayBackStartFrame = project.MainTimeline.PlayHeadPosition;
+            project.MainTimeline.StopHeadPosition = project.MainTimeline.PlayHeadPosition;
             this.PlayState = PlayState.Pause;
-            this.PlaybackStateChanged?.Invoke(this, this.PlayState, project.MainTimeline.LastPlayBackStartFrame);
+            this.PlaybackStateChanged?.Invoke(this, this.PlayState, project.MainTimeline.StopHeadPosition);
         }
 
         public void Stop() {
@@ -119,8 +118,8 @@ namespace FramePFX.Editors {
             }
 
             this.PlayState = PlayState.Stop;
-            this.PlaybackStateChanged?.Invoke(this, this.PlayState, project.MainTimeline.LastPlayBackStartFrame);
-            project.MainTimeline.PlayHeadPosition = project.MainTimeline.LastPlayBackStartFrame;
+            this.PlaybackStateChanged?.Invoke(this, this.PlayState, project.MainTimeline.StopHeadPosition);
+            project.MainTimeline.PlayHeadPosition = project.MainTimeline.StopHeadPosition;
             this.thread_IsPlaying = false;
         }
 

@@ -142,8 +142,10 @@
     <Compile Include="Editors\Controls\Rulers\Ruler.cs" />
     <Compile Include="Editors\Controls\Rulers\RulerBase.cs" />
     <Compile Include="Editors\Controls\Rulers\RulerStepProperties.cs" />
+    <Compile Include="Editors\Controls\Timelines\BasePlayHeadControl.cs" />
     <Compile Include="Editors\Controls\Timelines\PlayHeadControl.cs" />
     <Compile Include="Editors\Controls\Timelines\PlayheadPositionTextControl.cs" />
+    <Compile Include="Editors\Controls\Timelines\StopHeadControl.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineClipControl.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineControl.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineScrollableContentGrid.cs" />

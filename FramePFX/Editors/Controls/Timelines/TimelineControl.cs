@@ -36,6 +36,8 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public PlayHeadControl PlayHead { get; private set; }
 
+        public StopHeadControl StopHead { get; private set; }
+
         public Ruler Ruler { get; private set; }
 
         public Border RulerContainerBorder { get; private set; } // contains the ruler
@@ -50,7 +52,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             return new Point(pointInClip.X + (this.TimelineScrollViewer?.HorizontalOffset ?? 0d), pointInClip.Y);
         }
 
-        private void MovePlayHeadToMouseCursor(double x, bool enableThumbDragging = true) {
+        private void MovePlayHeadToMouseCursor(double x, bool enableThumbDragging = true, bool updateStopHead = true) {
             if (!(this.Timeline is Timeline timeline)) {
                 return;
             }
@@ -59,6 +61,9 @@ namespace FramePFX.Editors.Controls.Timelines {
                 long frameX = TimelineUtils.PixelToFrame(x, timeline.Zoom, true);
                 if (frameX >= 0 && frameX < timeline.TotalFrames) {
                     timeline.PlayHeadPosition = frameX;
+                    if (updateStopHead) {
+                        timeline.StopHeadPosition = frameX;
+                    }
                 }
 
                 if (enableThumbDragging) {
@@ -67,10 +72,10 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
         }
 
-        public void SetPlayHeadToMouseCursor(double sequencePixelX) {
+        public void SetPlayHeadToMouseCursor(double sequencePixelX, bool setStopHeadPosition = true) {
             // no need to add scrollviewer offset, since the sequencePixelX
             // will naturally include the horizontal offset kinda
-            this.MovePlayHeadToMouseCursor(sequencePixelX, false);
+            this.MovePlayHeadToMouseCursor(sequencePixelX, false, setStopHeadPosition);
         }
 
         static TimelineControl() {
@@ -93,6 +98,8 @@ namespace FramePFX.Editors.Controls.Timelines {
                 throw new Exception("Missing PART_Ruler");
             if (!(this.GetTemplateChild("PART_PlayHeadControl") is PlayHeadControl playHead))
                 throw new Exception("Missing PART_PlayHeadControl");
+            if (!(this.GetTemplateChild("PART_StopHeadControl") is StopHeadControl stopHead))
+                throw new Exception("Missing PART_StopHeadControl");
             if (!(this.GetTemplateChild("PART_TimestampBoard") is Border timeStampBoard))
                 throw new Exception("Missing PART_TimestampBoard");
             if (!(this.GetTemplateChild("PART_TimelineSequenceBorder") is Border timelineBorder))
@@ -112,13 +119,14 @@ namespace FramePFX.Editors.Controls.Timelines {
                 this.Ruler.MaxValue = myTimeline.TotalFrames;
 
             this.PlayHead = playHead;
+            this.StopHead = stopHead;
             this.TimelineScrollViewer = timelineScrollViewer;
             this.RulerContainerBorder = timeStampBoard;
 
             this.TimelineContentGrid = scrollableContent;
             scrollableContent.TimelineControl = this;
 
-            timeStampBoard.MouseLeftButtonDown += (s, e) => this.MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X, true);
+            timeStampBoard.MouseLeftButtonDown += (s, e) => this.MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X, true, false);
         }
 
         private void OnTimelineChanged(Timeline oldTimeline, Timeline newTimeline) {
@@ -133,6 +141,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.TrackList.Timeline = newTimeline;
             this.PlayHeadPositionPreview.Timeline = newTimeline;
             this.PlayHead.Timeline = newTimeline;
+            this.StopHead.Timeline = newTimeline;
             if (newTimeline != null) {
                 newTimeline.TotalFramesChanged += this.OnTimelineTotalFramesChanged;
                 newTimeline.ZoomTimeline += this.OnTimelineZoomed;

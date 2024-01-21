@@ -1,23 +1,12 @@
 using System;
-using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using FramePFX.Editors.Timelines;
 
 namespace FramePFX.Editors.Controls.Timelines {
-    public class PlayHeadControl : Control {
-        private static readonly FieldInfo IsDraggingPropertyKeyField = typeof(Thumb).GetField("IsDraggingPropertyKey", BindingFlags.NonPublic | BindingFlags.Static);
-        public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(PlayHeadControl), new PropertyMetadata(null, (d, e) => ((PlayHeadControl) d).OnTimelineChanged((Timeline) e.OldValue, (Timeline) e.NewValue)));
-
-        public Timeline Timeline {
-            get => (Timeline) this.GetValue(TimelineProperty);
-            set => this.SetValue(TimelineProperty, value);
-        }
-
+    public class PlayHeadControl : BasePlayHeadControl {
         private Thumb PART_ThumbHead;
         private Thumb PART_ThumbBody;
-        private bool isDraggingThumb;
 
         public PlayHeadControl() {
         }
@@ -26,24 +15,23 @@ namespace FramePFX.Editors.Controls.Timelines {
             DefaultStyleKeyProperty.OverrideMetadata(typeof (PlayHeadControl), new FrameworkPropertyMetadata(typeof(PlayHeadControl)));
         }
 
-        private void OnTimelineChanged(Timeline oldTimeline, Timeline newTimeline) {
+        public override long GetFrame(Timeline timeline) {
+            return timeline.PlayHeadPosition;
+        }
+
+        protected override void OnTimelineChanged(Timeline oldTimeline, Timeline newTimeline) {
+            base.OnTimelineChanged(oldTimeline, newTimeline);
             if (oldTimeline != null) {
                 oldTimeline.PlayHeadChanged -= this.OnTimelinePlayHeadChanged;
-                oldTimeline.ZoomTimeline -= this.OnTimelineZoomed;
             }
 
             if (newTimeline != null) {
                 newTimeline.PlayHeadChanged += this.OnTimelinePlayHeadChanged;
-                newTimeline.ZoomTimeline += this.OnTimelineZoomed;
             }
         }
 
         private void OnTimelinePlayHeadChanged(Timeline timeline, long oldvalue, long newvalue) {
-            this.UpdatePixel(newvalue, timeline.Zoom);
-        }
-
-        private void OnTimelineZoomed(Timeline timeline, double oldzoom, double newzoom, ZoomType zoomtype) {
-            this.UpdatePixel(timeline.PlayHeadPosition, newzoom);
+            this.SetPixelFromFrameAndZoom(newvalue, timeline.Zoom);
         }
 
         public override void OnApplyTemplate() {
@@ -74,12 +62,14 @@ namespace FramePFX.Editors.Controls.Timelines {
 
                 if (newFrame != oldFrame) {
                     timeline.PlayHeadPosition = newFrame;
+
+                    // Don't update stop head when dragging on the ruler
+                    // timeline.StopHeadPosition = newFrame;
                 }
             }
         }
 
         public void EnableDragging(Point point) {
-            this.isDraggingThumb = true;
             Thumb thumb = this.PART_ThumbBody ?? this.PART_ThumbHead;
             if (thumb == null) {
                 return;
@@ -98,14 +88,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                 if (flag) {
                     thumb.CancelDrag();
                 }
-
-                this.isDraggingThumb = false;
             }
-        }
-
-        private void UpdatePixel(long frame, double zoom) {
-            Thickness m = this.Margin;
-            this.Margin = new Thickness(frame * zoom, m.Top, m.Right, m.Bottom);
         }
 
         protected override Size MeasureOverride(Size constraint) {

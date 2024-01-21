@@ -35,15 +35,30 @@ namespace FramePFX.Editors.Timelines {
             }
         }
 
-        public long LastPlayBackStartFrame { get; set; }
+        public long StopHeadPosition {
+            get => this.stopHeadPosition;
+            set {
+                if (this.stopHeadPosition == value)
+                    return;
+
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Stophead cannot be negative");
+                if (value >= this.totalFrames)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Stophead exceeds the timeline duration range (0 to TotalFrames)");
+
+                long oldStopHead = this.stopHeadPosition;
+                this.stopHeadPosition = value;
+                this.StopHeadChanged?.Invoke(this, oldStopHead, value);
+            }
+        }
 
         /// <summary>
         /// The position of the play head, in frames
         /// </summary>
         public long PlayHeadPosition {
-            get => this.playHead;
+            get => this.playHeadPosition;
             set {
-                if (this.playHead == value)
+                if (this.playHeadPosition == value)
                     return;
 
                 if (value < 0)
@@ -51,8 +66,8 @@ namespace FramePFX.Editors.Timelines {
                 if (value >= this.totalFrames)
                     throw new ArgumentOutOfRangeException(nameof(value), value, "Playhead exceeds the timeline duration range (0 to TotalFrames)");
 
-                long oldPlayHead = this.playHead;
-                this.playHead = value;
+                long oldPlayHead = this.playHeadPosition;
+                this.playHeadPosition = value;
                 this.PlayHeadChanged?.Invoke(this, oldPlayHead, value);
             }
         }
@@ -124,12 +139,14 @@ namespace FramePFX.Editors.Timelines {
         public event TimelineEventHandler TotalFramesChanged;
         public event TimelineEventHandler LargestFrameInUseChanged;
         public event PlayheadChangedEventHandler PlayHeadChanged;
+        public event PlayheadChangedEventHandler StopHeadChanged;
         public event ZoomEventHandler ZoomTimeline;
 
         private readonly List<Track> tracks;
         private readonly List<Track> selectedTracks;
         private long totalFrames;
-        private long playHead;
+        private long playHeadPosition;
+        private long stopHeadPosition;
         private long largestFrameInUse;
 
         public Timeline() {
