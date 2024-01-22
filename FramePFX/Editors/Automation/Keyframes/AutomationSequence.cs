@@ -206,16 +206,16 @@ namespace FramePFX.Editors.Automation.Keyframes {
             while (lhs <= rhs) {
                 int mid = (lhs + rhs) / 2;
                 KeyFrame value = list[mid];
-                if (frame > value.frame) {
+                if (frame > value.Frame) {
                     lhs = mid + 1;
                 }
-                else if (frame < value.frame) {
+                else if (frame < value.Frame) {
                     rhs = mid - 1;
                 }
                 else {
                     // find last matching timestamp
                     int j = mid + 1;
-                    while (j < count && list[j].frame == frame)
+                    while (j < count && list[j].Frame == frame)
                         j++;
                     a = j - 1;
                     b = j < count ? j : -1;
@@ -246,15 +246,15 @@ namespace FramePFX.Editors.Automation.Keyframes {
 
             List<KeyFrame> list = this.keyFrameList;
             int count = list.Count;
-            long frame = keyFrame.frame;
+            long frame = keyFrame.Frame;
             int lhs = 0, rhs = count - 1;
             while (lhs <= rhs) {
                 int mid = (lhs + rhs) / 2;
                 KeyFrame value = list[mid];
-                if (frame > value.frame) {
+                if (frame > value.Frame) {
                     lhs = mid + 1;
                 }
-                else if (frame < value.frame) {
+                else if (frame < value.Frame) {
                     rhs = mid - 1;
                 }
                 else if (value == keyFrame) {
@@ -262,7 +262,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
                 }
                 else { // frame matches; scan until reference found
                     int j = mid + 1;
-                    while (j < count && (value = list[j]).frame == frame && value != keyFrame)
+                    while (j < count && (value = list[j]).Frame == frame && value != keyFrame)
                         j++;
                     if (j == count)
                         return -1;
@@ -287,12 +287,12 @@ namespace FramePFX.Editors.Automation.Keyframes {
             while (lhs <= rhs) {
                 int i = lhs + (rhs - lhs) / 2;
                 KeyFrame keyFrame = list[i];
-                if (keyFrame.frame == frame) {
-                    while (i < k && list[i + 1].frame == frame)
+                if (keyFrame.Frame == frame) {
+                    while (i < k && list[i + 1].Frame == frame)
                         i++;
                     return i;
                 }
-                else if (keyFrame.frame < frame) {
+                else if (keyFrame.Frame < frame) {
                     lhs = i + 1;
                 }
                 else {
@@ -310,8 +310,8 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// <returns>The index of the key frame</returns>
         /// <exception cref="ArgumentException">Timestamp is negative or the data type is invalid</exception>
         public int AddKeyFrame(KeyFrame keyFrame) {
-            if (keyFrame.frame < 0)
-                throw new ArgumentException("Keyframe time stamp must be non-negative: " + keyFrame.frame, nameof(keyFrame));
+            if (keyFrame.Frame < 0)
+                throw new ArgumentException("Keyframe time stamp must be non-negative: " + keyFrame.Frame, nameof(keyFrame));
             if (keyFrame.DataType != this.DataType)
                 throw new ArgumentException($"Invalid key frame data type. Expected {this.DataType}, got {keyFrame.DataType}", nameof(keyFrame));
             if (keyFrame.sequence != null && keyFrame.sequence.GetIndexOf(keyFrame) != -1)
@@ -329,19 +329,18 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public int AddNewKeyFrame(long frame, out KeyFrame keyFrame) {
             if (frame < 0)
                 throw new ArgumentException("Keyframe time stamp must be non-negative: " + frame, nameof(frame));
-            keyFrame = this.Parameter.CreateKeyFrame();
-            keyFrame.frame = frame;
+            keyFrame = this.Parameter.CreateKeyFrame(frame);
             return this.AddKeyFrameInternal(keyFrame);
         }
 
         private int AddKeyFrameInternal(KeyFrame keyFrame) {
-            long dstFrame = keyFrame.frame;
+            long dstFrame = keyFrame.Frame;
             keyFrame.sequence = this;
 
             // iterate backwards (largest to smallest frame) and insert somewhere good
             List<KeyFrame> list = this.keyFrameList;
             for (int i = list.Count - 1; i >= 0; i--) {
-                if (dstFrame >= list[i].frame) {
+                if (dstFrame >= list[i].Frame) {
                     this.InsertInternal(i + 1, keyFrame);
                     return i + 1;
                 }
@@ -419,7 +418,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
             }
 
             // just in case they somehow end up unordered
-            frames.Sort((a, b) => a.frame.CompareTo(b.frame));
+            frames.Sort((a, b) => a.Frame.CompareTo(b.Frame));
             this.Clear();
             foreach (KeyFrame frame in frames) {
                 frame.sequence = this;
@@ -449,10 +448,18 @@ namespace FramePFX.Editors.Automation.Keyframes {
         }
 
         public static void OnKeyFrameValueChanged(AutomationSequence sequence, KeyFrame keyFrame) {
-            if (sequence == null) {
-                return;
+            if (sequence != null) {
+                UpdateAutomation(sequence);
             }
+        }
 
+        public static void OnKeyFramePositionChanged(AutomationSequence sequence, KeyFrame keyFrame) {
+            if (sequence != null) {
+                UpdateAutomation(sequence);
+            }
+        }
+
+        public static void UpdateAutomation(AutomationSequence sequence) {
             // TODO: this is really bad...
 
             IAutomatable owner = sequence.AutomationData.Owner;

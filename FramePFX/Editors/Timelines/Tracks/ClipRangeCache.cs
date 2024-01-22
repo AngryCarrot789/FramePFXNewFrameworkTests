@@ -52,6 +52,16 @@ namespace FramePFX.Editors.Timelines.Tracks {
             }
         }
 
+        public void GetClipsAtFrame(List<Clip> dstList, long frame) {
+            if (this.Map.TryGetValue(GetIndex(frame), out ClipList list)) {
+                for (int i = list.size - 1; i >= 0; i--) {
+                    Clip clip = list.items[i];
+                    if (clip.FrameSpan.Intersects(frame))
+                        dstList.Add(clip);
+                }
+            }
+        }
+
         public void OnClipAdded(Clip clip) => this.Add(clip);
 
         public void OnClipRemoved(Clip clip) => this.Remove(clip.FrameSpan, clip);

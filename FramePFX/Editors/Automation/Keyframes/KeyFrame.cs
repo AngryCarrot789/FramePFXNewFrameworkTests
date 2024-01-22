@@ -1,21 +1,28 @@
 using System;
 using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.RBC;
 using FramePFX.Utils;
 
 namespace FramePFX.Editors.Automation.Keyframes {
-    public delegate void FrameChangedEventHandler(KeyFrame frame);
-
     /// <summary>
     /// A keyframe stores a time and value
     /// </summary>
     public abstract class KeyFrame {
+        protected long myFrame;
         public AutomationSequence sequence;
-        public long frame; // The key frame time, relative to the project FPS. Converted when the project FPS changes
         public double curveBend = 0D; // -1d to +1d. // A 'bend' in the interpolation. could add something more complicated?
+
+        public long Frame {
+            get => this.myFrame;
+            set {
+                if (this.myFrame == value)
+                    return;
+                this.myFrame = value;
+                AutomationSequence.OnKeyFramePositionChanged(this.sequence, this);
+            }
+        }
 
         /// <summary>
         /// This key frame's data type
@@ -83,7 +90,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// <param name="other">The other value to compare</param>
         /// <returns>True when this instance and the other instance are effectively equal (matching timestamp and value)</returns>
         public virtual bool IsEqualTo(KeyFrame other) {
-            return this.frame == other.frame;
+            return this.myFrame == other.myFrame;
         }
 
         /// <summary>
@@ -91,7 +98,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// </summary>
         /// <param name="data"></param>
         public virtual void WriteToRBE(RBEDictionary data) {
-            data.SetULong("Time", (ulong) this.frame);
+            data.SetULong("Time", (ulong) this.myFrame);
         }
 
         /// <summary>
@@ -99,7 +106,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// </summary>
         /// <param name="data"></param>
         public virtual void ReadFromRBE(RBEDictionary data) {
-            this.frame = (long) data.GetULong("Time");
+            this.myFrame = (long) data.GetULong("Time");
         }
 
         #region Factory Methods
@@ -130,7 +137,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// <exception cref="ArgumentOutOfRangeException">Unknown automation data type</exception>
         public static KeyFrame CreateInstance(AutomationSequence sequence, long time) {
             KeyFrame keyFrame = CreateInstance(sequence.DataType); // same as sequence.Key.CreateKeyFrame()
-            keyFrame.frame = time;
+            keyFrame.myFrame = time;
             keyFrame.AssignCurrentValue(time, sequence);
             return keyFrame;
         }
@@ -140,7 +147,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// </summary>
         public static KeyFrame CreateDefault(Parameter parameter, long time = 0L) {
             KeyFrame keyFrame = CreateInstance(parameter.DataType);
-            keyFrame.frame = time;
+            keyFrame.myFrame = time;
             keyFrame.AssignDefaultValue(parameter.Descriptor);
             return keyFrame;
         }
@@ -208,7 +215,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// <param name="targetTime">Target timestamp. Must be greater than or equal to the current instance's timestamp, otherwise undefined behaviour may occur</param>
         /// <returns>A blend multiplier</returns>
         public double GetInterpolationMultiplier(long frame, long targetTime) {
-            return GetInterpolationLerp(frame, this.frame, targetTime, this.curveBend);
+            return GetInterpolationLerp(frame, this.myFrame, targetTime, this.curveBend);
         }
 
         /// <summary>
@@ -218,7 +225,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// <param name="nextFrame">Target frame. Its timestamp must be greater than or equal to the current instance's timestamp, otherwise undefined behaviour may occur</param>
         /// <returns>A blend multiplier</returns>
         public double GetInterpolationMultiplier(long frame, KeyFrame nextFrame) {
-            return this.GetInterpolationMultiplier(frame, nextFrame.frame);
+            return this.GetInterpolationMultiplier(frame, nextFrame.myFrame);
         }
 
         #endregion
@@ -228,8 +235,8 @@ namespace FramePFX.Editors.Automation.Keyframes {
         [Conditional("DEBUG")]
         protected void ValidateTime(long t, KeyFrame frame) {
             // realistically, this should never be thrown if the function is used correctly... duh
-            if (t < this.frame || t > frame.frame) {
-                throw new Exception($"Time out of range: {t} < {this.frame} || {t} > {frame.frame}");
+            if (t < this.myFrame || t > frame.myFrame) {
+                throw new Exception($"Time out of range: {t} < {this.myFrame} || {t} > {frame.myFrame}");
             }
         }
 
@@ -252,7 +259,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public KeyFrameFloat() { }
 
         public KeyFrameFloat(long frame, float value) {
-            this.frame = frame;
+            this.myFrame = frame;
             this.Value = value;
         }
 
@@ -266,7 +273,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
 
         public float Interpolate(long time, KeyFrameFloat frame) {
             this.ValidateTime(time, frame);
-            double blend = this.GetInterpolationMultiplier(time, frame.frame);
+            double blend = this.GetInterpolationMultiplier(time, frame.myFrame);
             return (float) (blend * (frame.myValue - this.myValue)) + this.myValue;
         }
 
@@ -301,7 +308,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public KeyFrameDouble() { }
 
         public KeyFrameDouble(long frame, double value) {
-            this.frame = frame;
+            this.myFrame = frame;
             this.Value = value;
         }
 
@@ -315,7 +322,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
 
         public double Interpolate(long time, KeyFrameDouble nextFrame) {
             this.ValidateTime(time, nextFrame);
-            double blend = this.GetInterpolationMultiplier(time, nextFrame.frame);
+            double blend = this.GetInterpolationMultiplier(time, nextFrame.myFrame);
             return blend * (nextFrame.myValue - this.myValue) + this.myValue;
         }
 
@@ -355,7 +362,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public KeyFrameLong() { }
 
         public KeyFrameLong(long frame, long value) {
-            this.frame = frame;
+            this.myFrame = frame;
             this.Value = value;
         }
 
@@ -404,7 +411,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public KeyFrameBoolean() { }
 
         public KeyFrameBoolean(long frame, bool value) {
-            this.frame = frame;
+            this.myFrame = frame;
             this.Value = value;
         }
 

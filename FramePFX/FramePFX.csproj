@@ -105,6 +105,7 @@
     <Compile Include="Converters\NullConverter.cs" />
     <Compile Include="Converters\VolumeToDbConverter.cs" />
     <Compile Include="Editors\Automation\AutomationData.cs" />
+    <Compile Include="Editors\Automation\AutomationEngine.cs" />
     <Compile Include="Editors\Automation\IAutomatable.cs" />
     <Compile Include="Editors\Automation\Keyframes\AutomationDataType.cs" />
     <Compile Include="Editors\Automation\Keyframes\AutomationSequence.cs" />

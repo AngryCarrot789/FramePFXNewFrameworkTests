@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using FramePFX.Destroying;
+using FramePFX.Editors.Automation;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Utils;
@@ -69,6 +70,7 @@ namespace FramePFX.Editors.Timelines {
                 long oldPlayHead = this.playHeadPosition;
                 this.playHeadPosition = value;
                 this.PlayHeadChanged?.Invoke(this, oldPlayHead, value);
+                AutomationEngine.UpdateValues(this);
             }
         }
 

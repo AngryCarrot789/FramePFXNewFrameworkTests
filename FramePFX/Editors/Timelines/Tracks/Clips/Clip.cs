@@ -61,6 +61,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         public event ClipEventHandler IsSelectedChanged;
 
         protected Clip() {
+            this.AutomationData = new AutomationData(this);
         }
 
         protected virtual void OnFrameSpanChanged(FrameSpan oldSpan, FrameSpan newSpan) {

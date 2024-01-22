@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using FramePFX.Destroying;
@@ -284,5 +285,11 @@ namespace FramePFX.Editors.Timelines.Tracks {
         }
 
         #endregion
+
+        public IEnumerable<Clip> GetClipsAtFrame(long frame) {
+            List<Clip> list = new List<Clip>();
+            this.cache.GetClipsAtFrame(list, frame);
+            return list;
+        }
     }
 }

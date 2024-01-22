@@ -63,7 +63,7 @@ namespace FramePFX.Editors.Automation.Params {
         /// <param name="frame">The frame which should be used to calculate the new effective value</param>
         public abstract void SetValue(AutomationSequence sequence, long frame);
 
-        public KeyFrame CreateKeyFrame() => KeyFrame.CreateDefault(this);
+        public KeyFrame CreateKeyFrame(long frame = 0L) => KeyFrame.CreateDefault(this, frame);
 
         #region Static Stuff
 
