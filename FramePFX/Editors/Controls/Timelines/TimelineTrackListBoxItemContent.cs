@@ -24,9 +24,9 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TimelineTrackListBoxItem ListItem { get; }
 
-        private readonly BasicAutoBinder<Track> displayNameBinder = new BasicAutoBinder<Track>(DisplayNameProperty, nameof(Track.DisplayNameChanged), b => b.Model.DisplayName, (b, v) => b.Model.DisplayName = (string) v);
+        private readonly GetSetAutoPropertyBinder<Track> displayNameBinder = new GetSetAutoPropertyBinder<Track>(DisplayNameProperty, nameof(Track.DisplayNameChanged), b => b.Model.DisplayName, (b, v) => b.Model.DisplayName = (string) v);
 
-        private readonly AutoUpdaterBinder<Track> trackColourBinder = new AutoUpdaterBinder<Track>(TrackColourBrushProperty, nameof(Track.ColourChanged), binder => {
+        private readonly AutoPropertyUpdateBinder<Track> trackColourBinder = new AutoPropertyUpdateBinder<Track>(TrackColourBrushProperty, nameof(Track.ColourChanged), binder => {
             TimelineTrackListBoxItemContent element = (TimelineTrackListBoxItemContent) binder.Control;
             SKColor c = element.ListItem.Track?.Colour ?? SKColors.Black;
             ((SolidColorBrush) element.TrackColourBrush).Color = Color.FromArgb(c.Alpha, c.Red, c.Green, c.Blue);

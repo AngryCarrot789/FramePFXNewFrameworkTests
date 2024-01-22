@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using FramePFX.Destroying;
+using FramePFX.Editors.Automation;
+using FramePFX.Editors.Controls.Timelines;
 using FramePFX.Editors.Factories;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using SkiaSharp;
@@ -11,10 +13,12 @@ namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void TrackClipIndexEventHandler(Track track, Clip clip, int index);
     public delegate void ClipMovedEventHandler(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex);
 
-    public abstract class Track : IDestroy {
+    public abstract class Track : IAutomatable, ITimelineBound, IDestroy {
         public string FactoryId => TrackFactory.Instance.GetId(this.GetType());
 
         public Timeline Timeline { get; private set; }
+
+        public long RelativePlayHead => this.Timeline.PlayHeadPosition;
 
         public ReadOnlyCollection<Clip> Clips { get; }
 
@@ -68,6 +72,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
         /// </summary>
         public int IndexInTimeline => this.Timeline?.Tracks.IndexOf(this) ?? -1;
 
+        public AutomationData AutomationData { get; }
+
         public event TrackClipIndexEventHandler ClipAdded;
         public event TrackClipIndexEventHandler ClipRemoved;
         public event ClipMovedEventHandler ClipMovedTracks;
@@ -95,6 +101,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.cache.FrameDataChanged += this.OnRangeCachedFrameDataChanged;
             this.colour = RenderUtils.RandomColour();
             this.selectedClips = new List<Clip>();
+            this.AutomationData = new AutomationData(this);
         }
 
         private void OnRangeCachedFrameDataChanged(ClipRangeCache handler) {

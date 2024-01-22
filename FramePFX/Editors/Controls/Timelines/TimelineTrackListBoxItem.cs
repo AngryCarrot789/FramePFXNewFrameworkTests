@@ -11,7 +11,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TimelineTrackListBox TrackList { get; set; }
 
-        private readonly BasicAutoBinder<Track> isSelectedBinder = new BasicAutoBinder<Track>(IsSelectedProperty, nameof(VideoTrack.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
+        private readonly GetSetAutoPropertyBinder<Track> isSelectedBinder = new GetSetAutoPropertyBinder<Track>(IsSelectedProperty, nameof(VideoTrack.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
         public TimelineTrackListBoxItem(Track track) {
             this.Track = track;

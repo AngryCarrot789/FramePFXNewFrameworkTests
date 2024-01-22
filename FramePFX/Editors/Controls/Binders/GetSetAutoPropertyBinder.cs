@@ -9,7 +9,7 @@ namespace FramePFX.Editors.Controls.Binders {
     /// A model value changed event handler will be auto-registered
     /// </summary>
     /// <typeparam name="TModel">The model type</typeparam>
-    public class BasicAutoBinder<TModel> : BaseObjectBinder<TModel> where TModel : class {
+    public class GetSetAutoPropertyBinder<TModel> : BaseObjectBinder<TModel> where TModel : class {
         private readonly EventInfo eventInfo;
         private readonly Func<IBinder<TModel>, object> getter;
         private readonly Action<IBinder<TModel>, object> setter;
@@ -21,7 +21,7 @@ namespace FramePFX.Editors.Controls.Binders {
         /// </summary>
         public DependencyProperty Property { get; set; }
 
-        public BasicAutoBinder(string eventName, Func<IBinder<TModel>, object> getModelValue, Action<IBinder<TModel>, object> setModelValue) {
+        public GetSetAutoPropertyBinder(string eventName, Func<IBinder<TModel>, object> getModelValue, Action<IBinder<TModel>, object> setModelValue) {
             this.eventInfo = typeof(TModel).GetEvent(eventName, BindingFlags.Public | BindingFlags.Instance);
             if (this.eventInfo == null)
                 throw new Exception("Could not find event by name: " + typeof(TModel).Name + "." + eventName);
@@ -31,7 +31,7 @@ namespace FramePFX.Editors.Controls.Binders {
             this.setter = setModelValue;
         }
 
-        public BasicAutoBinder(DependencyProperty property, string eventName, Func<IBinder<TModel>, object> getModelValue, Action<IBinder<TModel>, object> setModelValue) : this(eventName, getModelValue, setModelValue) {
+        public GetSetAutoPropertyBinder(DependencyProperty property, string eventName, Func<IBinder<TModel>, object> getModelValue, Action<IBinder<TModel>, object> setModelValue) : this(eventName, getModelValue, setModelValue) {
             this.Property = property;
         }
 

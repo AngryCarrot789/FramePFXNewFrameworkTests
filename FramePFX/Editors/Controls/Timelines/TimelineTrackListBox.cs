@@ -68,6 +68,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             control.TrackList = this;
             control.OnAddingToTimeline();
             this.Items.Insert(index, control);
+            control.UpdateLayout();
             control.OnAddedToTimeline();
             control.InvalidateMeasure();
             this.InvalidateMeasure();

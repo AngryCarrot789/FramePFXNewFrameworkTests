@@ -9,18 +9,18 @@ namespace FramePFX.Editors.Controls.Binders {
     /// value to update. The model and control value update are 2 actions passed in the constructor
     /// </summary>
     /// <typeparam name="TModel">The type of model</typeparam>
-    public class AutoUpdaterBinder<TModel> : UpdaterBinder<TModel> where TModel : class {
+    public class AutoPropertyUpdateBinder<TModel> : PropertyUpdateBinder<TModel> where TModel : class {
         private readonly EventInfo eventInfo;
         private readonly Delegate handlerInternal;
 
-        public AutoUpdaterBinder(string eventName, Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) : base(updateControl, updateModel) {
+        public AutoPropertyUpdateBinder(string eventName, Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) : base(updateControl, updateModel) {
             this.eventInfo = typeof(TModel).GetEvent(eventName, BindingFlags.Public | BindingFlags.Instance);
             if (this.eventInfo == null)
                 throw new Exception("Could not find event by name: " + typeof(TModel).Name + "." + eventName);
             this.handlerInternal = BinderUtils.CreateDelegateToInvokeActionFromEvent(this.eventInfo.EventHandlerType, this.OnModelValueChanged);
         }
 
-        public AutoUpdaterBinder(DependencyProperty property, string eventName, Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) : this(eventName, updateControl, updateModel) {
+        public AutoPropertyUpdateBinder(DependencyProperty property, string eventName, Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) : this(eventName, updateControl, updateModel) {
             this.Property = property;
         }
 

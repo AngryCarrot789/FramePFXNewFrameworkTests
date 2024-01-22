@@ -1,3 +1,5 @@
+using System.Windows.Controls;
+
 namespace FramePFX.Editors.Controls.Binders {
     public interface IBaseBinder {
         /// <summary>

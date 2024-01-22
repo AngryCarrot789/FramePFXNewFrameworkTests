@@ -72,14 +72,14 @@ namespace FramePFX.Editors.Controls.Timelines {
         private GlyphRun glyphRun;
         private readonly RectangleGeometry renderSizeRectGeometry;
 
-        private readonly AutoUpdaterBinder<Clip> displayNameBinder = new AutoUpdaterBinder<Clip>(DisplayNameProperty, nameof(VideoClip.DisplayNameChanged), b => {
+        private readonly AutoPropertyUpdateBinder<Clip> displayNameBinder = new AutoPropertyUpdateBinder<Clip>(DisplayNameProperty, nameof(VideoClip.DisplayNameChanged), b => {
             TimelineClipControl control = (TimelineClipControl) b.Control;
             control.glyphRun = null;
             control.DisplayName = b.Model.DisplayName;
         }, b => b.Model.DisplayName = ((TimelineClipControl) b.Control).DisplayName);
 
-        private readonly AutoUpdaterBinder<Clip> frameSpanBinder = new AutoUpdaterBinder<Clip>(nameof(VideoClip.FrameSpanChanged), obj => ((TimelineClipControl) obj.Control).SetSizeFromSpan(obj.Model.FrameSpan), null);
-        private readonly BasicAutoBinder<Clip> isSelectedBinder = new BasicAutoBinder<Clip>(IsSelectedProperty, nameof(VideoClip.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
+        private readonly AutoPropertyUpdateBinder<Clip> frameSpanBinder = new AutoPropertyUpdateBinder<Clip>(nameof(VideoClip.FrameSpanChanged), obj => ((TimelineClipControl) obj.Control).SetSizeFromSpan(obj.Model.FrameSpan), null);
+        private readonly GetSetAutoPropertyBinder<Clip> isSelectedBinder = new GetSetAutoPropertyBinder<Clip>(IsSelectedProperty, nameof(VideoClip.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
         public TimelineClipControl(Clip clip) {
             this.VerticalAlignment = VerticalAlignment.Stretch;

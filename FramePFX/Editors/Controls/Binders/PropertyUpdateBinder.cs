@@ -2,7 +2,13 @@ using System;
 using System.Windows;
 
 namespace FramePFX.Editors.Controls.Binders {
-    public class UpdaterBinder<TModel> : BaseObjectBinder<TModel> where TModel : class {
+    /// <summary>
+    /// An object binder that contains UpdateControl and UpdateModel events. These are called by a notification
+    /// to <see cref="BaseObjectBinder{TModel}.OnModelValueChanged"/> and either
+    /// <see cref="BaseObjectBinder{TModel}.OnControlValueChanged"/> or <see cref="OnPropertyChanged"/>, respectively
+    /// </summary>
+    /// <typeparam name="TModel">The type of model</typeparam>
+    public class PropertyUpdateBinder<TModel> : BaseObjectBinder<TModel> where TModel : class {
         public event Action<IBinder<TModel>> UpdateControl;
         public event Action<IBinder<TModel>> UpdateModel;
 
@@ -12,12 +18,12 @@ namespace FramePFX.Editors.Controls.Binders {
         /// </summary>
         public DependencyProperty Property { get; set; }
 
-        public UpdaterBinder(Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) {
+        public PropertyUpdateBinder(Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) {
             this.UpdateControl = updateControl;
             this.UpdateModel = updateModel;
         }
 
-        public UpdaterBinder(DependencyProperty property, Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) : this(updateControl, updateModel) {
+        public PropertyUpdateBinder(DependencyProperty property, Action<IBinder<TModel>> updateControl, Action<IBinder<TModel>> updateModel) : this(updateControl, updateModel) {
             this.Property = property;
         }
 
@@ -32,8 +38,6 @@ namespace FramePFX.Editors.Controls.Binders {
                 this.OnControlValueChanged();
             }
         }
-
-        private void OnEvent() => this.OnModelValueChanged();
 
         protected override void UpdateModelCore() {
             this.UpdateModel?.Invoke(this);

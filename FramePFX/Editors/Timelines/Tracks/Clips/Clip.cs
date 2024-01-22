@@ -1,17 +1,25 @@
 using System;
 using FramePFX.Destroying;
+using FramePFX.Editors.Automation;
+using FramePFX.Editors.Controls.Timelines;
 using FramePFX.Editors.Factories;
 
 namespace FramePFX.Editors.Timelines.Tracks.Clips {
     public delegate void ClipSpanChangedEventHandler(Clip clip, FrameSpan oldSpan, FrameSpan newSpan);
     public delegate void ClipEventHandler(Clip clip);
 
-    public abstract class Clip : IDestroy {
+    public abstract class Clip : ITimelineBound, IAutomatable, IStrictFrameRange, IDestroy {
         private FrameSpan span;
         private string displayName;
         private bool isSelected;
 
         public Track Track { get; private set; }
+
+        public Timeline Timeline => this.Track?.Timeline;
+
+        public long RelativePlayHead => this.Timeline.PlayHeadPosition - this.span.Begin;
+
+        public AutomationData AutomationData { get; }
 
         public FrameSpan FrameSpan {
             get => this.span;
@@ -115,6 +123,19 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
 
             this.FrameSpan = spanLeft;
             clone.FrameSpan = spanRight;
+        }
+
+        public long ConvertRelativeToTimelineFrame(long relative) => this.span.Begin + relative;
+
+        public long ConvertTimelineToRelativeFrame(long timeline, out bool inRange) {
+            long frame = timeline - this.span.Begin;
+            inRange = frame >= 0 && frame < this.span.Duration;
+            return frame;
+        }
+
+        public bool IsTimelineFrameInRange(long timeline) {
+            long frame = timeline - this.span.Begin;
+            return frame >= 0 && frame < this.span.Duration;
         }
 
         public virtual void Destroy() {

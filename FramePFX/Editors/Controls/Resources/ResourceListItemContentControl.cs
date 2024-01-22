@@ -122,7 +122,7 @@ namespace FramePFX.Editors.Controls.Resources {
 
         public new ResourceColour Resource => (ResourceColour) base.Resource;
 
-        private readonly AutoUpdaterBinder<ResourceColour> colourBinder = new AutoUpdaterBinder<ResourceColour>(ColourProperty, nameof(ResourceColour.ColourChanged), binder => {
+        private readonly AutoPropertyUpdateBinder<ResourceColour> colourBinder = new AutoPropertyUpdateBinder<ResourceColour>(ColourProperty, nameof(ResourceColour.ColourChanged), binder => {
             ResourceListItemContentControlColour element = (ResourceListItemContentControlColour) binder.Control;
             SKColor c = binder.Model.Colour;
             ((SolidColorBrush) element.Colour).Color = Color.FromArgb(c.Alpha, c.Red, c.Green, c.Blue);

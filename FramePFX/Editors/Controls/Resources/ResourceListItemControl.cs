@@ -37,7 +37,7 @@ namespace FramePFX.Editors.Controls.Resources {
 
         public ResourceListControl ResourceList { get; private set; }
 
-        private readonly BasicAutoBinder<BaseResource> displayNameBinder = new BasicAutoBinder<BaseResource>(DisplayNameProperty, nameof(BaseResource.DisplayNameChanged), b => b.Model.DisplayName, (b, v) => b.Model.DisplayName = (string) v);
+        private readonly GetSetAutoPropertyBinder<BaseResource> displayNameBinder = new GetSetAutoPropertyBinder<BaseResource>(DisplayNameProperty, nameof(BaseResource.DisplayNameChanged), b => b.Model.DisplayName, (b, v) => b.Model.DisplayName = (string) v);
         private Point originMousePoint;
         private bool isDragActive;
         private bool isDragDropping;

@@ -1,26 +1,16 @@
 using System;
+using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Rendering;
 using FramePFX.Editors.Timelines.Tracks.Clips;
-using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void VideoTrackEventHandler(VideoTrack track);
 
     public class VideoTrack : Track {
-        public double Opacity {
-            get => this.opacity;
-            set {
-                if (Maths.Equals(this.opacity, value))
-                    return;
-                this.opacity = value;
-                this.OpacityChanged?.Invoke(this);
-            }
-        }
+        public static readonly ParameterDouble OpacityParameter = Parameter.RegisterDouble(typeof(VideoTrack), nameof(VideoTrack), "Opacity", new ParameterDescriptorDouble(1, 0, 1), t => ((VideoTrack) t).Opacity, (t, v) => ((VideoTrack) t).Opacity = v);
 
-        public event VideoTrackEventHandler OpacityChanged;
-
-        private double opacity;
+        public double Opacity;
         private SKSurface surface;
         private SKImageInfo surfaceInfo;
         private bool isCanvasClear;
@@ -28,7 +18,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
         private VideoClip theClipToRender;
 
         public VideoTrack() {
-            this.opacity = 1.0;
+            this.Opacity = 1.0;
         }
 
         public bool BeginRenderFrame(RenderFrameInfo info) {
