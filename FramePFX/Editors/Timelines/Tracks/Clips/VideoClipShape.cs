@@ -7,7 +7,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
     /// A video clip that draws a basic square, used as a debug video clip mostly
     /// </summary>
     public class VideoClipShape : VideoClip {
-        private RenderProxy renderData;
+        private RenderData renderData;
 
         public Vector2 Point { get; set; } = new Vector2(10);
 
@@ -17,7 +17,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         }
 
         protected override void OnPrepareRender(RenderFrameInfo info, long frame) {
-            this.renderData = new RenderProxy() {
+            this.renderData = new RenderData() {
                 opacity = this.Opacity,
                 shapePos = this.Point,
                 shapeSize = this.RectSize,
@@ -26,13 +26,13 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         }
 
         protected override void OnRenderCore(RenderFrameInfo info, SKSurface surface, long frame) {
-            RenderProxy obj = this.renderData;
-            using (SKPaint paint = new SKPaint() {Color = obj.colour}) {
-                surface.Canvas.DrawRect(obj.shapePos.X, obj.shapePos.Y, obj.shapeSize.X, obj.shapeSize.Y, paint);
+            RenderData o = this.renderData;
+            using (SKPaint paint = new SKPaint() {Color = o.colour}) {
+                surface.Canvas.DrawRect(o.shapePos.X, o.shapePos.Y, o.shapeSize.X, o.shapeSize.Y, paint);
             }
         }
 
-        private struct RenderProxy {
+        private struct RenderData {
             public double opacity; // the clip opacity
             public Vector2 shapePos;
             public Vector2 shapeSize;

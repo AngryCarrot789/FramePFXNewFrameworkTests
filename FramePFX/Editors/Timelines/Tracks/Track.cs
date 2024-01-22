@@ -188,6 +188,19 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public Clip GetClipAtFrame(long frame) => this.cache.GetPrimaryClipAt(frame);
 
+        public void ClearClipSelection() {
+            // Use back to front removal since OnIsClipSelectedChanged can process
+            // that more efficiently, and in general, back to front is more efficient
+            List<Clip> list = this.selectedClips;
+            for (int i = list.Count - 1; i >= 0; i--) {
+                list[i].IsSelected = false;
+            }
+        }
+
+        public void InvalidateRender() {
+            this.Timeline?.Project?.RenderManager.InvalidateRender();
+        }
+
         public virtual void Destroy() {
             for (int i = this.clips.Count - 1; i >= 0; i--) {
                 Clip clip = this.clips[i];
@@ -247,13 +260,13 @@ namespace FramePFX.Editors.Timelines.Tracks {
                 list.Add(clip);
             }
             else if (list.Count > 0) {
-                if (list[0] == clip) {
+                if (list[0] == clip) { // check front to back removal
                     list.RemoveAt(0);
                 }
                 else { // assume back to front removal
                     int index = list.LastIndexOf(clip);
                     if (index == -1) {
-                        throw new Exception("Track was never selected");
+                        throw new Exception("Clip was never selected");
                     }
 
                     list.RemoveAt(index);
@@ -264,18 +277,5 @@ namespace FramePFX.Editors.Timelines.Tracks {
         }
 
         #endregion
-
-        public void ClearClipSelection() {
-            // Use back to front removal since OnIsClipSelectedChanged can process
-            // that more efficiently, and in general, back to front is more efficient
-            List<Clip> list = this.selectedClips;
-            for (int i = list.Count - 1; i >= 0; i--) {
-                list[i].IsSelected = false;
-            }
-        }
-
-        public void InvalidateRender() {
-            this.Timeline?.Project?.RenderManager.InvalidateRender();
-        }
     }
 }

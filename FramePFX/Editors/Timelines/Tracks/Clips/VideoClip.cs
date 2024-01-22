@@ -1,4 +1,3 @@
-using System.Numerics;
 using FramePFX.Editors.Rendering;
 using FramePFX.Utils;
 using SkiaSharp;
@@ -30,6 +29,10 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
     public abstract class VideoClip : Clip {
         private double opacity;
 
+        /// <summary>
+        /// Returns true if this clip handles its own opacity calculations in order for a more
+        /// efficient render. Returns false if it should be handled automatically using an offscreen buffer
+        /// </summary>
         public bool UsesCustomOpacityCalculation { get; protected set; }
 
         public double Opacity {

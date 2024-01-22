@@ -98,9 +98,9 @@ namespace FramePFX.Editors.Controls.Resources {
 
         protected override void OnDisconnected() {
             base.OnDisconnected();
-            this.Resource.ResourceAdded += this.OnResourceAddedOrRemoved;
-            this.Resource.ResourceRemoved += this.OnResourceAddedOrRemoved;
-            this.Resource.ResourceMoved += this.OnResourceMoved;
+            this.Resource.ResourceAdded -= this.OnResourceAddedOrRemoved;
+            this.Resource.ResourceRemoved -= this.OnResourceAddedOrRemoved;
+            this.Resource.ResourceMoved -= this.OnResourceMoved;
         }
 
         private void OnResourceAddedOrRemoved(ResourceFolder parent, BaseResource item, int index) => this.UpdateItemCount();

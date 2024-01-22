@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using FramePFX.Destroying;
-using FramePFX.Editors.Rendering;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Utils;
@@ -348,7 +347,8 @@ namespace FramePFX.Editors.Timelines {
         }
 
         internal static void OnIsClipSelectedChanged(Clip clip) {
-            // clip.Track.Timeline.RangedSelectionAnchorClip = clip.IsSelected ? clip : null;
+            // UI modifies the anchor directly
+            // clip.Track.Timeline.RangedSelectionAnchor = clip.IsSelected ? clip : null;
         }
 
         internal static void OnClipRemovedFromTrack(Track track, Clip clip) {

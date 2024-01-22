@@ -1,13 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using FramePFX.Editors.Rendering;
 using FramePFX.Editors.Timelines;
-using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
-using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Controls.Viewports {
@@ -51,15 +45,19 @@ namespace FramePFX.Editors.Controls.Viewports {
         private void SetProject(Project project) {
             Project oldProject = this.activeProject;
             if (oldProject != null) {
-                oldProject.MainTimeline.PlayHeadChanged -= this.OnTimelineSeeked;
+                oldProject.MainTimeline.PlayHeadChanged -= OnTimelineSeeked;
                 oldProject.RenderManager.FrameRendered -= this.OnFrameAvailable;
             }
 
             this.activeProject = project;
             if (project != null) {
-                project.MainTimeline.PlayHeadChanged += this.OnTimelineSeeked;
+                project.MainTimeline.PlayHeadChanged += OnTimelineSeeked;
                 project.RenderManager.FrameRendered += this.OnFrameAvailable;
             }
+        }
+
+        private static void OnTimelineSeeked(Timeline timeline, long oldFrame, long frame) {
+            timeline.Project.RenderManager.InvalidateRender();
         }
 
         private void OnFrameAvailable(RenderManager manager) {
@@ -67,48 +65,12 @@ namespace FramePFX.Editors.Controls.Viewports {
                 return;
             }
 
-            // this is horrible... for now
-
             try {
                 surface.Canvas.Clear(SKColors.Black);
                 manager.Draw(surface);
             }
             finally {
                 this.EndRender();
-            }
-        }
-
-        private void OnTimelineSeeked(Timeline timeline, long oldFrame, long frame) {
-            timeline.Project.RenderManager.InvalidateRender();
-        }
-
-        // SaveLayer requires a temporary drawing bitmap, which can slightly
-        // decrease performance, so only SaveLayer when absolutely necessary
-        private static int SaveLayerForOpacity(SKCanvas canvas, double opacity, ref SKPaint transparency) {
-            return canvas.SaveLayer(transparency ?? (transparency = new SKPaint {
-                Color = new SKColor(255, 255, 255, RenderUtils.DoubleToByte255(opacity))
-            }));
-        }
-
-        private static int BeginClipOpacityLayer(SKCanvas canvas, VideoClip clip, ref SKPaint paint) {
-            if (clip.UsesCustomOpacityCalculation || Maths.Equals(clip.Opacity, 1d)) {
-                return canvas.Save();
-            }
-            else {
-                return SaveLayerForOpacity(canvas, clip.Opacity, ref paint);
-            }
-        }
-
-        private static int BeginTrackOpacityLayer(SKCanvas canvas, VideoTrack track, ref SKPaint paint) {
-            // TODO: optimise this, because it adds about 3ms of extra lag per layer with an opacity less than 1 (due to bitmap allocation obviously)
-            return !Maths.Equals(track.Opacity, 1d) ? SaveLayerForOpacity(canvas, track.Opacity, ref paint) : canvas.Save();
-        }
-
-        private static void EndOpacityLayer(SKCanvas canvas, int count, ref SKPaint paint) {
-            canvas.RestoreToCount(count);
-            if (paint != null) {
-                paint.Dispose();
-                paint = null;
             }
         }
 

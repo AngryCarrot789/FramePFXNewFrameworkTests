@@ -42,6 +42,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
             return false;
         }
 
+        // CALLED ON A RENDER THREAD
         public void RenderFrame(RenderFrameInfo info) {
             if (this.surface == null || this.surfaceInfo != info.ImageInfo) {
                 this.surface?.Dispose();
@@ -55,9 +56,12 @@ namespace FramePFX.Editors.Timelines.Tracks {
             }
 
             if (this.theClipToRender != null) {
+                SKPaint transparency = null;
+                int count = RenderManager.BeginClipOpacityLayer(this.surface.Canvas, this.theClipToRender, ref transparency);
                 this.theClipToRender.RenderFrame(info, this.surface);
                 this.theClipToRender = null;
                 this.isCanvasClear = false;
+                RenderManager.EndOpacityLayer(this.surface.Canvas, count, ref transparency);
             }
         }
 

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
+using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Utils;
 using SkiaSharp;
 
@@ -87,9 +87,7 @@ namespace FramePFX.Editors.Rendering {
             Task[] tasks = new Task[tracks.Count];
             for (int i = 0; i < tracks.Count; i++) {
                 VideoTrack track = tracks[i];
-                tasks[i] = Task.Run(() => {
-                    track.RenderFrame(renderInfo);
-                });
+                tasks[i] = Task.Run(() => track.RenderFrame(renderInfo));
             }
 
             this.surface.Canvas.Clear(SKColors.Transparent);
@@ -106,18 +104,29 @@ namespace FramePFX.Editors.Rendering {
             this.FrameRendered?.Invoke(this);
         }
 
-        private static int SaveLayerForOpacity(SKCanvas canvas, double opacity, ref SKPaint transparency) {
+        // SaveLayer requires a temporary drawing bitmap, which can slightly
+        // decrease performance, so only SaveLayer when absolutely necessary
+        public static int SaveLayerForOpacity(SKCanvas canvas, double opacity, ref SKPaint transparency) {
             return canvas.SaveLayer(transparency ?? (transparency = new SKPaint {
                 Color = new SKColor(255, 255, 255, RenderUtils.DoubleToByte255(opacity))
             }));
         }
 
-        private static int BeginTrackOpacityLayer(SKCanvas canvas, VideoTrack track, ref SKPaint paint) {
+        public static int BeginClipOpacityLayer(SKCanvas canvas, VideoClip clip, ref SKPaint paint) {
+            if (clip.UsesCustomOpacityCalculation || Maths.Equals(clip.Opacity, 1d)) {
+                return canvas.Save();
+            }
+            else {
+                return SaveLayerForOpacity(canvas, clip.Opacity, ref paint);
+            }
+        }
+
+        public static int BeginTrackOpacityLayer(SKCanvas canvas, VideoTrack track, ref SKPaint paint) {
             // TODO: optimise this, because it adds about 3ms of extra lag per layer with an opacity less than 1 (due to bitmap allocation obviously)
             return !Maths.Equals(track.Opacity, 1d) ? SaveLayerForOpacity(canvas, track.Opacity, ref paint) : canvas.Save();
         }
 
-        private static void EndOpacityLayer(SKCanvas canvas, int count, ref SKPaint paint) {
+        public static void EndOpacityLayer(SKCanvas canvas, int count, ref SKPaint paint) {
             canvas.RestoreToCount(count);
             if (paint != null) {
                 paint.Dispose();

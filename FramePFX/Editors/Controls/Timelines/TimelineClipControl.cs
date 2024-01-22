@@ -11,9 +11,13 @@ using Timeline = FramePFX.Editors.Timelines.Timeline;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineClipControl : Control {
+        private static readonly FontFamily SegoeUI = new FontFamily("Segoe UI");
         public static readonly DependencyProperty DisplayNameProperty = DependencyProperty.Register("DisplayName", typeof(string), typeof(TimelineClipControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(bool), typeof(TimelineClipControl), new PropertyMetadata(BoolBox.False));
 
+        /// <summary>
+        /// Gets or sets this clip's display name. This is a two way binding between the control and model
+        /// </summary>
         public string DisplayName {
             get => (string) this.GetValue(DisplayNameProperty);
             set => this.SetValue(DisplayNameProperty, value);
@@ -63,6 +67,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         private Point clickPoint;
         private bool isUpdatingFrameSpanFromDrag;
         private bool hasMadeExceptionalSelectionInMouseDown;
+        private bool isMovingBetweenTracks;
 
         private GlyphRun glyphRun;
         private readonly RectangleGeometry renderSizeRectGeometry;
@@ -242,20 +247,11 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
 
             switch (state) {
-                case DragState.None:
-                    this.ClearValue(CursorProperty);
-                    break;
-                case DragState.Initiated:
-                    break;
-                case DragState.DragBody:
-                    this.Cursor = Cursors.SizeAll;
-                    break;
-                case DragState.DragLeftEdge:
-                    this.Cursor = Cursors.SizeWE;
-                    break;
-                case DragState.DragRightEdge:
-                    this.Cursor = Cursors.SizeWE;
-                    break;
+                case DragState.None:          this.ClearValue(CursorProperty); break;
+                case DragState.Initiated:     break;
+                case DragState.DragBody:      this.Cursor = Cursors.SizeAll; break;
+                case DragState.DragLeftEdge:  this.Cursor = Cursors.SizeWE; break;
+                case DragState.DragRightEdge: this.Cursor = Cursors.SizeWE; break;
                 default: throw new ArgumentOutOfRangeException(nameof(state), state, null);
             }
         }
@@ -284,8 +280,8 @@ namespace FramePFX.Editors.Controls.Timelines {
                 return;
             }
 
-            if (this.IsMovingBetweenTracks) {
-                this.IsMovingBetweenTracks = false;
+            if (this.isMovingBetweenTracks) {
+                this.isMovingBetweenTracks = false;
                 return;
             }
 
@@ -319,123 +315,124 @@ namespace FramePFX.Editors.Controls.Timelines {
                     this.SetDragState(DragState.DragBody);
                 }
             }
+            else if (this.dragState == DragState.None) {
+                return;
+            }
 
-            if (this.dragState != DragState.None) {
-                double zoom = this.Model.Track?.Timeline?.Zoom ?? 1.0;
-                Vector mdif = mpos - this.clickPoint;
-                FrameSpan oldSpan = this.Model.FrameSpan;
-                if (this.dragState == DragState.DragBody) {
-                    if (Math.Abs(mdif.X) >= 1.0d) {
-                        long offset = (long) Math.Round(mdif.X / zoom);
+            double zoom = this.Model.Track?.Timeline?.Zoom ?? 1.0;
+            Vector mdif = mpos - this.clickPoint;
+            FrameSpan oldSpan = this.Model.FrameSpan;
+            if (this.dragState == DragState.DragBody) {
+                if (Math.Abs(mdif.X) >= 1.0d) {
+                    long offset = (long) Math.Round(mdif.X / zoom);
+                    if (offset != 0) {
+                        // If begin is 2 and offset is -5, this sets offset to -2
+                        // and since newBegin = begin+offset (2 + -2)
+                        // this ensures begin never drops below 0
+                        if ((oldSpan.Begin + offset) < 0) {
+                            offset = -oldSpan.Begin;
+                        }
+
                         if (offset != 0) {
-                            // If begin is 2 and offset is -5, this sets offset to -2
-                            // and since newBegin = begin+offset (2 + -2)
-                            // this ensures begin never drops below 0
-                            if ((oldSpan.Begin + offset) < 0) {
-                                offset = -oldSpan.Begin;
+                            FrameSpan newSpan = new FrameSpan(oldSpan.Begin + offset, oldSpan.Duration);
+                            long newEndIndex = newSpan.EndIndex;
+                            if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
+                                timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
                             }
 
-                            if (offset != 0) {
-                                FrameSpan newSpan = new FrameSpan(oldSpan.Begin + offset, oldSpan.Duration);
-                                long newEndIndex = newSpan.EndIndex;
-                                if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
-                                    timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
-                                }
-
-                                this.isUpdatingFrameSpanFromDrag = true;
-                                this.Model.FrameSpan = newSpan;
-                                this.isUpdatingFrameSpanFromDrag = false;
-                            }
-                        }
-                    }
-
-                    if (Math.Abs(mdif.Y) >= 1.0d && timelineCtrl.Timeline is Timeline timeline) {
-                        int trackIndex = timeline.Tracks.IndexOf(this.Model.Track);
-                        const double area = 0;
-                        if (mpos.Y < Math.Min(area, this.clickPoint.Y)) {
-                            if (trackIndex < 1) {
-                                return;
-                            }
-
-                            this.IsMovingBetweenTracks = true;
-                            this.Model.MoveToTrack(timeline.Tracks[trackIndex - 1]);
-                        }
-                        else if (mpos.Y > (this.ActualHeight - area)) {
-                            if (trackIndex >= (timeline.Tracks.Count - 1)) {
-                                return;
-                            }
-
-                            this.IsMovingBetweenTracks = true;
-                            this.Model.MoveToTrack(timeline.Tracks[trackIndex + 1]);
+                            this.isUpdatingFrameSpanFromDrag = true;
+                            this.Model.FrameSpan = newSpan;
+                            this.isUpdatingFrameSpanFromDrag = false;
                         }
                     }
                 }
-                else if (this.dragState == DragState.DragLeftEdge || this.dragState == DragState.DragRightEdge) {
-                    if (Math.Abs(mdif.X) >= 1.0d) {
-                        long offset = (long) Math.Round(mdif.X / zoom);
+
+                if (Math.Abs(mdif.Y) >= 1.0d && timelineCtrl.Timeline is Timeline timeline) {
+                    int trackIndex = timeline.Tracks.IndexOf(this.Model.Track);
+                    const double area = 0;
+                    if (mpos.Y < Math.Min(area, this.clickPoint.Y)) {
+                        if (trackIndex < 1) {
+                            return;
+                        }
+
+                        this.isMovingBetweenTracks = true;
+                        this.Model.MoveToTrack(timeline.Tracks[trackIndex - 1]);
+                    }
+                    else if (mpos.Y > (this.ActualHeight - area)) {
+                        if (trackIndex >= (timeline.Tracks.Count - 1)) {
+                            return;
+                        }
+
+                        this.isMovingBetweenTracks = true;
+                        this.Model.MoveToTrack(timeline.Tracks[trackIndex + 1]);
+                    }
+                }
+            }
+            else if (this.dragState == DragState.DragLeftEdge || this.dragState == DragState.DragRightEdge) {
+                if (Math.Abs(mdif.X) >= 1.0d) {
+                    long offset = (long) Math.Round(mdif.X / zoom);
+                    if (offset == 0) {
+                        return;
+                    }
+
+                    if (this.dragState == DragState.DragRightEdge) {
+                        // Clamps the offset to ensure we don't end up with a negative duration
+                        if ((oldSpan.EndIndex + offset) <= oldSpan.Begin) {
+                            // add 1 to ensure clip is always 1 frame long, just because ;)
+                            offset = -oldSpan.Duration + 1;
+                        }
+
                         if (offset != 0) {
-                            if (this.dragState == DragState.DragRightEdge) {
-                                // Clamps the offset to ensure we don't end up with a negative duration
-                                if ((oldSpan.EndIndex + offset) <= oldSpan.Begin) {
-                                    // add 1 to ensure clip is always 1 frame long, just because ;)
-                                    offset = -oldSpan.Duration + 1;
-                                }
+                            long newEndIndex = oldSpan.EndIndex + offset;
+                            // Clamp new frame span to 1 frame, in case user resizes too much to the right
+                            // if (newEndIndex >= oldSpan.EndIndex) {
+                            //     this.dragAccumulator -= (newEndIndex - oldSpan.EndIndex);
+                            //     newEndIndex = oldSpan.EndIndex - 1;
+                            // }
 
-                                if (offset != 0) {
-                                    long newEndIndex = oldSpan.EndIndex + offset;
-                                    // Clamp new frame span to 1 frame, in case user resizes too much to the right
-                                    // if (newEndIndex >= oldSpan.EndIndex) {
-                                    //     this.dragAccumulator -= (newEndIndex - oldSpan.EndIndex);
-                                    //     newEndIndex = oldSpan.EndIndex - 1;
-                                    // }
-
-                                    FrameSpan newSpan = FrameSpan.FromIndex(oldSpan.Begin, newEndIndex);
-                                    if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
-                                        timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
-                                    }
-
-                                    this.isUpdatingFrameSpanFromDrag = true;
-                                    this.Model.FrameSpan = newSpan;
-                                    this.isUpdatingFrameSpanFromDrag = false;
-
-                                    // account for there being no "grip" control aligned to the right side;
-                                    // since the clip is resized, the origin point will not work correctly and
-                                    // results in an exponential endIndex increase unless the below code is used.
-                                    // This code is not needed for the left grip because it just naturally isn't
-                                    this.clickPoint.X += (newSpan.EndIndex - oldSpan.EndIndex) * zoom;
-                                }
+                            FrameSpan newSpan = FrameSpan.FromIndex(oldSpan.Begin, newEndIndex);
+                            if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
+                                timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
                             }
-                            else {
-                                if ((oldSpan.Begin + offset) < 0) {
-                                    offset = -oldSpan.Begin;
-                                }
 
-                                if (offset != 0) {
-                                    long newBegin = oldSpan.Begin + offset;
-                                    // Clamps the offset to ensure we don't end up with a negative duration
-                                    if (newBegin >= oldSpan.EndIndex) {
-                                        // subtract 1 to ensure clip is always 1 frame long
-                                        newBegin = oldSpan.EndIndex - 1;
-                                    }
+                            this.isUpdatingFrameSpanFromDrag = true;
+                            this.Model.FrameSpan = newSpan;
+                            this.isUpdatingFrameSpanFromDrag = false;
 
-                                    FrameSpan newSpan = FrameSpan.FromIndex(newBegin, oldSpan.EndIndex);
-                                    long newEndIndex = newSpan.EndIndex;
-                                    if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
-                                        timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
-                                    }
+                            // account for there being no "grip" control aligned to the right side;
+                            // since the clip is resized, the origin point will not work correctly and
+                            // results in an exponential endIndex increase unless the below code is used.
+                            // This code is not needed for the left grip because it just naturally isn't
+                            this.clickPoint.X += (newSpan.EndIndex - oldSpan.EndIndex) * zoom;
+                        }
+                    }
+                    else {
+                        if ((oldSpan.Begin + offset) < 0) {
+                            offset = -oldSpan.Begin;
+                        }
 
-                                    this.isUpdatingFrameSpanFromDrag = true;
-                                    this.Model.FrameSpan = newSpan;
-                                    this.isUpdatingFrameSpanFromDrag = false;
-                                }
+                        if (offset != 0) {
+                            long newBegin = oldSpan.Begin + offset;
+                            // Clamps the offset to ensure we don't end up with a negative duration
+                            if (newBegin >= oldSpan.EndIndex) {
+                                // subtract 1 to ensure clip is always 1 frame long
+                                newBegin = oldSpan.EndIndex - 1;
                             }
+
+                            FrameSpan newSpan = FrameSpan.FromIndex(newBegin, oldSpan.EndIndex);
+                            long newEndIndex = newSpan.EndIndex;
+                            if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
+                                timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
+                            }
+
+                            this.isUpdatingFrameSpanFromDrag = true;
+                            this.Model.FrameSpan = newSpan;
+                            this.isUpdatingFrameSpanFromDrag = false;
                         }
                     }
                 }
             }
         }
-
-        public bool IsMovingBetweenTracks { get; set; }
 
         protected override Size MeasureOverride(Size availableSize) {
             Size size = new Size(this.PixelWidth, HeaderSize);
@@ -448,8 +445,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             base.ArrangeOverride(size);
             return size;
         }
-
-        private static readonly FontFamily SegoeUI = new FontFamily("Segoe UI");
 
         protected override void OnRender(DrawingContext dc) {
             base.OnRender(dc);
