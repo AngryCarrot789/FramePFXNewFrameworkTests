@@ -1,5 +1,7 @@
 I soon indent to either rename this git repo or just copy all files from this repo into the original FramePFX repo. 
 
+Original repo is https://github.com/AngryCarrot789/FramePFX. I will hopefully soon copy all code from here to that one, and stop updating this repo and continue updating the other one
+
 MVVM is convenient however it's massively slowing down any progress I want to make on it and there are some things that I don't really know how to get around in the original repo, 
 which is why I'm converting it to use less MVVM and just use direct control/model access instead
 
