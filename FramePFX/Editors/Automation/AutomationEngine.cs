@@ -9,7 +9,9 @@ namespace FramePFX.Editors.Automation {
             foreach (Track track in timeline.Tracks) {
                 track.AutomationData.Update(playHead);
                 foreach (Clip clip in track.GetClipsAtFrame(playHead)) {
-                    clip.AutomationData.Update(playHead);
+                    long relative = clip.ConvertTimelineToRelativeFrame(playHead, out bool isValid);
+                    if (isValid) // should always be true based on logic from GetClipsAtFrame
+                        clip.AutomationData.Update(relative);
                 }
             }
         }
