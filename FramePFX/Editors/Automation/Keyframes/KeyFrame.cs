@@ -76,6 +76,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
 
         #endregion
 
+        [SwitchAutomationDataType]
         public static void SetValue(KeyFrame keyFrame, object value) {
             switch (keyFrame.DataType) {
                 case AutomationDataType.Float:   keyFrame.SetFloatValue((float) value); break;
@@ -129,6 +130,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// <param name="type">Type of key frame to create</param>
         /// <returns>A new key frame instance</returns>
         /// <exception cref="ArgumentOutOfRangeException">Unknown automation data type</exception>
+        [SwitchAutomationDataType]
         public static KeyFrame CreateInstance(AutomationDataType type) {
             switch (type) {
                 case AutomationDataType.Float: return new KeyFrameFloat();

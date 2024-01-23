@@ -1,24 +1,21 @@
 using System;
-using System.Windows;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Controls.Timelines;
 
 namespace FramePFX.Editors.Controls.Binders {
-    public class AutomationBinder<TModel> : BaseObjectBinder<TModel> where TModel : class, IHasTimeline, IAutomatable {
+    public sealed class AutomationBinder<TModel> : BaseObjectBinder<TModel> where TModel : class, IHasTimeline, IAutomatable {
         private readonly ParameterChangedEventHandler handler;
 
         public Parameter Parameter { get; }
 
-        public DependencyProperty Property { get; }
+        public event Action<AutomationBinder<TModel>> UpdateModel;
+        public event Action<AutomationBinder<TModel>> UpdateControl;
 
-        public event Action UpdateModel;
-
-        public AutomationBinder(Parameter parameter, DependencyProperty property) {
+        public AutomationBinder(Parameter parameter) {
             this.handler = this.OnParameterValueChanged;
             this.Parameter = parameter;
-            this.Property = property;
         }
 
         private void OnParameterValueChanged(AutomationSequence sequence) => this.OnModelValueChanged();
@@ -34,20 +31,11 @@ namespace FramePFX.Editors.Controls.Binders {
         }
 
         protected override void UpdateModelCore() {
-            this.UpdateModel?.Invoke();
+            this.UpdateModel?.Invoke(this);
         }
 
         protected override void UpdateControlCore() {
-            object value;
-            switch (this.Parameter.DataType) {
-                case AutomationDataType.Float: value = ((ParameterFloat) this.Parameter).GetEffectiveValue(this.Model); break;
-                case AutomationDataType.Double: value = ((ParameterDouble) this.Parameter).GetEffectiveValue(this.Model); break;
-                case AutomationDataType.Long: value = ((ParameterLong) this.Parameter).GetEffectiveValue(this.Model); break;
-                case AutomationDataType.Boolean: value = ((ParameterBoolean) this.Parameter).GetEffectiveValue(this.Model); break;
-                default: throw new ArgumentOutOfRangeException();
-            }
-
-            this.Control.SetValue(this.Property, value);
+            this.UpdateControl?.Invoke(this);
         }
     }
 }

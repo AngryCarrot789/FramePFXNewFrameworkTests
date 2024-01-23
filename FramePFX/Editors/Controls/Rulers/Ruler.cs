@@ -58,6 +58,10 @@ namespace FramePFX.Editors.Controls.Rulers {
             this.InvalidateVisual();
         }
 
+        protected override Size MeasureOverride(Size availableSize) {
+            return base.MeasureOverride(availableSize);
+        }
+
         protected override void UpdateRulerPosition(RulerPosition position) {
             if (position == RulerPosition.Left)
                 this.positionManager = new LeftRulerManager(this);

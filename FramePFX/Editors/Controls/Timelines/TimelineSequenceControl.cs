@@ -47,7 +47,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         /// </summary>
         public TimelineControl TimelineControl { get; set; }
 
-        public double TotalFramePixels => this.Timeline.Zoom * this.Timeline.TotalFrames;
+        public double TotalFramePixels => this.Timeline.Zoom * this.Timeline.MaxDuration;
 
         public TimelineSequenceControl() {
         }
@@ -80,7 +80,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                 oldTimeline.TrackAdded -= this.OnTrackAdded;
                 oldTimeline.TrackRemoved -= this.OnTrackRemoved;
                 oldTimeline.TrackMoved -= this.OnTrackMoved;
-                oldTimeline.TotalFramesChanged -= this.OnTotalFramesChanged;
+                oldTimeline.MaxDurationChanged -= this.OnMaxDurationChanged;
                 for (int i = this.InternalChildren.Count - 1; i >= 0; i--) {
                     this.RemoveTrackInternal(oldTimeline.Tracks[i], i);
                 }
@@ -90,7 +90,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                 newTimeline.TrackAdded += this.OnTrackAdded;
                 newTimeline.TrackRemoved += this.OnTrackRemoved;
                 newTimeline.TrackMoved += this.OnTrackMoved;
-                newTimeline.TotalFramesChanged += this.OnTotalFramesChanged;
+                newTimeline.MaxDurationChanged += this.OnMaxDurationChanged;
                 int i = 0;
                 foreach (Track track in newTimeline.Tracks) {
                     this.InsertTrackInternal(track, i++);
@@ -98,7 +98,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
         }
 
-        private void OnTotalFramesChanged(Timeline timeline) => this.UpdateTotalFramesUsage();
+        private void OnMaxDurationChanged(Timeline timeline) => this.UpdateTotalFramesUsage();
 
         private void OnTrackAdded(Timeline timeline, Track track, int index) {
             this.InsertTrackInternal(track, index);

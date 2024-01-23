@@ -61,7 +61,7 @@ namespace FramePFX.Editors.Rendering {
         private async Task RenderTimelineAsync(Timeline timeline, long frame) {
             if (timeline == null)
                 throw new ArgumentNullException(nameof(timeline), "Cannot render a null timeline");
-            if (frame < 0 || frame >= timeline.TotalFrames)
+            if (frame < 0 || frame >= timeline.MaxDuration)
                 throw new ArgumentOutOfRangeException(nameof(frame), "Frame is not within the bounds of the timeline");
             if (this.isRendering)
                 throw new InvalidOperationException("Render already in progress");

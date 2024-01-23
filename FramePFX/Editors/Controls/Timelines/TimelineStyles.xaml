@@ -150,12 +150,14 @@
                             <ColumnDefinition Width="1"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Grid.Row="0" Background="{DynamicResource ABrush.Tone5.Background.Static}">
-                            <Grid>
-                                <ct:PlayheadPositionTextControl x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0"/>
-                                <CheckBox HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0,3,3,3" Content="RULER"
+                        <Border Grid.Column="0" Grid.Row="0" Background="{DynamicResource ABrush.Tone5.Background.Static}"
+                                x:Name="PART_ElemCol0">
+                            <DockPanel LastChildFill="False">
+                                <ct:PlayheadPositionTextControl x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                                DockPanel.Dock="Left"/>
+                                <CheckBox DockPanel.Dock="Right" VerticalAlignment="Stretch" Margin="0,3,3,3" Content="RULER"
                                           IsChecked="{Binding ElementName=PART_Ruler, Path=Visibility, Converter={x:Static co:VisibilityToBoolConverter.VisibleOrCollapsed}}"/>
-                            </Grid>
+                            </DockPanel>
                         </Border>
                         <ScrollViewer Grid.Column="0" Grid.Row="2"
                                       HorizontalScrollBarVisibility="Visible"
@@ -172,21 +174,20 @@
                         <ScrollViewer x:Name="PART_SequenceScrollViewer"
                                       HorizontalScrollBarVisibility="Visible"
                                       VerticalScrollBarVisibility="Auto"
+                                      CanContentScroll="False" PanningMode="Both"
                                       ap:ScrollBinder.VerticalBindGroup="TimelineVerticalScrollGroup"
                                       Grid.Column="2" Grid.RowSpan="3">
                             <ct:TimelineScrollableContentGrid x:Name="PART_ContentGrid"
                                                              Timeline="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Timeline}"
                                                              ap:HandleRequestBringIntoView.IsEnabled="True"
-                                                             Background="Transparent">
+                                                             Background="Transparent"
+                                                             HorizontalAlignment="Left">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="38"/>
                                     <RowDefinition Height="1"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <Border x:Name="PART_TimestampBoard" Grid.Row="0" Background="{DynamicResource ABrush.Tone3.Background.Static}">
-                                    <!--
-                                    MaxValue="{Binding ElementName=PART_PlayheadPositionPreviewControl, Path=TotalFrameDuration}"
-                                    -->
                                     <rulers:Ruler x:Name="PART_Ruler" VerticalAlignment="Stretch"
                                              HorizontalAlignment="Stretch"
                                              MinorStepRatio="0.5"

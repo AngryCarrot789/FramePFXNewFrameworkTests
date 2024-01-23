@@ -4,14 +4,19 @@ using SkiaSharp;
 namespace FramePFX.Editors.Timelines {
     public sealed class RenderContext {
         /// <summary>
-        /// The target render surface
+        /// Gets the bitmap that stores the current render context pixel data
         /// </summary>
-        public SKSurface Surface { get; }
+        public SKBitmap Bitmap { get; }
 
         /// <summary>
-        /// The surface's canvas
+        /// A pixmap that wraps the bitmap
         /// </summary>
-        public SKCanvas Canvas { get; }
+        public SKPixmap Pixmap { get; }
+
+        /// <summary>
+        /// The target render surface. This is backed by <see cref="Bitmap"/>
+        /// </summary>
+        public SKSurface Surface { get; }
 
         /// <summary>
         /// The image info about the surface
@@ -35,16 +40,8 @@ namespace FramePFX.Editors.Timelines {
 
         public RenderContext(SKSurface surface, SKCanvas canvas, SKImageInfo frameInfo) {
             this.Surface = surface;
-            this.Canvas = canvas;
             this.FrameInfo = frameInfo;
             this.FrameSize = new Vector2(frameInfo.Width, frameInfo.Height);
-        }
-
-        /// <summary>
-        /// Clears the context's drawing canvas
-        /// </summary>
-        public void ClearPixels() {
-            this.Canvas.Clear(SKColors.Black);
         }
     }
 }

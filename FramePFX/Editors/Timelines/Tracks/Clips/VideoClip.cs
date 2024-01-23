@@ -29,7 +29,8 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
     /// </summary>
     public abstract class VideoClip : Clip {
         public static readonly ParameterDouble OpacityParameter = Parameter.RegisterDouble(typeof(VideoClip), nameof(VideoClip), "Opacity", new ParameterDescriptorDouble(1, 0, 1), t => ((VideoClip) t).Opacity, (t, v) => ((VideoClip) t).Opacity = v);
-        private double opacity;
+
+        public double Opacity;
 
         /// <summary>
         /// Returns true if this clip handles its own opacity calculations in order for a more
@@ -37,21 +38,8 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         /// </summary>
         public bool UsesCustomOpacityCalculation { get; protected set; }
 
-        public double Opacity {
-            get => this.opacity;
-            set {
-                if (Maths.Equals(this.opacity, value))
-                    return;
-                this.opacity = value;
-                this.OpacityChanged?.Invoke(this);
-                this.InvalidateRender();
-            }
-        }
-
-        public event VideoClipEventHandler OpacityChanged;
-
         public VideoClip() {
-            this.opacity = 1.0;
+            this.Opacity = OpacityParameter.Descriptor.DefaultValue;
         }
 
         /// <summary>

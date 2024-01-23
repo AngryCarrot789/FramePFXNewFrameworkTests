@@ -31,7 +31,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private readonly GetSetAutoPropertyBinder<Timeline> playHeadBinder = new GetSetAutoPropertyBinder<Timeline>(PlayHeadPositionProperty, nameof(PlayheadPositionTextControl.Timeline.PlayHeadChanged), (b) => b.Model.PlayHeadPosition, (b, v) => b.Model.PlayHeadPosition = (long) v);
-        private readonly GetSetAutoPropertyBinder<Timeline> totalFramesBinder = new GetSetAutoPropertyBinder<Timeline>(TotalFrameDurationProperty, nameof(PlayheadPositionTextControl.Timeline.TotalFramesChanged), (b) => b.Model.TotalFrames, (b, v) => b.Model.TotalFrames = (long) v);
+        private readonly GetSetAutoPropertyBinder<Timeline> totalFramesBinder = new GetSetAutoPropertyBinder<Timeline>(TotalFrameDurationProperty, nameof(PlayheadPositionTextControl.Timeline.MaxDurationChanged), (b) => b.Model.MaxDuration, (b, v) => b.Model.MaxDuration = (long) v);
         private readonly AutoPropertyUpdateBinder<Timeline> largestFrameInUseBinder = new AutoPropertyUpdateBinder<Timeline>(LargestFrameInUseProperty, nameof(PlayheadPositionTextControl.Timeline.LargestFrameInUseChanged), obj => obj.Control.SetValue(LargestFrameInUseProperty, obj.Model.LargestFrameInUse), null);
 
         public PlayheadPositionTextControl() {

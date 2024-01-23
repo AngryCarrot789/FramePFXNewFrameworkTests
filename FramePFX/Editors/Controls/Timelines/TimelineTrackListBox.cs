@@ -68,6 +68,8 @@ namespace FramePFX.Editors.Controls.Timelines {
             control.TrackList = this;
             control.OnAddingToTimeline();
             this.Items.Insert(index, control);
+            // UpdateLayout must be called explicitly, so that the visual tree
+            // can be measured, allowing templates to be applied
             control.UpdateLayout();
             control.OnAddedToTimeline();
             control.InvalidateMeasure();

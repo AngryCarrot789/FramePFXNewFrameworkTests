@@ -9,18 +9,19 @@ namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBoxItemContent_Video : TimelineTrackListBoxItemContent {
         public NumberDragger OpacityDragger { get; private set; }
 
-        private readonly AutomationBinder<VideoTrack> opacityBinder = new AutomationBinder<VideoTrack>(VideoTrack.OpacityParameter, RangeBase.ValueProperty);
+        private readonly AutomationBinder<VideoTrack> opacityBinder = new AutomationBinder<VideoTrack>(VideoTrack.OpacityParameter);
 
         public TimelineTrackListBoxItemContent_Video(TimelineTrackListBoxItem listItem) : base(listItem) {
-            this.opacityBinder.UpdateModel += this.UpdateModelForOpacity;
+            this.opacityBinder.UpdateModel += UpdateModelForOpacity;
+            this.opacityBinder.UpdateControl += UpdateControlForOpacity;
         }
 
-        private void UpdateModelForOpacity() {
-            VideoTrack track = this.opacityBinder.Model;
-            AutomationSequence sequence = track.AutomationData[this.opacityBinder.Parameter];
+        private static void UpdateModelForOpacity(AutomationBinder<VideoTrack> binder) {
+            TimelineTrackListBoxItemContent_Video control = (TimelineTrackListBoxItemContent_Video) binder.Control;
+            VideoTrack track = control.opacityBinder.Model;
+            AutomationSequence sequence = track.AutomationData[control.opacityBinder.Parameter];
             if (sequence.IsEmpty || sequence.IsOverrideEnabled) {
-                object value = this.opacityBinder.Control.GetValue(this.opacityBinder.Property);
-                sequence.DefaultKeyFrame.SetValueFromObject(value);
+                sequence.DefaultKeyFrame.SetDoubleValue(control.OpacityDragger.Value);
             }
             else {
                 long frame = track.RelativePlayHead;
@@ -33,10 +34,15 @@ namespace FramePFX.Editors.Controls.Timelines {
                     keyFrame = sequence.GetKeyFrameAtIndex(index);
                 }
 
-                keyFrame.SetDoubleValue(this.OpacityDragger.Value);
+                keyFrame.SetDoubleValue(control.OpacityDragger.Value);
             }
 
             track.InvalidateRender();
+        }
+
+        private static void UpdateControlForOpacity(AutomationBinder<VideoTrack> binder) {
+            TimelineTrackListBoxItemContent_Video control = (TimelineTrackListBoxItemContent_Video) binder.Control;
+            control.OpacityDragger.Value = binder.Model.Opacity;
         }
 
         public override void OnApplyTemplate() {
@@ -50,7 +56,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         public override void OnAddedToTimeline() {
             base.OnAddedToTimeline();
             if (this.ListItem.Track is VideoTrack track) {
-                this.opacityBinder.Attach(this.OpacityDragger, track);
+                this.opacityBinder.Attach(this, track);
             }
         }
 

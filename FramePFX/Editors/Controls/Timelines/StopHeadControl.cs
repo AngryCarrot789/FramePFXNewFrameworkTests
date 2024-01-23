@@ -77,7 +77,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                     }
 
                     if (offset != 0) {
-                        timeline.StopHeadPosition = Math.Min(oldFrame + offset, timeline.TotalFrames - 1);
+                        timeline.StopHeadPosition = Math.Min(oldFrame + offset, timeline.MaxDuration - 1);
                     }
                 }
             }

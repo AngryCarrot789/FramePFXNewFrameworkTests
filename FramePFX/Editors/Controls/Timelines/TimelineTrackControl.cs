@@ -93,7 +93,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             control.Track = this;
             control.OnAdding();
             this.InternalChildren.Insert(index, control);
-            control.UpdateLayout();
             control.ApplyTemplate();
             control.OnAdded();
         }

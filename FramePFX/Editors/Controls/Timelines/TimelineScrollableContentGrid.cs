@@ -47,13 +47,12 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.InvalidateMeasure();
         }
 
-        protected override Size MeasureOverride(Size constraint) {
-            if (this.Timeline is Timeline timeline) {
-                constraint = new Size(timeline.TotalFrames * timeline.Zoom, constraint.Height);
-            }
+        protected override void OnChildDesiredSizeChanged(UIElement child) {
+            base.OnChildDesiredSizeChanged(child);
+        }
 
-            Size measure = base.MeasureOverride(constraint);
-            return measure;
+        protected override Size MeasureOverride(Size constraint) {
+            return base.MeasureOverride(constraint);
         }
 
         protected override Size ArrangeOverride(Size arrangeSize) {

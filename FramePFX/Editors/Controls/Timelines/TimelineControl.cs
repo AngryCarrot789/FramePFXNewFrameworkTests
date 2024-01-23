@@ -59,7 +59,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
             if (x >= 0d) {
                 long frameX = TimelineUtils.PixelToFrame(x, timeline.Zoom, true);
-                if (frameX >= 0 && frameX < timeline.TotalFrames) {
+                if (frameX >= 0 && frameX < timeline.MaxDuration) {
                     timeline.PlayHeadPosition = frameX;
                     if (updateStopHead) {
                         timeline.StopHeadPosition = frameX;
@@ -116,7 +116,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.PlayHeadPositionPreview = playheadPosPreview;
             this.Ruler = ruler;
             if (this.Timeline is Timeline myTimeline)
-                this.Ruler.MaxValue = myTimeline.TotalFrames;
+                this.Ruler.MaxValue = myTimeline.MaxDuration;
 
             this.PlayHead = playHead;
             this.StopHead = stopHead;
@@ -131,7 +131,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         private void OnTimelineChanged(Timeline oldTimeline, Timeline newTimeline) {
             if (oldTimeline != null) {
-                oldTimeline.TotalFramesChanged -= this.OnTimelineTotalFramesChanged;
+                oldTimeline.MaxDurationChanged -= this.OnTimelineMaxDurationChanged;
                 oldTimeline.ZoomTimeline -= this.OnTimelineZoomed;
                 oldTimeline.TrackAdded -= this.OnTimelineTrackEvent;
                 oldTimeline.TrackRemoved -= this.OnTimelineTrackEvent;
@@ -143,12 +143,12 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.PlayHead.Timeline = newTimeline;
             this.StopHead.Timeline = newTimeline;
             if (newTimeline != null) {
-                newTimeline.TotalFramesChanged += this.OnTimelineTotalFramesChanged;
+                newTimeline.MaxDurationChanged += this.OnTimelineMaxDurationChanged;
                 newTimeline.ZoomTimeline += this.OnTimelineZoomed;
                 newTimeline.TrackAdded += this.OnTimelineTrackEvent;
                 newTimeline.TrackRemoved += this.OnTimelineTrackEvent;
                 if (this.Ruler != null)
-                    this.Ruler.MaxValue = newTimeline.TotalFrames;
+                    this.Ruler.MaxValue = newTimeline.MaxDuration;
                 this.UpdateBorderThicknesses(newTimeline);
             }
         }
@@ -162,11 +162,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             Thickness thickness = new Thickness(0, 0, 0, (timeline.Tracks.Count < 1) ? 0 : 1);
             this.TimelineBorder.BorderThickness = thickness;
             this.TrackList.BorderThickness = thickness;
-        }
-
-        private void OnTimelineTotalFramesChanged(Timeline timeline) {
-            if (this.Ruler != null)
-                this.Ruler.MaxValue = timeline.TotalFrames;
         }
 
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e) {
@@ -233,42 +228,45 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
         }
 
-        private void OnTimelineZoomed(Timeline timeline, double oldzoom, double newzoom, ZoomType zoomtype) {
-            ScrollViewer scroller = this.TimelineScrollViewer;
-            if (scroller == null) {
-                return;
-            }
-
-            switch (zoomtype) {
-                case ZoomType.Direct: break;
-                case ZoomType.ViewPortBegin: {
-                    break;
-                }
-                case ZoomType.ViewPortMiddle: {
-                    break;
-                }
-                case ZoomType.ViewPortEnd: {
-                    break;
-                }
-                case ZoomType.PlayHead: {
-                    break;
-                }
-                case ZoomType.MouseCursor: {
-                    double mouse_x = Mouse.GetPosition(scroller).X;
-                    double target_offset = (scroller.HorizontalOffset + mouse_x) / oldzoom;
-                    double scaled_target_offset = target_offset * newzoom;
-                    double new_offset = scaled_target_offset - mouse_x;
-                    scroller.ScrollToHorizontalOffset(new_offset);
-                    break;
-                }
-                default: throw new ArgumentOutOfRangeException(nameof(zoomtype), zoomtype, null);
-            }
-
-            this.TimelineSequence?.OnZoomChanged(newzoom);
+        private void OnTimelineMaxDurationChanged(Timeline timeline) {
+            if (this.Ruler != null)
+                this.Ruler.MaxValue = timeline.MaxDuration;
+            if (this.TimelineContentGrid != null)
+                this.TimelineContentGrid.Width = TimelineUtils.FrameToPixel(timeline.MaxDuration, timeline.Zoom);
         }
 
-        private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+        private void OnTimelineZoomed(Timeline timeline, double oldzoom, double newzoom, ZoomType zoomtype) {
+            this.TimelineSequence?.OnZoomChanged(newzoom);
+            if (this.TimelineContentGrid != null)
+                this.TimelineContentGrid.Width = TimelineUtils.FrameToPixel(timeline.MaxDuration, timeline.Zoom);
 
+            ScrollViewer scroller = this.TimelineScrollViewer;
+            if (scroller != null) {
+                switch (zoomtype) {
+                    case ZoomType.Direct: break;
+                    case ZoomType.ViewPortBegin: {
+                        break;
+                    }
+                    case ZoomType.ViewPortMiddle: {
+                        break;
+                    }
+                    case ZoomType.ViewPortEnd: {
+                        break;
+                    }
+                    case ZoomType.PlayHead: {
+                        break;
+                    }
+                    case ZoomType.MouseCursor: {
+                        double mouse_x = Mouse.GetPosition(scroller).X;
+                        double target_offset = (scroller.HorizontalOffset + mouse_x) / oldzoom;
+                        double scaled_target_offset = target_offset * newzoom;
+                        double new_offset = scaled_target_offset - mouse_x;
+                        scroller.ScrollToHorizontalOffset(new_offset);
+                        break;
+                    }
+                    default: throw new ArgumentOutOfRangeException(nameof(zoomtype), zoomtype, null);
+                }
+            }
         }
     }
 }

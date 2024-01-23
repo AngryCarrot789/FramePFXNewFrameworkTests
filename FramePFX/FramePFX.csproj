@@ -106,6 +106,7 @@
     <Compile Include="Converters\VolumeToDbConverter.cs" />
     <Compile Include="Editors\Automation\AutomationData.cs" />
     <Compile Include="Editors\Automation\AutomationEngine.cs" />
+    <Compile Include="Editors\Automation\AutomatableHelper.cs" />
     <Compile Include="Editors\Automation\IAutomatable.cs" />
     <Compile Include="Editors\Automation\Keyframes\AutomationDataType.cs" />
     <Compile Include="Editors\Automation\Keyframes\AutomationSequence.cs" />
@@ -116,6 +117,7 @@
     <Compile Include="Editors\Automation\Params\ParameterDescriptor.cs" />
     <Compile Include="Editors\Automation\Params\ParameterKey.cs" />
     <Compile Include="Editors\Automation\Params\ParameterChangedEventHandler.cs" />
+    <Compile Include="Editors\Automation\SwitchAutomationDataTypeAttribute.cs" />
     <Compile Include="Editors\Collections\SelectionList.cs" />
     <Compile Include="Editors\Controls\Automation\AutomationActivityBrushConverter.cs" />
     <Compile Include="Editors\Controls\Automation\AutomationSequenceEditor.cs" />
@@ -131,6 +133,7 @@
     <Compile Include="Editors\Controls\Binders\IBinder.cs" />
     <Compile Include="Editors\Controls\Binders\GetSetAutoPropertyBinder.cs" />
     <Compile Include="Editors\Controls\Binders\PropertyUpdateBinder.cs" />
+    <Compile Include="Editors\Controls\Binders\SimpleAutomationBinder.cs" />
     <Compile Include="Editors\Controls\CancellableThumb.cs" />
     <Compile Include="Editors\Controls\GlyphGenerator.cs" />
     <Compile Include="Editors\Controls\IClipControl.cs" />

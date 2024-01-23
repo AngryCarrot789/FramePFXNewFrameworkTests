@@ -60,9 +60,13 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public bool CanAutomate => !this.IsOverrideEnabled && this.HasKeyFrames;
 
         /// <summary>
-        /// An enumerable of all the key frames, ordered by the timestamp (small to big)
+        /// An enumerable of all the key frames, ordered by the timestamp (small to big).
+        /// <para>
+        /// This list should NOT be modified directly, as it may result in corruption of the automation
+        /// engine. Instead, use the methods provided by this class to modify this list
+        /// </para>
         /// </summary>
-        public IList<KeyFrame> KeyFrames => this.keyFrameList;
+        public List<KeyFrame> KeyFrames => this.keyFrameList;
 
         public AutomationDataType DataType { get; }
 

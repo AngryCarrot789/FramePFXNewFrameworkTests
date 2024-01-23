@@ -35,11 +35,12 @@ namespace FramePFX.Editors.Automation {
                     throw new ArgumentNullException(nameof(parameter), "Key cannot be null");
                 }
 
-                if (!this.sequences.TryGetValue(parameter, out AutomationSequence sequence)) {
-                    this.ValidateParameter(parameter);
-                    this.sequences[parameter] = sequence = new AutomationSequence(this, parameter);
+                if (this.sequences.TryGetValue(parameter, out AutomationSequence sequence)) {
+                    return sequence;
                 }
 
+                this.ValidateParameter(parameter);
+                this.sequences[parameter] = sequence = new AutomationSequence(this, parameter);
                 return sequence;
             }
         }
@@ -59,10 +60,20 @@ namespace FramePFX.Editors.Automation {
             this.sequences = new SortedList<Parameter, AutomationSequence>(4, AutomationParameterComparer);
         }
 
+        /// <summary>
+        /// A helper method to add an event handler for the <see cref="AutomationSequence.ParameterChanged"/>
+        /// </summary>
+        /// <param name="parameter">The target parameter</param>
+        /// <param name="handler">The event handler</param>
         public void AddParameterChangedHandler(Parameter parameter, ParameterChangedEventHandler handler) {
             this[parameter].ParameterChanged += handler;
         }
 
+        /// <summary>
+        /// A helper method to remove an event handler for the <see cref="AutomationSequence.ParameterChanged"/>
+        /// </summary>
+        /// <param name="parameter">The target parameter</param>
+        /// <param name="handler">The event handler</param>
         public void RemoveParameterChangedHandler(Parameter parameter, ParameterChangedEventHandler handler) {
             this[parameter].ParameterChanged -= handler;
         }

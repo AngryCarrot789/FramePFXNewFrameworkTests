@@ -56,8 +56,8 @@ namespace FramePFX.Editors.Controls.Timelines {
             if (change != 0) {
                 long oldFrame = timeline.PlayHeadPosition;
                 long newFrame = Math.Max(oldFrame + change, 0);
-                if (newFrame >= timeline.TotalFrames) {
-                    newFrame = timeline.TotalFrames - 1;
+                if (newFrame >= timeline.MaxDuration) {
+                    newFrame = timeline.MaxDuration - 1;
                 }
 
                 if (newFrame != oldFrame) {

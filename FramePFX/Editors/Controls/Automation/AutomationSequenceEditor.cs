@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using FramePFX.Editors.Automation;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Utils;
@@ -496,6 +497,7 @@ namespace FramePFX.Editors.Controls.Automation {
             return Maths.GetRange(min, max) > MaximumFloatingPointRange;
         }
 
+        [SwitchAutomationDataType]
         private void SetupRenderingInfo(AutomationSequence sequence) {
             this.IsValueRangeHuge = false;
             switch (sequence.Parameter.DataType) {

@@ -129,7 +129,7 @@ namespace FramePFX.Editors {
                     Timeline timeline = project.MainTimeline;
 
                     // Increment or wrap to beginning
-                    if (timeline.PlayHeadPosition == (timeline.TotalFrames - 1)) {
+                    if (timeline.PlayHeadPosition == (timeline.MaxDuration - 1)) {
                         timeline.PlayHeadPosition = 0;
                     }
                     else {

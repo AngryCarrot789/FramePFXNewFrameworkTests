@@ -26,13 +26,13 @@ namespace FramePFX.Editors.Timelines {
         /// <summary>
         /// Gets or sets the total length of all tracks, in frames. This is incremented on demand when necessary, and is used for UI calculations
         /// </summary>
-        public long TotalFrames {
-            get => this.totalFrames;
+        public long MaxDuration {
+            get => this.maxDuration;
             set {
-                if (this.totalFrames == value)
+                if (this.maxDuration == value)
                     return;
-                this.totalFrames = value;
-                this.TotalFramesChanged?.Invoke(this);
+                this.maxDuration = value;
+                this.MaxDurationChanged?.Invoke(this);
             }
         }
 
@@ -44,7 +44,7 @@ namespace FramePFX.Editors.Timelines {
 
                 if (value < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), value, "Stophead cannot be negative");
-                if (value >= this.totalFrames)
+                if (value >= this.maxDuration)
                     throw new ArgumentOutOfRangeException(nameof(value), value, "Stophead exceeds the timeline duration range (0 to TotalFrames)");
 
                 long oldStopHead = this.stopHeadPosition;
@@ -64,7 +64,7 @@ namespace FramePFX.Editors.Timelines {
 
                 if (value < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), value, "Playhead cannot be negative");
-                if (value >= this.totalFrames)
+                if (value >= this.maxDuration)
                     throw new ArgumentOutOfRangeException(nameof(value), value, "Playhead exceeds the timeline duration range (0 to TotalFrames)");
 
                 long oldPlayHead = this.playHeadPosition;
@@ -138,7 +138,7 @@ namespace FramePFX.Editors.Timelines {
         public event TimelineTrackIndexEventHandler TrackAdded;
         public event TimelineTrackIndexEventHandler TrackRemoved;
         public event TimelineTrackMovedEventHandler TrackMoved;
-        public event TimelineEventHandler TotalFramesChanged;
+        public event TimelineEventHandler MaxDurationChanged;
         public event TimelineEventHandler LargestFrameInUseChanged;
         public event PlayheadChangedEventHandler PlayHeadChanged;
         public event PlayheadChangedEventHandler StopHeadChanged;
@@ -146,7 +146,7 @@ namespace FramePFX.Editors.Timelines {
 
         private readonly List<Track> tracks;
         private readonly List<Track> selectedTracks;
-        private long totalFrames;
+        private long maxDuration;
         private long playHeadPosition;
         private long stopHeadPosition;
         private long largestFrameInUse;
@@ -155,7 +155,7 @@ namespace FramePFX.Editors.Timelines {
             this.tracks = new List<Track>();
             this.Tracks = new ReadOnlyCollection<Track>(this.tracks);
             this.selectedTracks = new List<Track>();
-            this.totalFrames = 5000L;
+            this.maxDuration = 5000L;
             this.Zoom = 1.0d;
         }
 

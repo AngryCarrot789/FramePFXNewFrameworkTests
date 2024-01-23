@@ -38,7 +38,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             private set {
                 this.frameBegin = value;
                 this.InvalidateMeasure();
-                this.InvalidateArrange();
                 this.Track.InvalidateArrange();
             }
         }
@@ -48,7 +47,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             private set {
                 this.frameDuration = value;
                 this.InvalidateMeasure();
-                this.InvalidateArrange();
                 this.Track.InvalidateArrange();
             }
         }
@@ -356,8 +354,8 @@ namespace FramePFX.Editors.Controls.Timelines {
                         if (offset != 0) {
                             FrameSpan newSpan = new FrameSpan(oldSpan.Begin + offset, oldSpan.Duration);
                             long newEndIndex = newSpan.EndIndex;
-                            if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
-                                timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
+                            if (newEndIndex > timelineCtrl.Timeline.MaxDuration) {
+                                timelineCtrl.Timeline.MaxDuration = newEndIndex + 300;
                             }
 
                             this.isUpdatingFrameSpanFromDrag = true;
@@ -411,8 +409,8 @@ namespace FramePFX.Editors.Controls.Timelines {
                             // }
 
                             FrameSpan newSpan = FrameSpan.FromIndex(oldSpan.Begin, newEndIndex);
-                            if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
-                                timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
+                            if (newEndIndex > timelineCtrl.Timeline.MaxDuration) {
+                                timelineCtrl.Timeline.MaxDuration = newEndIndex + 300;
                             }
 
                             this.isUpdatingFrameSpanFromDrag = true;
@@ -441,8 +439,8 @@ namespace FramePFX.Editors.Controls.Timelines {
 
                             FrameSpan newSpan = FrameSpan.FromIndex(newBegin, oldSpan.EndIndex);
                             long newEndIndex = newSpan.EndIndex;
-                            if (newEndIndex > timelineCtrl.Timeline.TotalFrames) {
-                                timelineCtrl.Timeline.TotalFrames = newEndIndex + 300;
+                            if (newEndIndex > timelineCtrl.Timeline.MaxDuration) {
+                                timelineCtrl.Timeline.MaxDuration = newEndIndex + 300;
                             }
 
                             this.isUpdatingFrameSpanFromDrag = true;
