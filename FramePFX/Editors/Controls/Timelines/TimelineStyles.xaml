@@ -5,7 +5,8 @@
                     xmlns:ct="clr-namespace:FramePFX.Editors.Controls.Timelines"
                     xmlns:dragger="clr-namespace:FramePFX.Editors.Controls.Dragger"
                     xmlns:co="clr-namespace:FramePFX.Converters"
-                    xmlns:rulers="clr-namespace:FramePFX.Editors.Controls.Rulers">
+                    xmlns:rulers="clr-namespace:FramePFX.Editors.Controls.Rulers"
+                    xmlns:a="clr-namespace:FramePFX.Editors.Controls.Automation">
     <!-- TimelineTrackListBox's     Background = track gap colour in ListBox -->
     <!-- TimelineTrackListBoxItem's Background = its background -->
 
@@ -108,13 +109,19 @@
                     <Border Margin="0,0,-1,0" Padding="0,0,1,0" BorderThickness="1,0"
                             BorderBrush="{DynamicResource ABrush.Tone6.Border.Static}"
                             UseLayoutRounding="True" SnapsToDevicePixels="True">
-                        <Border x:Name="PART_SelectionBorder" Margin="-1"
-                                BorderThickness="2" 
-                                BorderBrush="YellowGreen"
-                                Visibility="Hidden"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
-                                Panel.ZIndex="3"/>
+                        <Grid>
+                            <a:AutomationSequenceEditor x:Name="PART_AutomationSequence"
+                                                        HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Stretch"
+                                                        Margin="0,20,0,0" />
+                            <Border x:Name="PART_SelectionBorder" Margin="-1"
+                                    BorderThickness="2"
+                                    BorderBrush="YellowGreen"
+                                    Visibility="Hidden"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    Panel.ZIndex="3"/>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">

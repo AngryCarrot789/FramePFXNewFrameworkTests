@@ -67,7 +67,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.InvalidateMeasure();
         }
 
-        private void OnZoomChanged(double newZoom) {
+        public void OnZoomChanged(double newZoom) {
             foreach (TimelineTrackControl track in this.InternalChildren) {
                 track.OnZoomChanged(newZoom);
             }

@@ -14,6 +14,8 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         public Vector2 RectSize { get; set; } = new Vector2(100, 40);
 
         public VideoClipShape() {
+            // demo -- add a sample opacity automation key frame
+            this.AutomationData[OpacityParameter].AddNewKeyFrame(0, out _);
         }
 
         protected override void OnPrepareRender(RenderFrameInfo info, long frame) {

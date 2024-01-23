@@ -6,6 +6,9 @@ using FramePFX.RBC;
 using FramePFX.Utils;
 
 namespace FramePFX.Editors.Automation.Keyframes {
+    public delegate void KeyFramePositionChangedEventHandler(KeyFrame keyFrame, long oldFrame, long newFrame);
+    public delegate void KeyFrameEventHandler(KeyFrame keyFrame);
+
     /// <summary>
     /// A keyframe stores a time and value
     /// </summary>
@@ -17,9 +20,11 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public long Frame {
             get => this.myFrame;
             set {
-                if (this.myFrame == value)
+                long oldFrame = this.myFrame;
+                if (oldFrame == value)
                     return;
                 this.myFrame = value;
+                this.FrameChanged?.Invoke(this, oldFrame, value);
                 AutomationSequence.OnKeyFramePositionChanged(this.sequence, this);
             }
         }
@@ -29,7 +34,14 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// </summary>
         public abstract AutomationDataType DataType { get; }
 
+        public event KeyFramePositionChangedEventHandler FrameChanged;
+        public event KeyFrameEventHandler ValueChanged;
+
         protected KeyFrame() {
+        }
+
+        protected virtual void OnValueChanged() {
+            this.ValueChanged?.Invoke(this);
         }
 
         /// <summary>
@@ -250,6 +262,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
             get => this.myValue;
             set {
                 this.myValue = value;
+                this.OnValueChanged();
                 AutomationSequence.OnKeyFrameValueChanged(this.sequence, this);
             }
         }
@@ -299,6 +312,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
             get => this.myValue;
             set {
                 this.myValue = value;
+                this.OnValueChanged();
                 AutomationSequence.OnKeyFrameValueChanged(this.sequence, this);
             }
         }
@@ -348,6 +362,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
             get => this.myValue;
             set {
                 this.myValue = value;
+                this.OnValueChanged();
                 AutomationSequence.OnKeyFrameValueChanged(this.sequence, this);
             }
         }
@@ -402,6 +417,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
             get => this.myValue;
             set {
                 this.myValue = value;
+                this.OnValueChanged();
                 AutomationSequence.OnKeyFrameValueChanged(this.sequence, this);
             }
         }

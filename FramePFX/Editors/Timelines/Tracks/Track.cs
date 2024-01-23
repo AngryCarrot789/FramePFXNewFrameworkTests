@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
-using FramePFX.Editors.Controls.Timelines;
 using FramePFX.Editors.Factories;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using SkiaSharp;
@@ -14,7 +12,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void TrackClipIndexEventHandler(Track track, Clip clip, int index);
     public delegate void ClipMovedEventHandler(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex);
 
-    public abstract class Track : IAutomatable, ITimelineBound, IDestroy {
+    public abstract class Track : IAutomatable, IDestroy {
         public string FactoryId => TrackFactory.Instance.GetId(this.GetType());
 
         public Timeline Timeline { get; private set; }

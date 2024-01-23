@@ -4,7 +4,7 @@ namespace FramePFX.Editors.Controls.Timelines {
     /// <summary>
     /// An interface for an object that exists in a timeline, somewhere
     /// </summary>
-    public interface ITimelineBound {
+    public interface IHasTimeline {
         /// <summary>
         /// Gets the timeline associated with this object
         /// </summary>

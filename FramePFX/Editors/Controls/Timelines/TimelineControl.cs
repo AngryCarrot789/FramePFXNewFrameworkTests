@@ -263,6 +263,8 @@ namespace FramePFX.Editors.Controls.Timelines {
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(zoomtype), zoomtype, null);
             }
+
+            this.TimelineSequence?.OnZoomChanged(newzoom);
         }
 
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {

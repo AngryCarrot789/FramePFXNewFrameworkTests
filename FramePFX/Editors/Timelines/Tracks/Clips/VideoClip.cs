@@ -1,3 +1,4 @@
+using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Rendering;
 using FramePFX.Utils;
 using SkiaSharp;
@@ -27,6 +28,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
     /// </para>
     /// </summary>
     public abstract class VideoClip : Clip {
+        public static readonly ParameterDouble OpacityParameter = Parameter.RegisterDouble(typeof(VideoClip), nameof(VideoClip), "Opacity", new ParameterDescriptorDouble(1, 0, 1), t => ((VideoClip) t).Opacity, (t, v) => ((VideoClip) t).Opacity = v);
         private double opacity;
 
         /// <summary>

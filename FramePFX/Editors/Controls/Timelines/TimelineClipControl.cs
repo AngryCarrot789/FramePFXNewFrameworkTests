@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using FramePFX.Editors.Controls.Automation;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks.Clips;
@@ -29,6 +30,8 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public TimelineTrackControl Track { get; set; }
+
+        public AutomationSequenceEditor AutomationSequence { get; private set; }
 
         public long FrameBegin {
             get => this.frameBegin;
@@ -89,6 +92,13 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.renderSizeRectGeometry = new RectangleGeometry();
         }
 
+        public override void OnApplyTemplate() {
+            base.OnApplyTemplate();
+            if (!(this.GetTemplateChild("PART_AutomationSequence") is AutomationSequenceEditor sequenceEditor))
+                throw new Exception("Missing PART_AutomationSequence");
+            this.AutomationSequence = sequenceEditor;
+        }
+
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
             base.OnPropertyChanged(e);
             this.isSelectedBinder?.OnPropertyChanged(e);
@@ -116,6 +126,10 @@ namespace FramePFX.Editors.Controls.Timelines {
         private void SetSizeFromSpan(FrameSpan span) {
             this.FrameBegin = span.Begin;
             this.FrameDuration = span.Duration;
+            if (this.AutomationSequence is AutomationSequenceEditor editor) {
+                editor.FrameBegin = span.Begin;
+                editor.FrameDuration = span.Duration;
+            }
         }
 
         public void OnAdding() {
@@ -125,6 +139,11 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.displayNameBinder.Attach(this, this.Model);
             this.frameSpanBinder.Attach(this, this.Model);
             this.isSelectedBinder.Attach(this, this.Model);
+            if (this.AutomationSequence is AutomationSequenceEditor editor) {
+                editor.FrameBegin = this.frameBegin;
+                editor.FrameDuration = this.frameDuration;
+                editor.Sequence = this.Model.AutomationData[VideoClip.OpacityParameter];
+            }
         }
 
         public void OnRemoving() {
@@ -134,6 +153,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.displayNameBinder.Detatch();
             this.frameSpanBinder.Detatch();
             this.isSelectedBinder.Detatch();
+            this.AutomationSequence.Sequence = null;
         }
 
         #endregion
@@ -483,7 +503,8 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public void OnZoomChanged(double newZoom) {
-            this.InvalidateMeasure();
+            // this.InvalidateMeasure();
+            this.AutomationSequence.UnitZoom = newZoom;
         }
 
         private enum DragState {

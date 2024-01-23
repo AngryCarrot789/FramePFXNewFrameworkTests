@@ -52,6 +52,7 @@ namespace FramePFX.Editors {
                 track.AddClip(new VideoClipShape() { Point = new Vector2(150, 150), FrameSpan = new FrameSpan(0, 100), DisplayName = "Clip 1"});
                 track.AddClip(new VideoClipShape() { Point = new Vector2(300, 150), FrameSpan = new FrameSpan(150, 100), DisplayName = "Clip 2"});
                 track.AddClip(new VideoClipShape() { Point = new Vector2(450, 150), FrameSpan = new FrameSpan(300, 250), DisplayName = "Clip 3"});
+
                 project.MainTimeline.AddTrack(track);
             }
 

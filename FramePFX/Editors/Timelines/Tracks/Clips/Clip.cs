@@ -1,14 +1,13 @@
 using System;
 using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
-using FramePFX.Editors.Controls.Timelines;
 using FramePFX.Editors.Factories;
 
 namespace FramePFX.Editors.Timelines.Tracks.Clips {
     public delegate void ClipSpanChangedEventHandler(Clip clip, FrameSpan oldSpan, FrameSpan newSpan);
     public delegate void ClipEventHandler(Clip clip);
 
-    public abstract class Clip : ITimelineBound, IAutomatable, IStrictFrameRange, IDestroy {
+    public abstract class Clip : IAutomatable, IStrictFrameRange, IDestroy {
         private FrameSpan span;
         private string displayName;
         private bool isSelected;

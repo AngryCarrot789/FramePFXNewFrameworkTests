@@ -1,11 +1,9 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Windows.Controls.Primitives;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Controls.Dragger;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBoxItemContent_Video : TimelineTrackListBoxItemContent {
@@ -20,23 +18,23 @@ namespace FramePFX.Editors.Controls.Timelines {
         private void UpdateModelForOpacity() {
             VideoTrack track = this.opacityBinder.Model;
             AutomationSequence sequence = track.AutomationData[this.opacityBinder.Parameter];
-            // if (sequence.IsEmpty || sequence.IsOverrideEnabled) {
-            //     object value = this.opacityBinder.Control.GetValue(this.opacityBinder.Property);
-            //     sequence.DefaultKeyFrame.SetValueFromObject(value);
-            // }
-            // else {
-            long frame = track.RelativePlayHead;
-            int index = sequence.GetLastFrameExactlyAt(frame);
-            KeyFrame keyFrame;
-            if (index == -1) {
-                index = sequence.AddNewKeyFrame(frame, out keyFrame);
+            if (sequence.IsEmpty || sequence.IsOverrideEnabled) {
+                object value = this.opacityBinder.Control.GetValue(this.opacityBinder.Property);
+                sequence.DefaultKeyFrame.SetValueFromObject(value);
             }
             else {
-                keyFrame = sequence.GetKeyFrameAtIndex(index);
-            }
+                long frame = track.RelativePlayHead;
+                int index = sequence.GetLastFrameExactlyAt(frame);
+                KeyFrame keyFrame;
+                if (index == -1) {
+                    index = sequence.AddNewKeyFrame(frame, out keyFrame);
+                }
+                else {
+                    keyFrame = sequence.GetKeyFrameAtIndex(index);
+                }
 
-            keyFrame.SetDoubleValue(this.OpacityDragger.Value);
-            // }
+                keyFrame.SetDoubleValue(this.OpacityDragger.Value);
+            }
 
             track.InvalidateRender();
         }

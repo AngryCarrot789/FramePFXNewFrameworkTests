@@ -149,7 +149,7 @@ namespace FramePFX.Editors.Automation {
                 throw new ArgumentException("Invalid parameter key for this automation data: " + parameter.Key + ". The owner types are incompatible");
         }
 
-        internal static void OnValueChanged(AutomationSequence sequence, long frame) {
+        internal static void OnParameterValueChanged(AutomationSequence sequence) {
             sequence.AutomationData.ParameterChanged?.Invoke(sequence);
         }
     }

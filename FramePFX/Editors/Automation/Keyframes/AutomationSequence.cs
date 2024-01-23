@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using FramePFX.Editors.Automation.Params;
-using FramePFX.Editors.Controls.Timelines;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.RBC;
@@ -10,8 +8,7 @@ using FramePFX.RBC;
 namespace FramePFX.Editors.Automation.Keyframes {
     public delegate void KeyFrameAddedEventHandler(AutomationSequence sequence, KeyFrame keyFrame, int index);
     public delegate void KeyFrameRemovedEventHandler(AutomationSequence sequence, KeyFrame keyFrame, int index);
-
-    public delegate void AutomationRefreshEventHandler(AutomationSequence sequence, long frame);
+    public delegate void AutomationSequenceEventHandler(AutomationSequence sequence);
 
     /// <summary>
     /// An automation sequence contains all of the key frames for a specific <see cref="Params.Parameter"/>
@@ -26,6 +23,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         private static readonly Func<long, KeyFrame, KeyFrame, long> FuncCalcLong = (t, a, b) => ((KeyFrameLong) a).Interpolate(t, (KeyFrameLong) b);
         private static readonly Func<long, KeyFrame, KeyFrame, bool> FuncCalcBool = (t, a, b) => ((KeyFrameBoolean) a).Interpolate(t, (KeyFrameBoolean) b);
         private readonly List<KeyFrame> keyFrameList;
+        private bool isOverrideEnabled;
 
         /// <summary>
         /// Whether or not this sequence has any key frames
@@ -43,7 +41,15 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// Gets or sets whether or not the current automation sequence is in override mode.
         /// When in override mode, the automation engine cannot update the value of any parameter, even if it has key frames
         /// </summary>
-        public bool IsOverrideEnabled { get; set; }
+        public bool IsOverrideEnabled {
+            get => this.isOverrideEnabled;
+            set {
+                if (this.isOverrideEnabled == value)
+                    return;
+                this.isOverrideEnabled = value;
+                this.OverrideStateChanged?.Invoke(this);
+            }
+        }
 
         public bool HasKeyFrames => this.keyFrameList.Count > 0;
 
@@ -56,7 +62,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// <summary>
         /// An enumerable of all the key frames, ordered by the timestamp (small to big)
         /// </summary>
-        public IEnumerable<KeyFrame> KeyFrames => this.keyFrameList;
+        public IList<KeyFrame> KeyFrames => this.keyFrameList;
 
         public AutomationDataType DataType { get; }
 
@@ -76,6 +82,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
 
         public event KeyFrameAddedEventHandler KeyFrameAdded;
         public event KeyFrameRemovedEventHandler KeyFrameRemoved;
+        public event AutomationSequenceEventHandler OverrideStateChanged;
 
         public AutomationSequence(AutomationData automationData, Parameter parameter) {
             this.AutomationData = automationData;
@@ -108,7 +115,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
                 this.IsValueChanging = true;
                 this.Parameter.SetValue(this, frame);
                 this.ParameterChanged?.Invoke(this);
-                AutomationData.OnValueChanged(this, frame);
+                AutomationData.OnParameterValueChanged(this);
             }
             finally {
                 this.IsValueChanging = false;
@@ -460,14 +467,10 @@ namespace FramePFX.Editors.Automation.Keyframes {
         }
 
         public static void UpdateAutomation(AutomationSequence sequence) {
-            // TODO: this is really bad...
+            // TODO: this feels really bad...
 
             IAutomatable owner = sequence.AutomationData.Owner;
-            if (!(owner is ITimelineBound timelineBound)) {
-                throw new Exception("Automation data owner is not bound to a timeline");
-            }
-
-            Timeline timeline = timelineBound.Timeline;
+            Timeline timeline = owner.Timeline;
             if (timeline == null) {
                 throw new Exception("Automation data owner's timeline was null");
             }

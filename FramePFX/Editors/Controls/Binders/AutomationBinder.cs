@@ -6,7 +6,7 @@ using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Controls.Timelines;
 
 namespace FramePFX.Editors.Controls.Binders {
-    public class AutomationBinder<TModel> : BaseObjectBinder<TModel> where TModel : class, ITimelineBound, IAutomatable {
+    public class AutomationBinder<TModel> : BaseObjectBinder<TModel> where TModel : class, IHasTimeline, IAutomatable {
         private readonly ParameterChangedEventHandler handler;
 
         public Parameter Parameter { get; }

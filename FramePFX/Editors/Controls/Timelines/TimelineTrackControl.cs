@@ -93,6 +93,8 @@ namespace FramePFX.Editors.Controls.Timelines {
             control.Track = this;
             control.OnAdding();
             this.InternalChildren.Insert(index, control);
+            control.UpdateLayout();
+            control.ApplyTemplate();
             control.OnAdded();
         }
 
@@ -209,7 +211,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                 clip.OnZoomChanged(newZoom);
             }
 
-            this.InvalidateArrange();
+            // this.InvalidateArrange();
         }
 
         private void OnTrackHeightChanged(Track track) {
