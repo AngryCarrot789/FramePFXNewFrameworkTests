@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using FramePFX.Editors.Controls.Resources;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
+using FramePFX.Editors.Utils;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBox : ListBox {
@@ -12,7 +16,14 @@ namespace FramePFX.Editors.Controls.Timelines {
             set => this.SetValue(TimelineProperty, value);
         }
 
+        private const int MaxItemCacheCount = 8;
+        private const int MaxItemContentCacheCount = 4;
+        private readonly Stack<TimelineTrackListBoxItem> cachedItems;
+        private readonly Dictionary<Type, Stack<TimelineTrackListBoxItemContent>> itemContentCacheMap;
+
         public TimelineTrackListBox() {
+            this.cachedItems = new Stack<TimelineTrackListBoxItem>();
+            this.itemContentCacheMap = new Dictionary<Type, Stack<TimelineTrackListBoxItemContent>>();
             this.ItemsPanel = new ItemsPanelTemplate(new FrameworkElementFactory(typeof(TimelineTrackListBoxItemPanel)));
             this.SelectionMode = SelectionMode.Extended;
         }
@@ -39,7 +50,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                 oldTimeline.TrackRemoved -= this.OnTrackRemoved;
                 oldTimeline.TrackMoved -= this.OnTrackMoved;
                 for (int i = this.Items.Count - 1; i >= 0; i--) {
-                    this.RemoveTrackInternal(oldTimeline.Tracks[i], i);
+                    this.RemoveTrackInternal(i);
                 }
             }
 
@@ -60,28 +71,27 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void OnTrackRemoved(Timeline timeline, Track track, int index) {
-            this.RemoveTrackInternal(track, index);
+            this.RemoveTrackInternal(index);
         }
 
         private void InsertTrackInternal(Track track, int index) {
-            TimelineTrackListBoxItem control = new TimelineTrackListBoxItem(track);
-            control.TrackList = this;
-            control.OnAddingToTimeline();
+            TimelineTrackListBoxItem control = this.cachedItems.Count > 0 ? this.cachedItems.Pop() : new TimelineTrackListBoxItem();
+            control.OnAddingToList(this, track);
             this.Items.Insert(index, control);
             // UpdateLayout must be called explicitly, so that the visual tree
             // can be measured, allowing templates to be applied
             control.UpdateLayout();
-            control.OnAddedToTimeline();
+            control.OnAddedToList();
             control.InvalidateMeasure();
             this.InvalidateMeasure();
         }
 
-        private void RemoveTrackInternal(Track track, int index) {
+        private void RemoveTrackInternal(int index) {
             TimelineTrackListBoxItem control = (TimelineTrackListBoxItem) this.Items[index];
-            control.OnRemovingFromTimeline();
+            control.OnRemovingFromList();
             this.Items.RemoveAt(index);
-            control.OnRemovedFromTimeline();
-            control.TrackList = null;
+            control.OnRemovedFromList();
+            this.cachedItems.Push(control);
             this.InvalidateMeasure();
         }
 
@@ -92,6 +102,30 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.Items.Insert(newIndex, control);
             control.OnIndexMoved(oldIndex, newIndex);
             this.InvalidateMeasure();
+        }
+
+        public TimelineTrackListBoxItemContent GetContentObject(Type trackType) {
+            TimelineTrackListBoxItemContent content;
+            if (this.itemContentCacheMap.TryGetValue(trackType, out Stack<TimelineTrackListBoxItemContent> stack) && stack.Count > 0) {
+                content = stack.Pop();
+            }
+            else {
+                content = TimelineTrackListBoxItemContent.NewInstance(trackType);
+            }
+
+            return content;
+        }
+
+        public bool ReleaseContentObject(Type trackType, TimelineTrackListBoxItemContent contentControl) {
+            if (!this.itemContentCacheMap.TryGetValue(trackType, out Stack<TimelineTrackListBoxItemContent> stack)) {
+                this.itemContentCacheMap[trackType] = stack = new Stack<TimelineTrackListBoxItemContent>();
+            }
+            else if (stack.Count > MaxItemContentCacheCount) {
+                return false;
+            }
+
+            stack.Push(contentControl);
+            return true;
         }
     }
 }

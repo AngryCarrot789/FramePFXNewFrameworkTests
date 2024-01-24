@@ -138,6 +138,10 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
             return frame >= 0 && frame < this.span.Duration;
         }
 
+        public bool IsRelativeFrameInRange(long relative) {
+            return relative >= 0 && relative < this.span.Duration;
+        }
+
         public virtual void Destroy() {
 
         }

@@ -9,6 +9,11 @@ namespace FramePFX.Editors.Automation.Keyframes {
     public delegate void KeyFramePositionChangedEventHandler(KeyFrame keyFrame, long oldFrame, long newFrame);
     public delegate void KeyFrameEventHandler(KeyFrame keyFrame);
 
+    public delegate void FloatKeyFrameValueChanged(KeyFrameFloat keyFrame, float oldValue, float newValue);
+    public delegate void DoubleKeyFrameValueChanged(KeyFrameDouble keyFrame, double oldValue, double newValue);
+    public delegate void LongKeyFrameValueChanged(KeyFrameLong keyFrame, long oldValue, long newValue);
+    public delegate void BooleanKeyFrameValueChanged(KeyFrameBoolean keyFrame, bool oldValue, bool newValue);
+
     /// <summary>
     /// A keyframe stores a time and value
     /// </summary>
@@ -34,7 +39,15 @@ namespace FramePFX.Editors.Automation.Keyframes {
         /// </summary>
         public abstract AutomationDataType DataType { get; }
 
+        /// <summary>
+        /// An event fired when our <see cref="Frame"/> changes
+        /// </summary>
         public event KeyFramePositionChangedEventHandler FrameChanged;
+
+        /// <summary>
+        /// An event fired when this key frame's value changes. Because this event is in
+        /// the base class (fired by the derived classes), the previous value cannot be accessed
+        /// </summary>
         public event KeyFrameEventHandler ValueChanged;
 
         protected KeyFrame() {
@@ -75,17 +88,6 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public bool GetBooleanValue() => ((KeyFrameBoolean) this).Value;
 
         #endregion
-
-        [SwitchAutomationDataType]
-        public static void SetValue(KeyFrame keyFrame, object value) {
-            switch (keyFrame.DataType) {
-                case AutomationDataType.Float:   keyFrame.SetFloatValue((float) value); break;
-                case AutomationDataType.Double:  keyFrame.SetDoubleValue((double) value); break;
-                case AutomationDataType.Long:    keyFrame.SetLongValue((long) value); break;
-                case AutomationDataType.Boolean: keyFrame.SetBooleanValue((bool) value); break;
-                default: throw new Exception("Invalid key frame data type");
-            }
-        }
 
         /// <summary>
         /// Assigns this key frame's value to the given key descriptor's default value
@@ -133,9 +135,9 @@ namespace FramePFX.Editors.Automation.Keyframes {
         [SwitchAutomationDataType]
         public static KeyFrame CreateInstance(AutomationDataType type) {
             switch (type) {
-                case AutomationDataType.Float: return new KeyFrameFloat();
-                case AutomationDataType.Double: return new KeyFrameDouble();
-                case AutomationDataType.Long: return new KeyFrameLong();
+                case AutomationDataType.Float:   return new KeyFrameFloat();
+                case AutomationDataType.Double:  return new KeyFrameDouble();
+                case AutomationDataType.Long:    return new KeyFrameLong();
                 case AutomationDataType.Boolean: return new KeyFrameBoolean();
                 default: throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
@@ -263,11 +265,17 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public float Value {
             get => this.myValue;
             set {
+                float oldValue = this.myValue;
+                if (oldValue == value)
+                    return;
                 this.myValue = value;
                 this.OnValueChanged();
+                this.FloatValueChanged?.Invoke(this, oldValue, value);
                 AutomationSequence.OnKeyFrameValueChanged(this.sequence, this);
             }
         }
+
+        public event FloatKeyFrameValueChanged FloatValueChanged;
 
         public override AutomationDataType DataType => AutomationDataType.Float;
 
@@ -313,11 +321,17 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public double Value {
             get => this.myValue;
             set {
+                double oldValue = this.myValue;
+                if (oldValue == value)
+                    return;
                 this.myValue = value;
                 this.OnValueChanged();
+                this.DoubleValueChanged?.Invoke(this, oldValue, value);
                 AutomationSequence.OnKeyFrameValueChanged(this.sequence, this);
             }
         }
+
+        public event DoubleKeyFrameValueChanged DoubleValueChanged;
 
         public override AutomationDataType DataType => AutomationDataType.Double;
 
@@ -363,11 +377,17 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public long Value {
             get => this.myValue;
             set {
+                long oldValue = this.myValue;
+                if (oldValue == value)
+                    return;
                 this.myValue = value;
                 this.OnValueChanged();
+                this.LongValueChanged?.Invoke(this, oldValue, value);
                 AutomationSequence.OnKeyFrameValueChanged(this.sequence, this);
             }
         }
+
+        public event LongKeyFrameValueChanged LongValueChanged;
 
         /// <summary>
         /// The rounding mode for the interpolation function. See <see cref="Maths.Lerp(long, long, double, int)"/> for more info. Default value = 3
@@ -418,11 +438,17 @@ namespace FramePFX.Editors.Automation.Keyframes {
         public bool Value {
             get => this.myValue;
             set {
+                bool oldValue = this.myValue;
+                if (oldValue == value)
+                    return;
                 this.myValue = value;
                 this.OnValueChanged();
+                this.BooleanValueChanged?.Invoke(this, oldValue, value);
                 AutomationSequence.OnKeyFrameValueChanged(this.sequence, this);
             }
         }
+
+        public event BooleanKeyFrameValueChanged BooleanValueChanged;
 
         public override AutomationDataType DataType => AutomationDataType.Boolean;
 

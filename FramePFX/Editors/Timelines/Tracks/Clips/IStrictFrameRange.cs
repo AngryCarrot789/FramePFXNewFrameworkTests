@@ -29,5 +29,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         /// <param name="timeline">Input timeline frame</param>
         /// <returns>See above</returns>
         bool IsTimelineFrameInRange(long timeline);
+
+        bool IsRelativeFrameInRange(long relative);
     }
 }

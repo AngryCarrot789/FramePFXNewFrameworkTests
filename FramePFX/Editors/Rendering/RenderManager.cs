@@ -75,7 +75,7 @@ namespace FramePFX.Editors.Rendering {
             List<VideoTrack> tracks = new List<VideoTrack>();
             for (int i = timeline.Tracks.Count - 1; i >= 0; i--) {
                 Track track = timeline.Tracks[i];
-                if (!(track is VideoTrack videoTrack)) {
+                if (!(track is VideoTrack videoTrack) || !videoTrack.Visible) {
                     continue;
                 }
 

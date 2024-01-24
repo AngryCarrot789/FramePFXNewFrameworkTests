@@ -3,7 +3,7 @@
                     xmlns:c="clr-namespace:FramePFX.Editors.Controls"
                     xmlns:ap="clr-namespace:FramePFX.AttachedProperties"
                     xmlns:ct="clr-namespace:FramePFX.Editors.Controls.Timelines"
-                    xmlns:dragger="clr-namespace:FramePFX.Editors.Controls.Dragger"
+                    xmlns:d="clr-namespace:FramePFX.Editors.Controls.Dragger"
                     xmlns:co="clr-namespace:FramePFX.Converters"
                     xmlns:rulers="clr-namespace:FramePFX.Editors.Controls.Rulers"
                     xmlns:a="clr-namespace:FramePFX.Editors.Controls.Automation">
@@ -26,6 +26,7 @@
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="SelectionMode" Value="Extended"/>
+        <Setter Property="Focusable" Value="False"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ct:TimelineTrackListBox}">
@@ -79,7 +80,7 @@
                             <Setter Property="Background" TargetName="Bd" Value="{DynamicResource ABrush.Tone1.Background.Static}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" TargetName="Bd" Value="{DynamicResource ABrush.Tone2.Background.Static}"/>
+                            <Setter Property="Background" TargetName="Bd" Value="{DynamicResource ABrush.Tone3.Background.Static}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{DynamicResource ABrush.Foreground.Disabled}"/>
@@ -96,6 +97,11 @@
 
     <Style TargetType="{x:Type ct:TimelineTrackControl}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone2.Background.Static}"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ABrush.Tone3.Background.Static}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="{x:Type ct:TimelineClipControl}">
@@ -146,11 +152,11 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="225"/>
+                            <ColumnDefinition Width="225" MinWidth="225"/>
                             <ColumnDefinition Width="1"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Grid.Row="0" Background="{DynamicResource ABrush.Tone5.Background.Static}"
+                        <Border Grid.Column="0" Grid.Row="0" Background="{DynamicResource ABrush.Tone6.Background.Static}"
                                 x:Name="PART_ElemCol0">
                             <DockPanel LastChildFill="False">
                                 <ct:PlayheadPositionTextControl x:Name="PART_PlayheadPositionPreviewControl" VerticalAlignment="Center" Margin="8,0,0,0"
@@ -162,25 +168,27 @@
                         <ScrollViewer Grid.Column="0" Grid.Row="2"
                                       HorizontalScrollBarVisibility="Visible"
                                       VerticalScrollBarVisibility="Auto"
-                                      Background="{DynamicResource ABrush.Tone3.Background.Static}"
+                                      Background="{DynamicResource ABrush.Tone4.Background.Static}"
                                       x:Name="PART_TrackListScrollViewer"
                                       ap:ScrollBinder.VerticalBindGroup="TimelineVerticalScrollGroup">
                             <ct:TimelineTrackListBox x:Name="PART_TrackListBox"
-                                                    Padding="0"
-                                                    VerticalAlignment="Top"
-                                                    BorderThickness="0,0,0,1"
-                                                    BorderBrush="{Binding RelativeSource={RelativeSource Self}, Path=Background}"/>
+                                                     Padding="0"
+                                                     VerticalAlignment="Top"
+                                                     BorderThickness="0,0,0,1"
+                                                     BorderBrush="{Binding RelativeSource={RelativeSource Self}, Path=Background}"
+                                                     Focusable="False"/>
                         </ScrollViewer>
                         <ScrollViewer x:Name="PART_SequenceScrollViewer"
                                       HorizontalScrollBarVisibility="Visible"
                                       VerticalScrollBarVisibility="Auto"
                                       CanContentScroll="False" PanningMode="Both"
                                       ap:ScrollBinder.VerticalBindGroup="TimelineVerticalScrollGroup"
-                                      Grid.Column="2" Grid.RowSpan="3">
+                                      Grid.Column="2" Grid.RowSpan="3"
+                                      Background="{DynamicResource ABrush.Tone4.Background.Static}">
                             <ct:TimelineScrollableContentGrid x:Name="PART_ContentGrid"
                                                              Timeline="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Timeline}"
                                                              ap:HandleRequestBringIntoView.IsEnabled="True"
-                                                             Background="Transparent"
+                                                             Background="{TemplateBinding Background}"
                                                              HorizontalAlignment="Left">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="38"/>
@@ -243,16 +251,32 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ct:TimelineTrackListBoxItemContent_Video}">
                     <Grid>
-                        <Border Width="20" Background="{TemplateBinding TrackColourBrush}" HorizontalAlignment="Left" VerticalAlignment="Stretch"/>
-                        <TextBlock Text="{TemplateBinding DisplayName}" Margin="24,4,0,0"/>
-                        <Button x:Name="PART_DeleteTrackButton" Content="x" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" Padding="5,1"/>
-                        <dragger:NumberDragger Width="64" Height="17" MaxWidth="64"
-                                          VerticalAlignment="Top" HorizontalAlignment="Right"
-                                          Margin="20,29,0,0" Minimum="0" Maximum="1"
-                                          TinyChange="0.0001" SmallChange="0.001"
-                                          LargeChange="0.002" MassiveChange="0.01"
-                                          Style="{StaticResource AbletonNumberDraggerStyle}"
-                                          x:Name="PART_OpacitySlider"/>
+                        <Border Width="21" Background="{TemplateBinding TrackColourBrush}" BorderThickness="0,0,1,0" HorizontalAlignment="Left" VerticalAlignment="Stretch"
+                                BorderBrush="{DynamicResource PanelBorderBrush}">
+                            <Grid>
+                                <Button x:Name="PART_DeleteTrackButton" Content="x" 
+                                        HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                        Width="20" Height="20"
+                                        Background="Transparent" 
+                                        BorderThickness="0"
+                                        ToolTip="Deletes this track"/>
+                            </Grid>
+                        </Border>
+                        <Grid Margin="21,0,0,0">
+                            <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=DisplayName}" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="5"/>
+                            <StackPanel Margin="2,2,0,0" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                <ToggleButton x:Name="PART_VisibilityButton" HorizontalAlignment="Left"
+                                              VerticalAlignment="Top" Content="Visible" BorderBrush="Black"
+                                              BorderThickness="1" Height="16" Width="50"/>
+                                <d:NumberDragger Width="50" Height="16" BorderBrush="Black"
+                                                 VerticalAlignment="Top" HorizontalAlignment="Left"
+                                                 Minimum="0" Maximum="1" Margin="0,2,0,0"
+                                                 TinyChange="0.0001" SmallChange="0.001"
+                                                 LargeChange="0.002" MassiveChange="0.01"
+                                                 Style="{StaticResource AbletonNumberDraggerStyle}"
+                                                 x:Name="PART_OpacitySlider" Padding="0,1,0,0"/>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -282,7 +306,8 @@
                                    ToolTip="The current timeline length, in frames. This is only really used for UI calculations, and is resized when necessary"/>
                         <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=LargestFrameInUse, StringFormat='({0})'}"
                                    FontSize="12" VerticalAlignment="Center" FontWeight="Medium" Padding="3,0,0,0"
-                                   ToolTip="The largest frame in use aka frame range in use, that is, the right edge of the clip furthest from the start of the timeline"/>
+                                   ToolTip="The largest frame in use aka frame range in use, that is, the right edge of the clip furthest from the start of the timeline"
+                                   Foreground="{DynamicResource ABrush.Foreground.Disabled}"/>
                     </StackPanel>
                 </ControlTemplate>
             </Setter.Value>

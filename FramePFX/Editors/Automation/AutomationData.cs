@@ -46,7 +46,7 @@ namespace FramePFX.Editors.Automation {
         }
 
         /// <summary>
-        /// The active key's full ID, only really used by the front-end/view models
+        /// The active key's full ID, only really used by the UI
         /// </summary>
         public string ActiveKeyFullId { get; set; }
 
@@ -96,6 +96,7 @@ namespace FramePFX.Editors.Automation {
         public void WriteToRBE(RBEDictionary data) {
             if (this.ActiveKeyFullId != null)
                 data.SetString(nameof(this.ActiveKeyFullId), this.ActiveKeyFullId);
+
             RBEList list = data.CreateList(nameof(this.Sequences));
             foreach (AutomationSequence sequence in this.sequences.Values) {
                 RBEDictionary dictionary = list.AddDictionary();
@@ -110,12 +111,12 @@ namespace FramePFX.Editors.Automation {
             foreach (RBEBase rbe in list.List) {
                 if (!(rbe is RBEDictionary dictionary))
                     throw new Exception("Expected a list of dictionaries");
+                
                 string fullId = dictionary.GetString("KeyId");
-                if (!fullId.Split(Parameter.FullIdSplitter, out string domain, out string id))
-                    throw new Exception($"Invalid KeyId: {fullId}");
-
-                if (!Parameter.TryGetParameterByKey(new ParameterKey(domain, id), out Parameter parameter))
+                ParameterKey paramKey = ParameterKey.Parse(fullId);
+                if (!Parameter.TryGetParameterByKey(paramKey, out Parameter parameter))
                     throw new Exception("Unknown automation parameter: " + fullId);
+
                 this[parameter].ReadFromRBE(dictionary);
             }
 

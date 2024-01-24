@@ -9,8 +9,14 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
     public class VideoTrack : Track {
         public static readonly ParameterDouble OpacityParameter = Parameter.RegisterDouble(typeof(VideoTrack), nameof(VideoTrack), "Opacity", new ParameterDescriptorDouble(1, 0, 1), t => ((VideoTrack) t).Opacity, (t, v) => ((VideoTrack) t).Opacity = v);
+        public static readonly ParameterBoolean VisibleParameter = Parameter.RegisterBoolean(typeof(VideoTrack), nameof(VideoTrack), "Visible", new ParameterDescriptorBoolean(true), t => ((VideoTrack) t).Visible, (t, v) => ((VideoTrack) t).Visible = v);
 
+        /// <summary> The track opacity. This is an automated parameter and should therefore not be modified directly </summary>
         public double Opacity;
+
+        /// <summary> The track's visibility. This is an automated parameter and should therefore not be modified directly </summary>
+        public bool Visible;
+
         private SKSurface surface;
         private SKImageInfo surfaceInfo;
         private bool isCanvasClear;
@@ -18,7 +24,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
         private VideoClip theClipToRender;
 
         public VideoTrack() {
-            this.Opacity = 1.0;
+            this.Opacity = OpacityParameter.Descriptor.DefaultValue;
+            this.Visible = VisibleParameter.Descriptor.DefaultValue;
         }
 
         public bool BeginRenderFrame(RenderFrameInfo info) {

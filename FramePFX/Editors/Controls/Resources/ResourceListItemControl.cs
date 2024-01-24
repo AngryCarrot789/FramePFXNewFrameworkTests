@@ -237,7 +237,7 @@ namespace FramePFX.Editors.Controls.Resources {
         public void OnAddingToList(ResourceListControl list, BaseResource resource) {
             this.ResourceList = list;
             this.Model = resource;
-            this.Content = list.GetContentObject(resource.GetType(), this);
+            this.Content = list.GetContentObject(resource.GetType());
             this.AllowDrop = resource is ResourceFolder;
         }
 

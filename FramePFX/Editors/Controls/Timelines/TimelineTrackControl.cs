@@ -3,18 +3,26 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackControl : Panel {
         private static readonly DependencyPropertyKey TrackColourBrushPropertyKey = DependencyProperty.RegisterReadOnly("TrackColourBrush", typeof(Brush), typeof(TimelineTrackControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty TrackColourBrushProperty = TrackColourBrushPropertyKey.DependencyProperty;
+        public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(bool), typeof(TimelineTrackControl), new PropertyMetadata(BoolBox.False));
 
         public Brush TrackColourBrush {
             get => (Brush) this.GetValue(TrackColourBrushProperty);
             private set => this.SetValue(TrackColourBrushPropertyKey, value);
+        }
+
+        public bool IsSelected {
+            get => (bool) this.GetValue(IsSelectedProperty);
+            set => this.SetValue(IsSelectedProperty, value.Box());
         }
 
         private static readonly Random RANDOM_HEADER = new Random();
@@ -23,6 +31,8 @@ namespace FramePFX.Editors.Controls.Timelines {
         public TimelineSequenceControl Timeline { get; set; }
 
         public Track Track { get; }
+
+        private readonly GetSetAutoPropertyBinder<Track> isSelectedBinder = new GetSetAutoPropertyBinder<Track>(IsSelectedProperty, nameof(VideoTrack.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
         public TimelineTrackControl(Track track) {
             this.HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -181,7 +191,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public void OnAddedToTimeline() {
-
+            this.isSelectedBinder.Attach(this, this.Track);
         }
 
         public void OnBeginRemovedFromTimeline() {
@@ -190,6 +200,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.Track.ClipMovedTracks -= this.OnClipMovedTracks;
             this.Track.HeightChanged -= this.OnTrackHeightChanged;
             this.Track.ColourChanged -= this.OnTrackColourChanged;
+            this.isSelectedBinder.Detatch();
             this.ClearClipsInternal();
         }
 

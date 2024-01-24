@@ -35,6 +35,28 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="OpenTK, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
@@ -119,6 +141,7 @@
     <Compile Include="Editors\Automation\Params\ParameterChangedEventHandler.cs" />
     <Compile Include="Editors\Automation\SwitchAutomationDataTypeAttribute.cs" />
     <Compile Include="Editors\Collections\SelectionList.cs" />
+    <Compile Include="Editors\Controls\Automation\AutomatedControlUtils.cs" />
     <Compile Include="Editors\Controls\Automation\AutomationActivityBrushConverter.cs" />
     <Compile Include="Editors\Controls\Automation\AutomationSequenceEditor.cs" />
     <Compile Include="Editors\Controls\Automation\DragMode.cs" />
@@ -151,7 +174,6 @@
     <Compile Include="Editors\Controls\Dragger\VerticalIncrement.cs" />
     <Compile Include="Editors\Controls\Resources\ResourceDropRegistry.cs" />
     <Compile Include="Editors\Controls\Resources\ResourceListItemContentControl.cs" />
-    <Compile Include="Editors\Controls\Resources\ResourceItemControl.cs" />
     <Compile Include="Editors\Controls\Resources\ResourceListControl.cs" />
     <Compile Include="Editors\Controls\Resources\ResourceListItemControl.cs" />
     <Compile Include="Editors\Controls\Resources\ResourcePanelControl.cs" />
@@ -226,6 +248,7 @@
     <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />
     <Compile Include="Editors\Timelines\ZoomType.cs" />
     <Compile Include="Editors\TimelineUtils.cs" />
+    <Compile Include="Editors\Utils\ItemCache.cs" />
     <Compile Include="Interactivity\DataContext.cs" />
     <Compile Include="Interactivity\DataObjectWrapper.cs" />
     <Compile Include="Interactivity\DragDropRegistry.cs" />

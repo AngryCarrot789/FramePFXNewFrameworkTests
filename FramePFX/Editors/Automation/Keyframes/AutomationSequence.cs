@@ -11,7 +11,8 @@ namespace FramePFX.Editors.Automation.Keyframes {
     public delegate void AutomationSequenceEventHandler(AutomationSequence sequence);
 
     /// <summary>
-    /// An automation sequence contains all of the key frames for a specific <see cref="Params.Parameter"/>
+    /// An automation sequence contains all of the key frames for a specific <see cref="Params.Parameter"/>,
+    /// for an automatable object (accessible via our <see cref="AutomationData"/>'s <see cref="Automation.AutomationData.Owner"/> property)
     /// </summary>
     public class AutomationSequence {
         private static readonly Func<KeyFrame, float> FuncGetFloat = k => ((KeyFrameFloat) k).Value;
@@ -39,7 +40,9 @@ namespace FramePFX.Editors.Automation.Keyframes {
 
         /// <summary>
         /// Gets or sets whether or not the current automation sequence is in override mode.
-        /// When in override mode, the automation engine cannot update the value of any parameter, even if it has key frames
+        /// When in override mode, the automation engine does not update the effective value for
+        /// the parameter, even if it has key frames, and instead uses <see cref="DefaultKeyFrame"/>
+        /// to get/set the underlying value
         /// </summary>
         public bool IsOverrideEnabled {
             get => this.isOverrideEnabled;
@@ -160,46 +163,22 @@ namespace FramePFX.Editors.Automation.Keyframes {
         #endregion
 
         /// <summary>
-        /// Gets the two key frames that the given time should attempt to interpolate between, or a single key frame if that's all that is possible or logical
-        /// <para>
-        /// If the time directly intersects a key frame, then the last keyframe that intersects will be set as a, and b will be null (therefore, use a's value directly)
-        /// </para>
-        /// <para>
-        /// If the time is before the first key frame or after the last key frame, the first/last key frame is set as a, and b will be null (therefore, use a's value directly)
-        /// </para>
-        /// <para>
-        /// If all other cases are false, and the list is not empty, a pair of key frames will be available to interpolate between (based on a's interpolation method)
-        /// </para>
-        /// </summary>
-        /// <param name="frame">The time</param>
-        /// <param name="a">The first (or only available) key frame</param>
-        /// <param name="b">The second key frame, may be null under certain conditions, in which case use a's value directly</param>
-        /// <returns>False if there are no key frames, otherwise true</returns>
-        public bool GetKeyFramesForInterpolation(long frame, out KeyFrame a, out KeyFrame b, out int i) {
-            if (this.GetIndicesForInterpolation(frame, out i, out int j)) {
-                a = this.keyFrameList[i];
-                b = j == -1 ? null : this.keyFrameList[j];
-                return true;
-            }
-
-            a = b = null;
-            return false;
-        }
-
-        /// <summary>
-        /// Gets the two indices of the key frames that the given time should attempt to interpolate between, or a single key frame if that's all that is possible or logical
-        /// <para>
-        /// If the time directly intersects a key frame, then the last keyframe that intersects frame will be set as a, and b will be -1
-        /// </para>
-        /// <para>
-        /// If the time is before the first key frame or after the last key frame, the first or last key frame index is set as a, and b will be -1
-        /// </para>
-        /// <para>
-        /// If all other cases are false, and the list is not empty, then a and b will point to a pair of key frames that frame can be interpolated between (based on a's interpolation method)
-        /// </para>
-        /// <para>
-        /// Otherwise, the method returns false when the list is empty or frame is a negative number
-        /// </para>
+        /// Gets the indices of the key frames, a single key frame if that's all that is possible or
+        /// logical, or none, that should be interpolated between to get a final effective value
+        /// <list type="bullet">
+        ///     <item>
+        ///         If the time directly intersects a key frame, then the last keyframe that intersects frame will be set as a, and b will be -1
+        ///     </item>
+        ///     <item>
+        ///         If the time is before the first key frame or after the last key frame, the first or last key frame index is set as a, and b will be -1
+        ///     </item>
+        ///     <item>
+        ///         If all other cases are false, and the list is not empty, then a and b will point to a pair of key frames that frame can be interpolated between (based on a's interpolation method)
+        ///     </item>
+        ///     <item>
+        ///         Otherwise, the method returns false when the list is empty or frame is a negative number
+        ///     </item>
+        /// </list>
         /// </summary>
         /// <param name="frame">The time</param>
         /// <param name="a">The first or only index available</param>

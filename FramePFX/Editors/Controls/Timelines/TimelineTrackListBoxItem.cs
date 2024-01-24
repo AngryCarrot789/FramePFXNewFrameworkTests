@@ -7,20 +7,19 @@ using FramePFX.Utils;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBoxItem : ListBoxItem {
-        public Track Track { get; }
+        /// <summary>
+        /// Gets this track item's associated track model
+        /// </summary>
+        public Track Track { get; private set; }
 
-        public TimelineTrackListBox TrackList { get; set; }
+        /// <summary>
+        /// Gets our owner list
+        /// </summary>
+        public TimelineTrackListBox TrackList { get; private set; }
 
         private readonly GetSetAutoPropertyBinder<Track> isSelectedBinder = new GetSetAutoPropertyBinder<Track>(IsSelectedProperty, nameof(VideoTrack.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
-        public TimelineTrackListBoxItem(Track track) {
-            this.Track = track;
-            if (track is VideoTrack) {
-                this.Content = new TimelineTrackListBoxItemContent_Video(this);
-            }
-            else {
-                throw new Exception("Unsupported track type: " + track?.GetType().Name);
-            }
+        public TimelineTrackListBoxItem() {
         }
 
         static TimelineTrackListBoxItem() {
@@ -38,25 +37,31 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         #region Model Linkage
 
-        public void OnAddingToTimeline() {
+        public void OnAddingToList(TimelineTrackListBox ownerList, Track track) {
+            this.Track = track ?? throw new ArgumentNullException(nameof(track));
+            this.TrackList = ownerList;
             this.Track.HeightChanged += this.OnTrackHeightChanged;
-            ((TimelineTrackListBoxItemContent) this.Content).OnBeingAddedToTimeline();
+            this.Content = ownerList.GetContentObject(track.GetType());
         }
 
-        public void OnAddedToTimeline() {
+        public void OnAddedToList() {
+            ((TimelineTrackListBoxItemContent) this.Content).Connect(this);
             this.Height = this.Track.Height;
-            ((TimelineTrackListBoxItemContent) this.Content).OnAddedToTimeline();
             this.isSelectedBinder.Attach(this, this.Track);
         }
 
-        public void OnRemovingFromTimeline() {
+        public void OnRemovingFromList() {
             this.Track.HeightChanged -= this.OnTrackHeightChanged;
-            ((TimelineTrackListBoxItemContent) this.Content).OnBeginRemovedFromTimeline();
+            this.isSelectedBinder.Detatch();
+            TimelineTrackListBoxItemContent content = (TimelineTrackListBoxItemContent) this.Content;
+            content.Disconnect();
+            this.Content = null;
+            this.TrackList.ReleaseContentObject(this.Track.GetType(), content);
         }
 
-        public void OnRemovedFromTimeline() {
-            ((TimelineTrackListBoxItemContent) this.Content).OnRemovedFromTimeline();
-            this.isSelectedBinder.Detatch();
+        public void OnRemovedFromList() {
+            this.TrackList = null;
+            this.Track = null;
         }
 
         public void OnIndexMoving(int oldIndex, int newIndex) {

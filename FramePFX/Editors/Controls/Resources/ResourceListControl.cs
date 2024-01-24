@@ -255,12 +255,8 @@ namespace FramePFX.Editors.Controls.Resources {
         /// in order to help with performance (saves re-creating the object and applying styles)
         /// </summary>
         /// <param name="resourceType">The resource object type</param>
-        /// <param name="item">The list item that will own the content</param>
         /// <returns>A reused or new content object</returns>
-        public ResourceListItemContentControl GetContentObject(Type resourceType, ResourceListItemControl item) {
-            if (item == null)
-                throw new ArgumentNullException(nameof(item));
-
+        public ResourceListItemContentControl GetContentObject(Type resourceType) {
             ResourceListItemContentControl content;
             if (this.itemContentCacheMap.TryGetValue(resourceType, out Stack<ResourceListItemContentControl> stack) && stack.Count > 0) {
                 content = stack.Pop();
