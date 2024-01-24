@@ -7,6 +7,7 @@
             xmlns:tl="clr-namespace:FramePFX.Editors.Controls.Timelines"
             xmlns:cv="clr-namespace:FramePFX.Editors.Controls.Viewports"
             xmlns:resources="clr-namespace:FramePFX.Editors.Controls.Resources"
+            xmlns:wpf="clr-namespace:FramePFX.Shortcuts.WPF"
             mc:Ignorable="d"
             Style="{StaticResource CustomWindowStyleEx}"
             Background="{DynamicResource PanelBorderBrush}"
@@ -14,7 +15,8 @@
             TitlebarBrush="{DynamicResource ABrush.Tone7.Background.Static}"
             Title="FramePFX (remake test environment)"
             Height="840" Width="1348"
-            FontFamily="{StaticResource FontOxanium}" FontWeight="Medium">
+            FontFamily="{StaticResource FontOxanium}" FontWeight="Medium"
+            wpf:UIInputManager.FocusPath="Application.EditorWindow">
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -22,7 +24,7 @@
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
         <Menu Grid.Row="0" 
-              Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type v:WindowEx}}, Path=TitlebarBrush}"
+              Background="{Binding TitlebarBrush, RelativeSource={RelativeSource AncestorType={x:Type v:WindowEx}, Mode=FindAncestor}}"
               BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0,0,0,1">
             <MenuItem Header="File"/>
             <MenuItem Header="Theme">
@@ -36,9 +38,9 @@
         </Menu>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="*" MinHeight="100"/>
                 <RowDefinition Height="1"/>
-                <RowDefinition Height="400"/>
+                <RowDefinition Height="*" MinHeight="100"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
@@ -121,7 +123,7 @@
             <GridSplitter Grid.Row="1" BorderThickness="0" Background="Transparent" Margin="0,-3,0,-12" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
         </Grid>
         <Border Grid.Row="2" Background="{DynamicResource ABrush.Tone5.Background.Static}" BorderThickness="0,1,0,0">
-            
+            <TextBlock Padding="4,0" VerticalAlignment="Center" x:Name="ActivityTextBlock"/>
         </Border>
     </Grid>
 </v:WindowEx>

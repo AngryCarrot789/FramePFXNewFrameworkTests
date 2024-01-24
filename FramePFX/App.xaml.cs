@@ -1,13 +1,74 @@
-﻿using System.Windows;
+﻿using System;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using FramePFX.Actions;
 using FramePFX.Editors;
+using FramePFX.Editors.Timelines;
+using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Views;
+using FramePFX.Shortcuts.Managing;
+using FramePFX.Shortcuts.WPF;
 
 namespace FramePFX {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application {
+        public class NewVideoTrackAction : AnAction {
+            public override bool CanExecute(AnActionEventArgs e) {
+                return true;
+            }
+
+            public override Task ExecuteAsync(AnActionEventArgs e) {
+                if (!e.DataContext.TryGetContext(out Timeline timeline))
+                    return Task.CompletedTask;
+
+                timeline.AddTrack(new VideoTrack() {DisplayName = "New Video Track"});
+                timeline.Tracks[timeline.Tracks.Count - 1].InvalidateRender();
+                return Task.CompletedTask;
+            }
+        }
+
         private void App_OnStartup(object sender, StartupEventArgs e) {
+            // Pre init stuff
+            ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(int.MaxValue));
+            ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(400));
+
+            // App Init
+
+            {
+                string[] envArgs = Environment.GetCommandLineArgs();
+                if (envArgs.Length > 0 && Path.GetDirectoryName(envArgs[0]) is string dir && dir.Length > 0) {
+                    Directory.SetCurrentDirectory(dir);
+                }
+
+                ShortcutManager.Instance = new WPFShortcutManager();
+                RuntimeHelpers.RunClassConstructor(typeof(UIInputManager).TypeHandle);
+
+                ActionManager.Instance.Register("actions.timeline.NewVideoTrack", new NewVideoTrackAction());
+
+                /*
+                string keymapFilePath = Path.GetFullPath(@"Keymap.xml");
+                if (File.Exists(keymapFilePath)) {
+                    try {
+                        using (FileStream stream = File.OpenRead(keymapFilePath)) {
+                            WPFShortcutManager.WPFInstance.DeserialiseRoot(stream);
+                        }
+                    }
+                    catch (Exception e) {
+                        await IoC.DialogService.ShowMessageExAsync("Invalid keymap", "Failed to read keymap file: " + keymapFilePath, e.GetToString());
+                    }
+                }
+                else {
+                    await IoC.DialogService.ShowMessageAsync("No keymap available", "Keymap file does not exist: " + keymapFilePath + $".\nCurrent directory: {Directory.GetCurrentDirectory()}\nCommand line args:{string.Join("\n", Environment.GetCommandLineArgs())}");
+                }
+                 */
+            }
+
+            // Editor init
             VideoEditor editor = new VideoEditor();
             editor.LoadDefaultProject();
 

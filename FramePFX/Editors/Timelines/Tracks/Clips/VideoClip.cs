@@ -1,6 +1,5 @@
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Rendering;
-using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks.Clips {

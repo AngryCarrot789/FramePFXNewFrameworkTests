@@ -29,10 +29,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             set => this.SetValue(IsSelectedProperty, value);
         }
 
-        public TimelineTrackControl Track { get; set; }
-
-        public AutomationSequenceEditor AutomationSequence { get; private set; }
-
         public long FrameBegin {
             get => this.frameBegin;
             private set {
@@ -51,15 +47,19 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
         }
 
+        public TimelineTrackControl Track { get; private set; }
+
+        public Clip Model { get; private set; }
+
+        public AutomationSequenceEditor AutomationSequence { get; private set; }
+
         public double TimelineZoom => this.Model.Track?.Timeline?.Zoom ?? 1d;
         public double PixelBegin => this.frameBegin * this.TimelineZoom;
         public double PixelWidth => this.frameDuration * this.TimelineZoom;
 
-        public Clip Model { get; }
-
         private const double MinDragInitPx = 5d;
         private const double EdgeGripSize = 8d;
-        public const double HeaderSize = 20;
+        public const double HeaderSize = Editors.Timelines.Tracks.Track.MinimumHeight;
 
         private long frameBegin;
         private long frameDuration;
@@ -82,9 +82,8 @@ namespace FramePFX.Editors.Controls.Timelines {
         private readonly AutoPropertyUpdateBinder<Clip> frameSpanBinder = new AutoPropertyUpdateBinder<Clip>(nameof(VideoClip.FrameSpanChanged), obj => ((TimelineClipControl) obj.Control).SetSizeFromSpan(obj.Model.FrameSpan), null);
         private readonly GetSetAutoPropertyBinder<Clip> isSelectedBinder = new GetSetAutoPropertyBinder<Clip>(IsSelectedProperty, nameof(VideoClip.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
-        public TimelineClipControl(Clip clip) {
+        public TimelineClipControl() {
             this.VerticalAlignment = VerticalAlignment.Stretch;
-            this.Model = clip;
             this.GotFocus += this.OnGotFocus;
             this.LostFocus += this.OnLostFocus;
             this.renderSizeRectGeometry = new RectangleGeometry();
@@ -130,7 +129,9 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
         }
 
-        public void OnAdding() {
+        public void OnAdding(TimelineTrackControl trackList, Clip clip) {
+            this.Track = trackList;
+            this.Model = clip;
         }
 
         public void OnAdded() {
@@ -145,6 +146,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public void OnRemoving() {
+
         }
 
         public void OnRemoved() {
@@ -152,12 +154,18 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.frameSpanBinder.Detatch();
             this.isSelectedBinder.Detatch();
             this.AutomationSequence.Sequence = null;
+            this.Track = null;
+            this.Model = null;
         }
 
         #endregion
 
         protected override void OnMouseDown(MouseButtonEventArgs e) {
             base.OnMouseDown(e);
+            if (this.Model == null) {
+                return;
+            }
+
             e.Handled = true;
             this.Focus();
             this.clickPoint = e.GetPosition(this);
@@ -219,6 +227,10 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         protected override void OnMouseUp(MouseButtonEventArgs e) {
             base.OnMouseUp(e);
+            if (this.Model == null) {
+                return;
+            }
+
             e.Handled = true;
             DragState lastDragState = this.dragState;
             if (this.dragState == DragState.Initiated && !this.hasMadeExceptionalSelectionInMouseDown) {
@@ -292,6 +304,10 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         protected override void OnMouseMove(MouseEventArgs e) {
             base.OnMouseMove(e);
+            if (this.Model == null) {
+                return;
+            }
+
             if (this.isUpdatingFrameSpanFromDrag) {
                 // prevent possible stack overflow exceptions, at the cost of the UI possibly glitching a bit.
                 // In my testing, this case is never reached, so it would require something very weird to happen

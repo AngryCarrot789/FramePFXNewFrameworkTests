@@ -104,6 +104,27 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Actions\ActionManager.cs" />
+    <Compile Include="Actions\ActionRegistrationAttribute.cs" />
+    <Compile Include="Actions\CanExecuteChangedEventHandler.cs" />
+    <Compile Include="Actions\AnAction.cs" />
+    <Compile Include="Actions\AnActionEventArgs.cs" />
+    <Compile Include="Actions\RenameAction.cs" />
+    <Compile Include="Actions\ToggleAction.cs" />
+    <Compile Include="Actions\WPF\ActionContextEntry.cs" />
+    <Compile Include="Actions\WPF\ActionContextObject.cs" />
+    <Compile Include="Actions\WPF\ActionContextProviderBase.cs" />
+    <Compile Include="Actions\WPF\ActionContextProviderCollection.cs" />
+    <Compile Include="AdvancedContextService\ActionCheckableContextEntry.cs" />
+    <Compile Include="AdvancedContextService\ActionContextEntry.cs" />
+    <Compile Include="AdvancedContextService\BaseContextEntry.cs" />
+    <Compile Include="AdvancedContextService\GroupContextEntry.cs" />
+    <Compile Include="AdvancedContextService\IContextEntry.cs" />
+    <Compile Include="AdvancedContextService\IContextGenerator.cs" />
+    <Compile Include="AdvancedContextService\IContextProvider.cs" />
+    <Compile Include="AdvancedContextService\NCSP\ContextRegistry.cs" />
+    <Compile Include="AdvancedContextService\SeparatorEntry.cs" />
+    <Compile Include="AdvancedContextService\ShortcutActionContextEntry.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -159,6 +180,7 @@
     <Compile Include="Editors\Controls\Binders\SimpleAutomationBinder.cs" />
     <Compile Include="Editors\Controls\CancellableThumb.cs" />
     <Compile Include="Editors\Controls\GlyphGenerator.cs" />
+    <Compile Include="Editors\Controls\GridSlotAutoSizer.cs" />
     <Compile Include="Editors\Controls\IClipControl.cs" />
     <Compile Include="Editors\Controls\ITrackControl.cs" />
     <Compile Include="Editors\Controls\Dragger\EditCompletedEventArgs.cs" />
@@ -186,6 +208,8 @@
     <Compile Include="Editors\Controls\Rulers\Ruler.cs" />
     <Compile Include="Editors\Controls\Rulers\RulerBase.cs" />
     <Compile Include="Editors\Controls\Rulers\RulerStepProperties.cs" />
+    <Compile Include="Editors\Controls\SpacedStackPanel.cs" />
+    <Compile Include="Editors\Controls\SpacedUniformGrid.cs" />
     <Compile Include="Editors\Controls\Timelines\BasePlayHeadControl.cs" />
     <Compile Include="Editors\Controls\Timelines\IHasTimeline.cs" />
     <Compile Include="Editors\Controls\Timelines\PlayHeadControl.cs" />
@@ -207,6 +231,7 @@
     <Compile Include="Editors\Controls\Viewports\VideoEditorViewPortPreview.cs" />
     <Compile Include="Editors\Controls\Viewports\FreeMoveViewPort.cs" />
     <Compile Include="Editors\Controls\Viewports\SKAsyncViewPort.cs" />
+    <Compile Include="Editors\EditorDataKeys.cs" />
     <Compile Include="Editors\Factories\ClipFactory.cs" />
     <Compile Include="Editors\Factories\ReflectiveObjectFactory.cs" />
     <Compile Include="Editors\Factories\ObjectFactory.cs" />
@@ -248,7 +273,7 @@
     <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />
     <Compile Include="Editors\Timelines\ZoomType.cs" />
     <Compile Include="Editors\TimelineUtils.cs" />
-    <Compile Include="Editors\Utils\ItemCache.cs" />
+    <Compile Include="Editors\Utils\ItemCacheStack.cs" />
     <Compile Include="Interactivity\DataContext.cs" />
     <Compile Include="Interactivity\DataObjectWrapper.cs" />
     <Compile Include="Interactivity\DragDropRegistry.cs" />
@@ -272,6 +297,59 @@
     <Compile Include="RBC\RBEStruct.cs" />
     <Compile Include="RBC\RBEType.cs" />
     <Compile Include="RBC\RBEUtils.cs" />
+    <Compile Include="Shortcuts\Attributes\ShortcutTargetAttribute.cs" />
+    <Compile Include="Shortcuts\Dialogs\IKeyboardDialogService.cs" />
+    <Compile Include="Shortcuts\Dialogs\IMouseDialogService.cs" />
+    <Compile Include="Shortcuts\Dialogs\IShortcutManagerDialogService.cs" />
+    <Compile Include="Shortcuts\Events\ShortcutActivatedEventHandler.cs" />
+    <Compile Include="Shortcuts\Events\ShortcutModifiedEventHandler.cs" />
+    <Compile Include="Shortcuts\IKeyboardShortcut.cs" />
+    <Compile Include="Shortcuts\IMouseShortcut.cs" />
+    <Compile Include="Shortcuts\Inputs\IInputStroke.cs" />
+    <Compile Include="Shortcuts\Inputs\InputStrokeSet.cs" />
+    <Compile Include="Shortcuts\Inputs\KeyStroke.cs" />
+    <Compile Include="Shortcuts\Inputs\MouseStroke.cs" />
+    <Compile Include="Shortcuts\IShortcut.cs" />
+    <Compile Include="Shortcuts\KeyboardShortcut.cs" />
+    <Compile Include="Shortcuts\Keymapping\IKeymapSerialiser.cs" />
+    <Compile Include="Shortcuts\Keymapping\Keymap.cs" />
+    <Compile Include="Shortcuts\Keymapping\XMLShortcutSerialiser.cs" />
+    <Compile Include="Shortcuts\Managing\GroupedInputState.cs" />
+    <Compile Include="Shortcuts\Managing\GroupedShortcut.cs" />
+    <Compile Include="Shortcuts\Managing\GroupEvaulationArgs.cs" />
+    <Compile Include="Shortcuts\Managing\IGroupedObject.cs" />
+    <Compile Include="Shortcuts\Managing\InputStateManager.cs" />
+    <Compile Include="Shortcuts\Managing\RepeatMode.cs" />
+    <Compile Include="Shortcuts\Managing\ShortcutCollectorArgs.cs" />
+    <Compile Include="Shortcuts\Managing\ShortcutGroup.cs" />
+    <Compile Include="Shortcuts\Managing\ShortcutInputManager.cs" />
+    <Compile Include="Shortcuts\Managing\ShortcutManager.cs" />
+    <Compile Include="Shortcuts\MouseKeyboardShortcut.cs" />
+    <Compile Include="Shortcuts\MouseShortcut.cs" />
+    <Compile Include="Shortcuts\ShortcutUtils.cs" />
+    <Compile Include="Shortcuts\Usage\IKeyboardShortcutUsage.cs" />
+    <Compile Include="Shortcuts\Usage\IMouseShortcutUsage.cs" />
+    <Compile Include="Shortcuts\Usage\IShortcutUsage.cs" />
+    <Compile Include="Shortcuts\Usage\KeyboardShortcutUsage.cs" />
+    <Compile Include="Shortcuts\Usage\MouseKeyboardShortcutUsage.cs" />
+    <Compile Include="Shortcuts\Usage\MouseShortcutUsage.cs" />
+    <Compile Include="Shortcuts\WPF\ActivationHandlerReference.cs" />
+    <Compile Include="Shortcuts\WPF\Bindings\InputStateBinding.cs" />
+    <Compile Include="Shortcuts\WPF\Bindings\InputStateCollection.cs" />
+    <Compile Include="Shortcuts\WPF\Converters\ActionIdToGestureConverter.cs" />
+    <Compile Include="Shortcuts\WPF\Converters\GlobalUpdateShortcutGestureConverter.cs" />
+    <Compile Include="Shortcuts\WPF\Converters\KeyStrokeStringConverter.cs" />
+    <Compile Include="Shortcuts\WPF\Converters\MouseStrokeStringConverter.cs" />
+    <Compile Include="Shortcuts\WPF\Converters\ShortcutIdToGestureConverter.cs" />
+    <Compile Include="Shortcuts\WPF\Converters\ShortcutIdToHeaderConverter.cs" />
+    <Compile Include="Shortcuts\WPF\Converters\ShortcutIdToToolTipConverter.cs" />
+    <Compile Include="Shortcuts\WPF\Converters\ShortcutPathToInputGestureTextConverter.cs" />
+    <Compile Include="Shortcuts\WPF\ShortcutActivateHandler.cs" />
+    <Compile Include="Shortcuts\WPF\ShortcutUtils.cs" />
+    <Compile Include="Shortcuts\WPF\UIInputManager.cs" />
+    <Compile Include="Shortcuts\WPF\WPFKeyMapSerialiser.cs" />
+    <Compile Include="Shortcuts\WPF\WPFShortcutInputManager.cs" />
+    <Compile Include="Shortcuts\WPF\WPFShortcutManager.cs" />
     <Compile Include="Themes\Attached\CornerRadiusHelper.cs" />
     <Compile Include="Themes\Attached\MenuHelper.cs" />
     <Compile Include="Themes\Attached\PasswordBoxHelper.cs" />
@@ -281,6 +359,7 @@
     <Compile Include="Themes\Controls.xaml.cs">
       <DependentUpon>Controls.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Themes\Converters\ScrollViewerInnerBorderThicknessConverter.cs" />
     <Compile Include="Themes\Converters\TreeViewLineConverter.cs" />
     <Compile Include="Themes\Generator\ThemeGenerator.cs" />
     <Compile Include="Themes\ThemeController.cs" />
@@ -417,6 +496,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="Shortcuts\ReadMe.md" />
     <Resource Include="Resources\Fonts\Oxanium\Oxanium-Bold.ttf" />
     <Resource Include="Resources\Fonts\Oxanium\Oxanium-ExtraBold.ttf" />
     <Resource Include="Resources\Fonts\Oxanium\Oxanium-ExtraLight.ttf" />
@@ -502,6 +582,7 @@
   <ItemGroup>
     <Resource Include="Resources\Fonts\Oxanium\OFL.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SkiaSharp.NativeAssets.macOS.2.88.7\build\net462\SkiaSharp.NativeAssets.macOS.targets" Condition="Exists('..\packages\SkiaSharp.NativeAssets.macOS.2.88.7\build\net462\SkiaSharp.NativeAssets.macOS.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

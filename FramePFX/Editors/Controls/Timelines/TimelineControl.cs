@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -42,10 +44,14 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public Border RulerContainerBorder { get; private set; } // contains the ruler
 
+        private readonly List<Button> timelineActionButtons;
+
         public TimelineControl() {
             this.MouseLeftButtonDown += (s, e) => {
                 // ((TimelineControl) s).MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X + (this.TimelineScrollViewer?.HorizontalOffset ?? 0d), false);
             };
+
+            this.timelineActionButtons = new List<Button>();
         }
 
         public Point GetTimelinePointFromClip(Point pointInClip) {
@@ -59,6 +65,10 @@ namespace FramePFX.Editors.Controls.Timelines {
 
             if (x >= 0d) {
                 long frameX = TimelineUtils.PixelToFrame(x, timeline.Zoom, true);
+                if (frameX == timeline.PlayHeadPosition) {
+                    return;
+                }
+
                 if (frameX >= 0 && frameX < timeline.MaxDuration) {
                     timeline.PlayHeadPosition = frameX;
                     if (updateStopHead) {
@@ -82,30 +92,27 @@ namespace FramePFX.Editors.Controls.Timelines {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(TimelineControl), new FrameworkPropertyMetadata(typeof(TimelineControl)));
         }
 
+        private void GetTemplateChild<T>(string name, out T value) where T : DependencyObject {
+            if ((value = this.GetTemplateChild(name) as T) == null)
+                throw new Exception("Missing part: " + name);
+        }
+
         public override void OnApplyTemplate() {
             base.OnApplyTemplate();
-            if (!(this.GetTemplateChild("PART_TrackListBox") is TimelineTrackListBox listBox))
-                throw new Exception("Missing PART_TrackListBox");
-            if (!(this.GetTemplateChild("PART_Timeline") is TimelineSequenceControl timeline))
-                throw new Exception("Missing PART_TimelineControl");
-            if (!(this.GetTemplateChild("PART_TrackListScrollViewer") is ScrollViewer scrollViewer))
-                throw new Exception("Missing PART_TrackListScrollViewer");
-            if (!(this.GetTemplateChild("PART_SequenceScrollViewer") is ScrollViewer timelineScrollViewer))
-                throw new Exception("Missing PART_SequenceScrollViewer");
-            if (!(this.GetTemplateChild("PART_PlayheadPositionPreviewControl") is PlayheadPositionTextControl playheadPosPreview))
-                throw new Exception("Missing PART_PlayheadPositionPreviewControl");
-            if (!(this.GetTemplateChild("PART_Ruler") is Ruler ruler))
-                throw new Exception("Missing PART_Ruler");
-            if (!(this.GetTemplateChild("PART_PlayHeadControl") is PlayHeadControl playHead))
-                throw new Exception("Missing PART_PlayHeadControl");
-            if (!(this.GetTemplateChild("PART_StopHeadControl") is StopHeadControl stopHead))
-                throw new Exception("Missing PART_StopHeadControl");
-            if (!(this.GetTemplateChild("PART_TimestampBoard") is Border timeStampBoard))
-                throw new Exception("Missing PART_TimestampBoard");
-            if (!(this.GetTemplateChild("PART_TimelineSequenceBorder") is Border timelineBorder))
-                throw new Exception("Missing PART_TimelineSequenceBorder");
-            if (!(this.GetTemplateChild("PART_ContentGrid") is TimelineScrollableContentGrid scrollableContent))
-                throw new Exception("Missing PART_ContentGrid");
+            this.GetTemplateChild("PART_TrackListBox", out TimelineTrackListBox listBox);
+            this.GetTemplateChild("PART_Timeline", out TimelineSequenceControl timeline);
+            this.GetTemplateChild("PART_TrackListScrollViewer", out ScrollViewer scrollViewer);
+            this.GetTemplateChild("PART_SequenceScrollViewer", out ScrollViewer timelineScrollViewer);
+            this.GetTemplateChild("PART_PlayheadPositionPreviewControl", out PlayheadPositionTextControl playheadPosPreview);
+            this.GetTemplateChild("PART_Ruler", out Ruler ruler);
+            this.GetTemplateChild("PART_PlayHeadControl", out PlayHeadControl playHead);
+            this.GetTemplateChild("PART_StopHeadControl", out StopHeadControl stopHead);
+            this.GetTemplateChild("PART_TimestampBoard", out Border timeStampBoard);
+            this.GetTemplateChild("PART_TimelineSequenceBorder", out Border timelineBorder);
+            this.GetTemplateChild("PART_ContentGrid", out TimelineScrollableContentGrid scrollableContent);
+
+            // action buttons. need a better system because this is really not that good
+            this.GetTemplateChild("PART_AddVideoTrackButton", out Button addVideoTrackButton);
 
             this.TrackList = listBox;
             this.TimelineSequence = timeline;
@@ -127,6 +134,21 @@ namespace FramePFX.Editors.Controls.Timelines {
             scrollableContent.TimelineControl = this;
 
             timeStampBoard.MouseLeftButtonDown += (s, e) => this.MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X, true, false);
+
+            this.CreateTimelineButtonAction(addVideoTrackButton, (t) => {
+                VideoTrack track = new VideoTrack {DisplayName = "Video Track " + (t.Tracks.Count(x => x is VideoTrack) + 1).ToString()};
+                t.AddTrack(track);
+                track.InvalidateRender();
+            });
+        }
+
+        private void CreateTimelineButtonAction(Button button, Action<Timeline> action) {
+            this.timelineActionButtons.Add(button);
+            button.Click += (sender, args) => {
+                Timeline timeline = this.Timeline;
+                if (timeline != null)
+                    action(timeline);
+            };
         }
 
         private void OnTimelineChanged(Timeline oldTimeline, Timeline newTimeline) {
@@ -150,6 +172,11 @@ namespace FramePFX.Editors.Controls.Timelines {
                 if (this.Ruler != null)
                     this.Ruler.MaxValue = newTimeline.MaxDuration;
                 this.UpdateBorderThicknesses(newTimeline);
+            }
+
+            bool canExecute = newTimeline != null;
+            foreach (Button button in this.timelineActionButtons) {
+                button.IsEnabled = canExecute;
             }
         }
 
@@ -183,7 +210,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             ModifierKeys mods = Keyboard.Modifiers;
             if ((mods & ModifierKeys.Alt) != 0) {
                 if (VisualTreeUtils.GetParent<TimelineTrackControl>(e.OriginalSource as DependencyObject) is TimelineTrackControl track) {
-                    track.Track.Height = Maths.Clamp(track.Track.Height + (e.Delta / 120d) * 20d, TimelineClipControl.HeaderSize, 200d);
+                    track.Track.Height = Maths.Clamp(track.Track.Height + (e.Delta / 120d * 18d), TimelineClipControl.HeaderSize, 200d);
                 }
 
                 e.Handled = true;

@@ -1,5 +1,4 @@
 using System.Windows;
-using System.Windows.Controls;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;

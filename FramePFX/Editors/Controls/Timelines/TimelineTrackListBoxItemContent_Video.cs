@@ -26,10 +26,9 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public override void OnApplyTemplate() {
             base.OnApplyTemplate();
-            if (!(this.GetTemplateChild("PART_OpacitySlider") is NumberDragger dragger))
-                throw new Exception("Missing PART_OpacitySlider");
-            if (!(this.GetTemplateChild("PART_VisibilityButton") is ToggleButton visibilityButton))
-                throw new Exception("Missing PART_VisibilityButton");
+            this.GetTemplateChild("PART_OpacitySlider", out NumberDragger dragger);
+            this.GetTemplateChild("PART_VisibilityButton", out ToggleButton visibilityButton);
+
             this.OpacityDragger = dragger;
             this.OpacityDragger.ValueChanged += (sender, args) => this.opacityBinder.OnControlValueChanged();
 

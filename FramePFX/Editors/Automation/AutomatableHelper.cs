@@ -1,5 +1,3 @@
-using FramePFX.Utils.Collections;
-
 namespace FramePFX.Editors.Automation {
     public static class AutomatableHelper {
         public static T UpdateBackingStorage<T>(T obj) where T : IAutomatable {

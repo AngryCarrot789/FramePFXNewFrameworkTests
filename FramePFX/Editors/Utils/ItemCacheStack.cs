@@ -6,14 +6,14 @@ namespace FramePFX.Editors.Utils {
     /// A class used to cache and reuse objects
     /// </summary>
     /// <typeparam name="T">The type of object to cache</typeparam>
-    public sealed class ItemCache<T>{
+    public sealed class ItemCacheStack<T>{
         private readonly Stack<T> cache;
 
         public int Count => this.cache.Count;
 
         public int Limit { get; }
 
-        public ItemCache(int limit = 32) {
+        public ItemCacheStack(int limit = 32) {
             if (limit < 0)
                 throw new ArgumentOutOfRangeException(nameof(limit));
             this.Limit = limit;

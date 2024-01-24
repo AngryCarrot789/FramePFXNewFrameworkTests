@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
@@ -22,6 +23,7 @@ namespace FramePFX.Editors.Rendering {
 
         private volatile bool isRendering;
         private volatile int isRenderScheduled;
+        private volatile int isRenderScheduledDuringRender;
         private volatile Task renderTask;
 
         private SKBitmap bitmap;
@@ -142,7 +144,7 @@ namespace FramePFX.Editors.Rendering {
                 return;
             }
 
-            Application.Current.Dispatcher.InvokeAsync(this.DoRenderTimeline);
+            Application.Current.Dispatcher.InvokeAsync(this.DoRenderTimeline, DispatcherPriority.Loaded);
         }
 
         private void DoRenderTimeline() {

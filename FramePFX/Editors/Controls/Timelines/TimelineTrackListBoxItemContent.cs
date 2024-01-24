@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines.Tracks;
+using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Utils;
 using SkiaSharp;
+using Track = FramePFX.Editors.Timelines.Tracks.Track;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBoxItemContent : Control {
@@ -39,8 +43,19 @@ namespace FramePFX.Editors.Controls.Timelines {
             element.Owner.Track.Colour = new SKColor(c.R, c.G, c.B, c.A);
         });
 
+        public ToggleButton ToggleExpandTrackButton { get; private set; }
+
+        private double trackHeightBeforeCollapse;
+        private bool ignoreTrackHeightChanged;
+        private bool ignoreExpandTrackEvent;
+
         public TimelineTrackListBoxItemContent() {
             this.TrackColourBrush = new SolidColorBrush(Colors.Black);
+        }
+
+        protected void GetTemplateChild<T>(string name, out T value) where T : DependencyObject {
+            if ((value = this.GetTemplateChild(name) as T) == null)
+                throw new Exception("Missing part: " + name);
         }
 
         public static void RegisterType<T>(Type trackType, Func<T> func) where T : TimelineTrackListBoxItemContent {
@@ -75,13 +90,49 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public override void OnApplyTemplate() {
             base.OnApplyTemplate();
-            if (!(this.GetTemplateChild("PART_DeleteTrackButton") is Button button))
-                throw new Exception("Missing PART_DeleteTrackButton");
+            this.GetTemplateChild("PART_DeleteTrackButton", out Button delTrackButton);
+            this.GetTemplateChild("PART_ExpandTrackButton", out ToggleButton expandButton);
 
-            button.Click += (sender, args) => {
+            delTrackButton.Click += (sender, args) => {
                 Track track = this.Owner.Track;
                 track.Timeline.RemoveTrack(track);
             };
+
+            this.ToggleExpandTrackButton = expandButton;
+            expandButton.IsThreeState = false;
+            expandButton.Checked += this.ExpandTrackCheckedChanged;
+            expandButton.Unchecked += this.ExpandTrackCheckedChanged;
+        }
+
+        private void ExpandTrackCheckedChanged(object sender, RoutedEventArgs e) {
+            if (this.ignoreExpandTrackEvent)
+                return;
+
+            bool isExpanded = this.ToggleExpandTrackButton.IsChecked ?? false;
+            Track track = this.Owner.Track;
+            this.ignoreTrackHeightChanged = true;
+
+            if (isExpanded) {
+                track.Height = this.trackHeightBeforeCollapse;
+            }
+            else {
+                this.trackHeightBeforeCollapse = track.Height;
+                track.Height = Track.MinimumHeight;
+            }
+
+            this.ignoreTrackHeightChanged = false;
+        }
+
+        private void OnTrackHeightChanged(Track track) {
+            if (this.ignoreTrackHeightChanged)
+                return;
+            this.UpdateTrackHeightExpander();
+        }
+
+        private void UpdateTrackHeightExpander() {
+            this.ignoreExpandTrackEvent = true;
+            this.ToggleExpandTrackButton.IsChecked = !Maths.Equals(this.Owner.Track.Height, Track.MinimumHeight);
+            this.ignoreExpandTrackEvent = false;
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
@@ -101,14 +152,17 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         protected virtual void OnConnected() {
-            Track model = this.Owner.Track;
-            this.displayNameBinder.Attach(this, model);
-            this.trackColourBinder.Attach(this, model);
+            Track track = this.Owner.Track;
+            this.displayNameBinder.Attach(this, track);
+            this.trackColourBinder.Attach(this, track);
+            track.HeightChanged += this.OnTrackHeightChanged;
+            this.UpdateTrackHeightExpander();
         }
 
         protected virtual void OnDisconnected() {
             this.displayNameBinder.Detatch();
             this.trackColourBinder.Detatch();
+            this.Owner.Track.HeightChanged -= this.OnTrackHeightChanged;
         }
     }
 }

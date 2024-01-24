@@ -6,11 +6,22 @@ using System.Windows.Media;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Utils;
 using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackControl : Panel {
+        private readonly struct MovedClip {
+            public readonly TimelineClipControl control;
+            public readonly Clip clip;
+
+            public MovedClip(TimelineClipControl control, Clip clip) {
+                this.control = control;
+                this.clip = clip;
+            }
+        }
+
         private static readonly DependencyPropertyKey TrackColourBrushPropertyKey = DependencyProperty.RegisterReadOnly("TrackColourBrush", typeof(Brush), typeof(TimelineTrackControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty TrackColourBrushProperty = TrackColourBrushPropertyKey.DependencyProperty;
         public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(bool), typeof(TimelineTrackControl), new PropertyMetadata(BoolBox.False));
@@ -26,7 +37,8 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private static readonly Random RANDOM_HEADER = new Random();
-        private TimelineClipControl clipBeingMoved;
+        private MovedClip? clipBeingMoved;
+        private readonly ItemCacheStack<TimelineClipControl> itemCache;
 
         public TimelineSequenceControl Timeline { get; set; }
 
@@ -35,6 +47,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         private readonly GetSetAutoPropertyBinder<Track> isSelectedBinder = new GetSetAutoPropertyBinder<Track>(IsSelectedProperty, nameof(VideoTrack.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
         public TimelineTrackControl(Track track) {
+            this.itemCache = new ItemCacheStack<TimelineClipControl>(16);
             this.HorizontalAlignment = HorizontalAlignment.Stretch;
             this.VerticalAlignment = VerticalAlignment.Top;
 
@@ -82,27 +95,27 @@ namespace FramePFX.Editors.Controls.Timelines {
 
                 TimelineClipControl control = (TimelineClipControl) this.InternalChildren[oldIndex];
                 this.RemoveClipInternal(oldIndex);
-                dstTrack.clipBeingMoved = control;
+                dstTrack.clipBeingMoved = new MovedClip(control, clip);
             }
             else if (newTrack == this.Track) {
-                if (this.clipBeingMoved == null) {
+                if (!(this.clipBeingMoved is MovedClip movedClip)) {
                     throw new Exception("Clip control being moved is null. Is the UI timeline corrupted or did the clip move between timelines?");
                 }
 
-                this.InsertClipInternal(this.clipBeingMoved, newIndex);
+                this.InsertClipInternal(movedClip.control, movedClip.clip, newIndex);
                 this.clipBeingMoved = null;
             }
         }
 
         private void InsertClipInternal(Clip clip, int index) {
-            TimelineClipControl control = new TimelineClipControl(clip);
-            this.InsertClipInternal(control, index);
+            this.InsertClipInternal(this.itemCache.Pop(null) ?? new TimelineClipControl(), clip, index);
         }
 
-        private void InsertClipInternal(TimelineClipControl control, int index) {
-            control.Track = this;
-            control.OnAdding();
+        private void InsertClipInternal(TimelineClipControl control, Clip clip, int index) {
+            control.OnAdding(this, clip);
             this.InternalChildren.Insert(index, control);
+            // control.InvalidateMeasure();
+            // control.UpdateLayout();
             control.ApplyTemplate();
             control.OnAdded();
         }
@@ -112,7 +125,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             control.OnRemoving();
             this.InternalChildren.RemoveAt(index);
             control.OnRemoved();
-            control.Track = null;
         }
 
         private void ClearClipsInternal() {

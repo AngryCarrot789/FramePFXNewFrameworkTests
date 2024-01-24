@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using FramePFX.Editors.Controls.Resources;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Utils;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class TimelineTrackListBox : ListBox {
@@ -80,10 +78,10 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.Items.Insert(index, control);
             // UpdateLayout must be called explicitly, so that the visual tree
             // can be measured, allowing templates to be applied
+            control.InvalidateMeasure();
             control.UpdateLayout();
             control.OnAddedToList();
-            control.InvalidateMeasure();
-            this.InvalidateMeasure();
+            // this.InvalidateMeasure();
         }
 
         private void RemoveTrackInternal(int index) {
@@ -92,7 +90,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.Items.RemoveAt(index);
             control.OnRemovedFromList();
             this.cachedItems.Push(control);
-            this.InvalidateMeasure();
+            // this.InvalidateMeasure();
         }
 
         private void OnTrackMoved(Timeline timeline, Track track, int oldIndex, int newIndex) {

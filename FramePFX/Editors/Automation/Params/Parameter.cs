@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using FramePFX.Editors.Automation.Keyframes;
-using OpenTK.Input;
 
 namespace FramePFX.Editors.Automation.Params {
     /// <summary>

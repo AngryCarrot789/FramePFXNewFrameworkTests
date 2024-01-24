@@ -5,6 +5,7 @@ using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Factories;
 using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks {
@@ -13,6 +14,10 @@ namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void ClipMovedEventHandler(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex);
 
     public abstract class Track : IAutomatable, IDestroy {
+        public const double MinimumHeight = 20;
+        public const double DefaultHeight = 56;
+        public const double MaximumHeight = 250;
+
         public string FactoryId => TrackFactory.Instance.GetId(this.GetType());
 
         public Timeline Timeline { get; private set; }
@@ -24,6 +29,9 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public double Height {
             get => this.height;
             set {
+                value = Maths.Clamp(value, MinimumHeight, MaximumHeight);
+                if (this.height == value)
+                    return;
                 this.height = value;
                 this.HeightChanged?.Invoke(this);
             }
@@ -88,7 +96,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
         private readonly List<Clip> clips;
         private readonly ClipRangeCache cache;
         private readonly List<Clip> selectedClips;
-        private double height = 60d;
+        private double height = DefaultHeight;
         private string displayName = "Track";
         private SKColor colour;
         private bool isSelected;
@@ -117,7 +125,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
         }
 
         protected virtual void LoadDataIntoClone(Track clone, TrackCloneOptions options) {
-            clone.height = this.height;
+            clone.height = Maths.Clamp(this.height, MinimumHeight, MaximumHeight);
             clone.displayName = this.displayName;
             clone.colour = this.colour;
             if (options.CloneClips) {
