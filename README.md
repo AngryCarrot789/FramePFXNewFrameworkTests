@@ -10,4 +10,4 @@ async rendering of multiple clips at the same time on other render threads, whic
 
 ## Progress so far:
 
-![](FramePFX_2024-01-21_23.28.51.png)
+![](ErHgPolCfb.png)
