@@ -127,8 +127,9 @@ namespace FramePFX.Editors.Controls.Timelines {
             control.Timeline = this;
             control.OnBeingAddedToTimeline(this, track);
             this.InternalChildren.Insert(index, control);
-            control.OnAddedToTimeline();
             control.InvalidateMeasure();
+            control.ApplyTemplate();
+            control.OnAddedToTimeline();
             this.InvalidateMeasure();
             this.InvalidateVisual();
         }

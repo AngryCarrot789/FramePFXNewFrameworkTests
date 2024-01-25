@@ -167,24 +167,26 @@ namespace FramePFX.Editors.Controls.Timelines {
             paramComboBox.ItemsSource = this.parameterList;
             paramComboBox.SelectionChanged += this.OnParameterSelectionChanged;
             this.ParameterComboBox = paramComboBox;
-            this.UpdateForSelectedParameter();
+            this.UpdateForSelectedParameter(this.selectedParameter);
         }
 
         private void OnParameterSelectionChanged(object sender, SelectionChangedEventArgs e) {
             this.isProcessingParameterSelectionChanged = true;
-            TrackListItemParameterViewModel oldItem = this.selectedParameter;
             this.selectedParameter = this.ParameterComboBox.SelectedItem as TrackListItemParameterViewModel;
-            this.OnSelectedParameterChanged(oldItem, this.selectedParameter);
+            this.UpdateForSelectedParameter(this.selectedParameter);
             this.isProcessingParameterSelectionChanged = false;
         }
 
-        private void OnSelectedParameterChanged(TrackListItemParameterViewModel oldItem, TrackListItemParameterViewModel newItem) {
-            this.UpdateForSelectedParameter();
-        }
-
-        private void UpdateForSelectedParameter() {
-            this.InsertKeyFrameButton.IsEnabled = this.selectedParameter != null;
-            this.ToggleOverrideButton.IsEnabled = this.selectedParameter != null;
+        private void UpdateForSelectedParameter(TrackListItemParameterViewModel selected) {
+            this.InsertKeyFrameButton.IsEnabled = selected != null;
+            this.ToggleOverrideButton.IsEnabled = selected != null;
+            if (this.Owner?.TrackList?.TimelineControl is TimelineControl control) {
+                Track trackModel = this.Owner.Track;
+                TimelineTrackControl track = control.GetTimelineControlFromTrack(trackModel);
+                if (track?.AutomationSeqEditor != null) {
+                    track.AutomationSeqEditor.Sequence = selected != null ? trackModel.AutomationData[selected.parameter] : null;
+                }
+            }
         }
 
         private void ExpandTrackCheckedChanged(object sender, RoutedEventArgs e) {
@@ -250,6 +252,9 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.displayNameBinder.Detatch();
             this.trackColourBinder.Detatch();
             this.Owner.Track.HeightChanged -= this.OnTrackHeightChanged;
+
+            foreach (TrackListItemParameterViewModel item in this.parameterList)
+                item.Disconnect();
             this.parameterList.Clear();
         }
     }
@@ -268,10 +273,6 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TrackListItemParameterViewModel(TimelineTrackListBoxItemContent owner, Parameter parameter) {
             this.parameter = parameter;
-        }
-
-        public void Connect() {
-
         }
 
         public void Disconnect() {

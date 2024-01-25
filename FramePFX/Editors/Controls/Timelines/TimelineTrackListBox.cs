@@ -14,6 +14,8 @@ namespace FramePFX.Editors.Controls.Timelines {
             set => this.SetValue(TimelineProperty, value);
         }
 
+        public TimelineControl TimelineControl { get; set; }
+
         private const int MaxItemCacheCount = 8;
         private const int MaxItemContentCacheCount = 4;
         private readonly Stack<TimelineTrackListBoxItem> cachedItems;

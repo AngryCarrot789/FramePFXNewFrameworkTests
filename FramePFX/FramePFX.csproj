@@ -216,6 +216,7 @@
     <Compile Include="Editors\Controls\Timelines\PlayheadPositionTextControl.cs" />
     <Compile Include="Editors\Controls\Timelines\StopHeadControl.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineClipControl.cs" />
+    <Compile Include="Editors\Controls\Timelines\TimelineTrackClipPanel.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineControl.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineScrollableContentGrid.cs" />
     <Compile Include="Editors\Controls\Timelines\TimelineSequenceControl.cs" />

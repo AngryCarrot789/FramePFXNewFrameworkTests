@@ -34,7 +34,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             private set {
                 this.frameBegin = value;
                 this.InvalidateMeasure();
-                this.Track.InvalidateArrange();
+                this.Track.OnClipSpanChanged();
             }
         }
 
@@ -43,7 +43,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             private set {
                 this.frameDuration = value;
                 this.InvalidateMeasure();
-                this.Track.InvalidateArrange();
+                this.Track.OnClipSpanChanged();
             }
         }
 

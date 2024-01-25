@@ -101,6 +101,16 @@
 
     <Style TargetType="{x:Type ct:TimelineTrackControl}">
         <Setter Property="Background" Value="{DynamicResource ABrush.Tone2.Background.Static}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ct:TimelineTrackControl}">
+                    <Grid>
+                        <ct:TimelineTrackClipPanel x:Name="PART_TrackClipPanel" Background="{TemplateBinding Background}"/>
+                        <a:AutomationSequenceEditor x:Name="PART_AutomationSequenceEditor"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ABrush.Tone4.Background.Static}"/>
@@ -252,7 +262,22 @@
                                 </c:SpacedStackPanel>
                             </Border>
                         </Border>
-                        <Border Grid.Row="3" Grid.Column="2" Height="26" Background="{DynamicResource ABrush.Tone4.Background.Static}" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0,1,0,0"/>
+                        <Border Grid.Row="3" Grid.Column="2" Height="26" Background="{DynamicResource ABrush.Tone4.Background.Static}" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0,1,0,0">
+                            <DockPanel LastChildFill="False">
+                                <Border DockPanel.Dock="Right" Background="{DynamicResource PanelBorderBrush}" BorderBrush="{Binding RelativeSource={RelativeSource Self}, Path=Background}" BorderThickness="1,0,0,0">
+                                    <c:SpacedStackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                        <ToggleButton Content="A:T" BorderThickness="0" FontSize="12"
+                                                      Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
+                                                      Background="{DynamicResource ABrush.Tone6.Background.Static}"
+                                                      ToolTip="Toggles track automation visibility in the timeline"/>
+                                        <ToggleButton Content="A:C" BorderThickness="0" FontSize="12"
+                                                      Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
+                                                      Background="{DynamicResource ABrush.Tone6.Background.Static}"
+                                                      ToolTip="Toggles clip automation visibility in the timeline"/>
+                                    </c:SpacedStackPanel>
+                                </Border>
+                            </DockPanel>
+                        </Border>
                         <GridSplitter Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="-3,0" Background="Transparent" BorderThickness="0"/>
                     </Grid>
                 </ControlTemplate>

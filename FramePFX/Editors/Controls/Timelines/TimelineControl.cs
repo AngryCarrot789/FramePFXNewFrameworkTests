@@ -99,7 +99,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public override void OnApplyTemplate() {
             base.OnApplyTemplate();
-            this.GetTemplateChild("PART_TrackListBox", out TimelineTrackListBox listBox);
+            this.GetTemplateChild("PART_TrackListBox", out TimelineTrackListBox trackListBox);
             this.GetTemplateChild("PART_Timeline", out TimelineSequenceControl timeline);
             this.GetTemplateChild("PART_TrackListScrollViewer", out ScrollViewer scrollViewer);
             this.GetTemplateChild("PART_SequenceScrollViewer", out ScrollViewer timelineScrollViewer);
@@ -114,7 +114,9 @@ namespace FramePFX.Editors.Controls.Timelines {
             // action buttons. need a better system because this is really not that good
             this.GetTemplateChild("PART_AddVideoTrackButton", out Button addVideoTrackButton);
 
-            this.TrackList = listBox;
+            this.TrackList = trackListBox;
+            this.TrackList.TimelineControl = this;
+
             this.TimelineSequence = timeline;
             timeline.TimelineControl = this;
 
@@ -294,6 +296,10 @@ namespace FramePFX.Editors.Controls.Timelines {
                     default: throw new ArgumentOutOfRangeException(nameof(zoomtype), zoomtype, null);
                 }
             }
+        }
+
+        public TimelineTrackControl GetTimelineControlFromTrack(Track track) {
+            return this.TimelineSequence.GetTrackByModel(track);
         }
     }
 }
