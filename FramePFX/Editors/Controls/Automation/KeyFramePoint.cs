@@ -25,6 +25,7 @@ namespace FramePFX.Editors.Controls.Automation {
         public bool IsPointSelected;
         public bool IsMouseOverPoint;
         public LineHitType LastLineHitType;
+        internal bool HasCreatedForEmptyList;
 
         public KeyFramePoint Next {
             get {

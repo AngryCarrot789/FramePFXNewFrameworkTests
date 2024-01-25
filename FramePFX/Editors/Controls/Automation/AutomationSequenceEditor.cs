@@ -86,13 +86,6 @@ namespace FramePFX.Editors.Controls.Automation {
                 typeof(AutomationSequenceEditor),
                 new PropertyMetadata(1d, (o, e) => ((AutomationSequenceEditor) o).InvalidKeyFrameDataAndRender()));
 
-        public static readonly DependencyProperty FrameBeginProperty =
-            DependencyProperty.Register(
-                "FrameBegin",
-                typeof(long),
-                typeof(AutomationSequenceEditor),
-                new PropertyMetadata(0L));
-
         public static readonly DependencyProperty FrameDurationProperty =
             DependencyProperty.Register(
                 "FrameDuration",
@@ -135,11 +128,6 @@ namespace FramePFX.Editors.Controls.Automation {
             set => this.SetValue(UnitZoomProperty, value);
         }
 
-        public long FrameBegin {
-            get => (long) this.GetValue(FrameBeginProperty);
-            set => this.SetValue(FrameBeginProperty, value);
-        }
-
         public long FrameDuration {
             get => (long) this.GetValue(FrameDurationProperty);
             set => this.SetValue(FrameDurationProperty, value);
@@ -154,6 +142,7 @@ namespace FramePFX.Editors.Controls.Automation {
         private Pen lineOverridePen;
         private Pen lineMouseOverPen;
         private Pen overrideModeValueLinePen;
+        private Pen empyListLinePen;
 
         internal readonly List<KeyFramePoint> backingList;
         internal readonly Dictionary<KeyFrame, KeyFramePoint> vmToPoint;
@@ -184,16 +173,8 @@ namespace FramePFX.Editors.Controls.Automation {
         internal Pen LinePen => this.curvePen ?? (this.curvePen = new Pen(this.CurveBrush ?? Brushes.OrangeRed, LineThickness));
         internal Pen LineMouseOverPen => this.lineMouseOverPen ?? (this.lineMouseOverPen = new Pen(this.MouseOverBrush ?? Brushes.White, LineThickness));
         internal Pen LineTransparentPen => this.transparentPenLine ?? (this.transparentPenLine = new Pen(TransparentBrush, LineHitThickness));
-
-        internal Pen OverrideModeValueLinePen {
-            get {
-                if (this.overrideModeValueLinePen == null) {
-                    this.overrideModeValueLinePen = new Pen(this.CurveBrush ?? Brushes.OrangeRed, LineThickness) {DashStyle = new DashStyle(new List<double>() {2d, 2d}, 0d)};
-                }
-
-                return this.overrideModeValueLinePen;
-            }
-        }
+        internal Pen OverrideModeValueLinePen => this.overrideModeValueLinePen ?? (this.overrideModeValueLinePen = new Pen(this.CurveBrush ?? Brushes.DarkGray, LineThickness) {DashStyle = new DashStyle(new List<double>() {2d, 2d}, 0d)});
+        internal Pen EmpyListLinePen => this.empyListLinePen ?? (this.empyListLinePen = new Pen(this.CurveBrush ?? Brushes.OrangeRed, LineThickness) {DashStyle = new DashStyle(new List<double>() {2d, 2d}, 0d)});
 
         public AutomationSequenceEditor() {
             this.backingList = new List<KeyFramePoint>();
@@ -557,6 +538,11 @@ namespace FramePFX.Editors.Controls.Automation {
                 }
 
                 this.SetPointCaptured(hitKey, true, lineHit);
+                if (hitKey.HasCreatedForEmptyList) {
+                    hitKey.HasCreatedForEmptyList = false;
+                    this.isCaptureInitialised = false;
+                }
+
                 this.InvalidateVisual();
                 e.Handled = true;
                 return;
@@ -567,19 +553,28 @@ namespace FramePFX.Editors.Controls.Automation {
 
         protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e) {
             base.OnPreviewMouseLeftButtonDown(e);
-            if (e.ClickCount < 2) {
-                return;
-            }
-
             Point mPos = e.GetPosition(this);
-            if (this.GetIntersection(ref mPos, out KeyFramePoint hitKey, out LineHitType lineHit)) {
-                if (this.captured != null) {
-                    this.ClearCapture(lineHit != LineHitType.None);
-                }
+            if (this.backingList.Count > 0 && e.ClickCount > 1) {
+                if (this.GetIntersection(ref mPos, out KeyFramePoint hitKey, out LineHitType lineHit)) {
+                    if (this.captured != null) {
+                        this.ClearCapture(lineHit != LineHitType.None);
+                    }
 
-                if (lineHit == LineHitType.None) {
+                    if (lineHit == LineHitType.None) {
+                        e.Handled = true;
+                        hitKey.keyFrame.sequence.RemoveKeyFrame(hitKey.keyFrame, out _);
+                    }
+                    else if (this.Sequence is AutomationSequence sequence) {
+                        if (this.isCaptureInitialised) {
+                            this.lastMousePoint = mPos;
+                            this.isCaptureInitialised = false;
+                        }
+
+                        this.CreateKeyFrameAt(sequence, mPos, true);
+                    }
+
+                    this.InvalidateVisual();
                     e.Handled = true;
-                    hitKey.keyFrame.sequence.RemoveKeyFrame(hitKey.keyFrame, out _);
                 }
                 else if (this.Sequence is AutomationSequence sequence) {
                     if (this.isCaptureInitialised) {
@@ -589,17 +584,18 @@ namespace FramePFX.Editors.Controls.Automation {
 
                     this.CreateKeyFrameAt(sequence, mPos, true);
                 }
-
-                this.InvalidateVisual();
-                e.Handled = true;
             }
-            else if (this.Sequence is AutomationSequence sequence) {
-                if (this.isCaptureInitialised) {
-                    this.lastMousePoint = mPos;
-                    this.isCaptureInitialised = false;
-                }
+            else if (this.backingList.Count == 0) {
+                if (this.Sequence is AutomationSequence sequence) {
+                    if (this.isCaptureInitialised) {
+                        this.lastMousePoint = mPos;
+                        this.isCaptureInitialised = false;
+                    }
 
-                this.CreateKeyFrameAt(sequence, mPos, true);
+                    KeyFrame kf = this.CreateKeyFrameAt(sequence, mPos, true);
+                    KeyFramePoint kfp = this.GetPointByKeyFrame(kf);
+                    kfp.HasCreatedForEmptyList = true;
+                }
             }
         }
 
@@ -610,6 +606,9 @@ namespace FramePFX.Editors.Controls.Automation {
                     KeyFrame kf = this.vmToPoint.TryGetValue(this.captured.keyFrame, out KeyFramePoint p) ? p.keyFrame : null;
                     if (kf == null) {
                         throw new Exception("Captured key frame not found in the backing list?");
+                    }
+                    else if (p.HasCreatedForEmptyList) {
+                        p.HasCreatedForEmptyList = false;
                     }
                     else {
                         sequence.RemoveKeyFrame(kf, out _);
@@ -683,8 +682,8 @@ namespace FramePFX.Editors.Controls.Automation {
             KeyFramePoint prev = this.captured.Prev;
             KeyFramePoint next = this.captured.Next;
 
-            long min = prev?.keyFrame.Frame ?? this.FrameBegin;
-            long max = next?.keyFrame.Frame ?? (this.FrameBegin + this.FrameDuration);
+            long min = prev?.keyFrame.Frame ?? 0;
+            long max = next?.keyFrame.Frame ?? this.FrameDuration;
 
             if (this.isCaptureInitialised) {
                 this.lastMousePoint = mPos;
@@ -757,45 +756,61 @@ namespace FramePFX.Editors.Controls.Automation {
 
         protected override void OnRender(DrawingContext dc) {
             List<KeyFramePoint> list = this.backingList;
+            // Rect visible = GetVisibleRect(this.scroller, this);
+            Rect visible = UIUtils.GetVisibleRect(this.scroller, this);
             int end = list.Count - 1;
             if (end < 0) {
-                return;
-            }
-
-            Rect visible = GetVisibleRect(this.scroller, this);
-            dc.PushClip(new RectangleGeometry(visible));
-            if (this.isOverrideEnabled) {
-                dc.PushOpacity(0.5d);
-            }
-
-            KeyFramePoint first = list[0], prev = first;
-            this.DrawFirstKeyFrameLine(dc, first, ref visible);
-            if (end == 0) {
-                this.DrawLastKeyFrameLine(dc, first, ref visible);
-                first.RenderEllipse(dc, ref visible);
-            }
-            else {
-                for (int i = 1; i < end; i++) {
-                    KeyFramePoint keyFrame = list[i];
-                    DrawKeyFramesAndLine(dc, prev, keyFrame, ref visible);
-                    prev = keyFrame;
-                }
-
-                this.DrawLastKeyFrameLine(dc, list[end], ref visible);
-                DrawKeyFramesAndLine(dc, prev, list[end], ref visible);
-            }
-
-            if (this.isOverrideEnabled) {
                 AutomationSequence seq = this.Sequence;
                 if (seq != null) {
-                    double y = this.ActualHeight - KeyPointUtils.GetYHelper(this, seq.DefaultKeyFrame, this.ActualHeight);
-                    dc.DrawLine(this.OverrideModeValueLinePen, new Point(0, y), new Point(visible.Right, y));
+                    double y = this.ActualHeight / 2.0;
+                    dc.DrawLine(this.LineTransparentPen, new Point(0, y), new Point(visible.Right, y));
+                    if (this.IsMouseOver) {
+                        Point mPos = new Point(Mouse.GetPosition(this).X, y);
+                        dc.DrawLine(this.EmpyListLinePen, new Point(0, y), new Point(visible.Right, y));
+                        dc.DrawEllipse(this.MouseOverBrush, this.KeyFrameMouseOverPen, mPos, EllipseRadius, EllipseRadius);
+                    }
+                    else {
+                        dc.PushOpacity(0.5d);
+                        dc.DrawLine(this.EmpyListLinePen, new Point(0, y), new Point(visible.Right, y));
+                        dc.Pop();
+                    }
+                }
+            }
+            else {
+                dc.PushClip(new RectangleGeometry(visible));
+                if (this.isOverrideEnabled) {
+                    dc.PushOpacity(0.5d);
+                }
+
+                KeyFramePoint first = list[0], prev = first;
+                this.DrawFirstKeyFrameLine(dc, first, ref visible);
+                if (end == 0) {
+                    this.DrawLastKeyFrameLine(dc, first, ref visible);
+                    first.RenderEllipse(dc, ref visible);
+                }
+                else {
+                    for (int i = 1; i < end; i++) {
+                        KeyFramePoint keyFrame = list[i];
+                        DrawKeyFramesAndLine(dc, prev, keyFrame, ref visible);
+                        prev = keyFrame;
+                    }
+
+                    this.DrawLastKeyFrameLine(dc, list[end], ref visible);
+                    DrawKeyFramesAndLine(dc, prev, list[end], ref visible);
+                }
+
+                if (this.isOverrideEnabled) {
+                    AutomationSequence seq = this.Sequence;
+                    if (seq != null) {
+                        double y = this.ActualHeight - KeyPointUtils.GetYHelper(this, seq.DefaultKeyFrame, this.ActualHeight);
+                        dc.DrawLine(this.OverrideModeValueLinePen, new Point(0, y), new Point(visible.Right, y));
+                    }
+
+                    dc.Pop();
                 }
 
                 dc.Pop();
             }
-
-            dc.Pop();
         }
 
         public static Rect GetVisibleRect(ScrollViewer scroller, UIElement element) {
@@ -846,14 +861,38 @@ namespace FramePFX.Editors.Controls.Automation {
             b.RenderEllipse(dc, ref rect);
         }
 
+        public static bool IsLineVisibleInRect(ref Rect visibleArea, ref Point p1, ref Point p2, double thickness) {
+            double angle = Math.Atan2(p2.Y - p1.Y, p2.X - p1.X);
+            double length = (p2 - p1).Length;
+
+            Vector offset = new Vector(thickness / 2.0 * Math.Sin(angle), thickness / 2.0 * Math.Cos(angle));
+
+            Point[] linePoints = new Point[] {
+                new Point(p1.X - offset.X, p1.Y + offset.Y),
+                new Point(p2.X - offset.X, p2.Y + offset.Y),
+                new Point(p2.X + offset.X, p2.Y - offset.Y),
+                new Point(p1.X + offset.X, p1.Y - offset.Y)
+            };
+
+            // Create a rotated rectangle that bounds the line with thickness
+            Rect lineRect = new Rect(linePoints[0], linePoints[2]);
+
+            // Check if the rotated rectangle intersects with the visible area
+            return visibleArea.IntersectsWith(lineRect);
+        }
+
         // draw a horizontal line at the key's Y pos
         private void DrawFirstKeyFrameLine(DrawingContext dc, KeyFramePoint key, ref Rect rect) {
             Point p2 = key.GetLocation();
             Point p1 = new Point(0, p2.Y);
-            if (RectContains(ref rect, ref p1) || RectContains(ref rect, ref p2)) {
+            if (IsLineVisibleInRect(ref rect, ref p1, ref p2, LineThickness)) {
                 dc.DrawLine(this.LineTransparentPen, p1, p2);
                 dc.DrawLine(this.isOverrideEnabled ? this.LineOverridePen : (key.LastLineHitType == LineHitType.Head ? this.LineMouseOverPen : this.LinePen), p1, p2);
             }
+            // if (RectContains(ref rect, ref p1) || RectContains(ref rect, ref p2)) {
+            //     dc.DrawLine(this.LineTransparentPen, p1, p2);
+            //     dc.DrawLine(this.isOverrideEnabled ? this.LineOverridePen : (key.LastLineHitType == LineHitType.Head ? this.LineMouseOverPen : this.LinePen), p1, p2);
+            // }
         }
 
         // draw a horizontal line at the key's Y pos

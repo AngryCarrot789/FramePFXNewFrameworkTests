@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -36,38 +37,31 @@ namespace FramePFX.Editors.Controls.Timelines {
             set => this.SetValue(IsSelectedProperty, value.Box());
         }
 
-        private static readonly Random RANDOM_HEADER = new Random();
         private MovedClip? clipBeingMoved;
-        private readonly ItemCacheStack<TimelineClipControl> itemCache;
+        private readonly Stack<TimelineClipControl> itemCache;
 
         public TimelineSequenceControl Timeline { get; set; }
 
-        public Track Track { get; }
+        public Track Track { get; private set; }
 
         private readonly GetSetAutoPropertyBinder<Track> isSelectedBinder = new GetSetAutoPropertyBinder<Track>(IsSelectedProperty, nameof(VideoTrack.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
-        public TimelineTrackControl(Track track) {
-            this.itemCache = new ItemCacheStack<TimelineClipControl>(16);
+        public TimelineTrackControl() {
+            this.itemCache = new Stack<TimelineClipControl>();
             this.HorizontalAlignment = HorizontalAlignment.Stretch;
             this.VerticalAlignment = VerticalAlignment.Top;
-
-            this.Track = track;
-            // this.TrackColourBrush = new SolidColorBrush();
             this.TrackColourBrush = new LinearGradientBrush();
-            this.UpdateTrackColour();
             this.UseLayoutRounding = true;
-        }
-
-        protected override void OnMouseDown(MouseButtonEventArgs e) {
-            base.OnMouseDown(e);
         }
 
         protected override void OnPreviewMouseDown(MouseButtonEventArgs e) {
             base.OnPreviewMouseDown(e);
-            if (this.Track.Timeline.HasAnySelectedTracks)
-                this.Track.Timeline.ClearTrackSelection();
+            if (this.Track != null) {
+                if (this.Track.Timeline.HasAnySelectedTracks)
+                    this.Track.Timeline.ClearTrackSelection();
 
-            this.Track.IsSelected = true;
+                this.Track.IsSelected = true;
+            }
         }
 
         static TimelineTrackControl() {
@@ -108,7 +102,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void InsertClipInternal(Clip clip, int index) {
-            this.InsertClipInternal(this.itemCache.Pop(null) ?? new TimelineClipControl(), clip, index);
+            this.InsertClipInternal(this.itemCache.Count > 0 ? this.itemCache.Pop() : new TimelineClipControl(), clip, index);
         }
 
         private void InsertClipInternal(TimelineClipControl control, Clip clip, int index) {
@@ -125,6 +119,8 @@ namespace FramePFX.Editors.Controls.Timelines {
             control.OnRemoving();
             this.InternalChildren.RemoveAt(index);
             control.OnRemoved();
+            if (this.itemCache.Count < 16)
+                this.itemCache.Push(control);
         }
 
         private void ClearClipsInternal() {
@@ -135,7 +131,10 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         protected override Size MeasureOverride(Size availableSize) {
-            availableSize.Height = this.Track.Height;
+            if (this.Track != null) {
+                availableSize.Height = this.Track.Height;
+            }
+
             Size total = new Size();
             UIElementCollection items = this.InternalChildren;
             int count = items.Count;
@@ -161,6 +160,10 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void UpdateTrackColour() {
+            if (this.Track == null) {
+                return;
+            }
+
             SKColor col = this.Track.Colour;
             // ((SolidColorBrush) this.TrackColourBrush).Color = Color.FromArgb(col.Alpha, col.Red, col.Green, col.Blue);
 
@@ -190,20 +193,24 @@ namespace FramePFX.Editors.Controls.Timelines {
             // dc.DrawLine(pen, new Point(0, size.Height), new Point(size.Width, size.Height));
         }
 
-        public void OnBeingAddedToTimeline() {
-            this.Track.ClipAdded += this.OnClipAdded;
-            this.Track.ClipRemoved += this.OnClipRemoved;
-            this.Track.ClipMovedTracks += this.OnClipMovedTracks;
-            this.Track.HeightChanged += this.OnTrackHeightChanged;
-            this.Track.ColourChanged += this.OnTrackColourChanged;
-            int i = 0;
-            foreach (Clip clip in this.Track.Clips) {
-                this.InsertClipInternal(clip, i++);
-            }
+        public void OnBeingAddedToTimeline(TimelineSequenceControl parent, Track track) {
+            this.Timeline = parent;
+            this.Track = track;
+
+            track.ClipAdded += this.OnClipAdded;
+            track.ClipRemoved += this.OnClipRemoved;
+            track.ClipMovedTracks += this.OnClipMovedTracks;
+            track.HeightChanged += this.OnTrackHeightChanged;
+            track.ColourChanged += this.OnTrackColourChanged;
         }
 
         public void OnAddedToTimeline() {
             this.isSelectedBinder.Attach(this, this.Track);
+            this.UpdateTrackColour();
+            int i = 0;
+            foreach (Clip clip in this.Track.Clips) {
+                this.InsertClipInternal(clip, i++);
+            }
         }
 
         public void OnBeginRemovedFromTimeline() {
@@ -217,7 +224,8 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public void OnRemovedFromTimeline() {
-
+            this.Timeline = null;
+            this.Track = null;
         }
 
         public void OnIndexMoving(int oldIndex, int newIndex) {

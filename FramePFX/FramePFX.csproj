@@ -582,7 +582,9 @@
   <ItemGroup>
     <Resource Include="Resources\Fonts\Oxanium\OFL.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="docs\TheUI.md" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SkiaSharp.NativeAssets.macOS.2.88.7\build\net462\SkiaSharp.NativeAssets.macOS.targets" Condition="Exists('..\packages\SkiaSharp.NativeAssets.macOS.2.88.7\build\net462\SkiaSharp.NativeAssets.macOS.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

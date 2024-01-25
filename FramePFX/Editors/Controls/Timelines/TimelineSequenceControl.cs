@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -49,7 +50,11 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public double TotalFramePixels => this.Timeline.Zoom * this.Timeline.MaxDuration;
 
+        private const int MaxCachedTracks = 4;
+        private readonly Stack<TimelineTrackControl> cachedTracks;
+
         public TimelineSequenceControl() {
+            this.cachedTracks = new Stack<TimelineTrackControl>();
         }
 
         public void SetPlayHeadToMouseCursor(MouseDevice device) {
@@ -82,7 +87,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                 oldTimeline.TrackMoved -= this.OnTrackMoved;
                 oldTimeline.MaxDurationChanged -= this.OnMaxDurationChanged;
                 for (int i = this.InternalChildren.Count - 1; i >= 0; i--) {
-                    this.RemoveTrackInternal(oldTimeline.Tracks[i], i);
+                    this.RemoveTrackInternal(i);
                 }
             }
 
@@ -105,7 +110,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void OnTrackRemoved(Timeline timeline, Track track, int index) {
-            this.RemoveTrackInternal(track, index);
+            this.RemoveTrackInternal(index);
         }
 
         private void OnTrackMoved(Timeline timeline, Track track, int oldIndex, int newIndex) {
@@ -118,9 +123,9 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void InsertTrackInternal(Track track, int index) {
-            TimelineTrackControl control = new TimelineTrackControl(track);
+            TimelineTrackControl control = this.cachedTracks.Count > 0 ? this.cachedTracks.Pop() : new TimelineTrackControl();
             control.Timeline = this;
-            control.OnBeingAddedToTimeline();
+            control.OnBeingAddedToTimeline(this, track);
             this.InternalChildren.Insert(index, control);
             control.OnAddedToTimeline();
             control.InvalidateMeasure();
@@ -128,12 +133,13 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.InvalidateVisual();
         }
 
-        private void RemoveTrackInternal(Track track, int index) {
+        private void RemoveTrackInternal(int index) {
             TimelineTrackControl control = (TimelineTrackControl) this.InternalChildren[index];
             control.OnBeginRemovedFromTimeline();
             this.InternalChildren.RemoveAt(index);
             control.OnRemovedFromTimeline();
-            control.Timeline = null;
+            if (this.cachedTracks.Count < MaxCachedTracks)
+                this.cachedTracks.Push(control);
             this.InvalidateMeasure();
             this.InvalidateVisual();
         }

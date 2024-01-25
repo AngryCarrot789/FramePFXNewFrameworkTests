@@ -73,13 +73,17 @@ namespace FramePFX.Editors.Views {
             if (newEditor != null) {
                 newEditor.ProjectChanged += this.OnEditorProjectChanged;
                 newEditor.Playback.PlaybackStateChanged += this.OnEditorPlaybackStateChanged;
-                Project project = newEditor.Project;
-                if (project != null) {
-                    this.UpdateResourceManager(project.ResourceManager);
-                    this.UpdateTimeline(project.MainTimeline);
-                }
-
                 this.ViewPortElement.VideoEditor = newEditor;
+            }
+
+            Project project = newEditor?.Project;
+            if (project != null) {
+                this.UpdateResourceManager(project.ResourceManager);
+                this.UpdateTimeline(project.MainTimeline);
+            }
+            else {
+                this.UpdateResourceManager(null);
+                this.UpdateTimeline(null);
             }
 
             this.UpdatePlayBackButtons(newEditor?.Playback);

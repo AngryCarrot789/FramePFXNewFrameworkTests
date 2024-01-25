@@ -11,6 +11,11 @@ namespace FramePFX.Editors {
     public delegate void ProjectChangedEventHandler(VideoEditor editor, Project oldProject, Project newProject);
 
     /// <summary>
+    /// A general delegate for parameter-less events containing only a reference to the video editor that fired the event
+    /// </summary>
+    public delegate void VideoEditorEventHandler(VideoEditor editor);
+
+    /// <summary>
     /// The class which stores all of the data for the video editor application
     /// </summary>
     public class VideoEditor {

@@ -124,7 +124,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.FrameBegin = span.Begin;
             this.FrameDuration = span.Duration;
             if (this.AutomationSequence is AutomationSequenceEditor editor) {
-                editor.FrameBegin = span.Begin;
                 editor.FrameDuration = span.Duration;
             }
         }
@@ -139,7 +138,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.frameSpanBinder.Attach(this, this.Model);
             this.isSelectedBinder.Attach(this, this.Model);
             if (this.AutomationSequence is AutomationSequenceEditor editor) {
-                editor.FrameBegin = this.frameBegin;
                 editor.FrameDuration = this.frameDuration;
                 editor.Sequence = this.Model.AutomationData[VideoClip.OpacityParameter];
             }
@@ -286,22 +284,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
         }
 
-        private void SetCursorForMousePoint(Point mpos) {
-            Size renderSize = this.RenderSize;
-            if (mpos.X <= EdgeGripSize) {
-                this.SetCursorForDragState(DragState.DragLeftEdge, true);
-            }
-            else if (mpos.X >= (renderSize.Width - EdgeGripSize)) {
-                this.SetCursorForDragState(DragState.DragRightEdge, true);
-            }
-            else if (mpos.Y <= HeaderSize) {
-                this.SetCursorForDragState(DragState.DragBody, true);
-            }
-            else {
-                this.SetCursorForDragState(DragState.None, true);
-            }
-        }
-
         protected override void OnMouseMove(MouseEventArgs e) {
             base.OnMouseMove(e);
             if (this.Model == null) {
@@ -339,14 +321,17 @@ namespace FramePFX.Editors.Controls.Timelines {
                     return;
                 }
 
-                if (this.clickPoint.X <= EdgeGripSize) {
-                    this.SetDragState(DragState.DragLeftEdge);
-                }
-                else if (this.clickPoint.X >= (this.ActualWidth - EdgeGripSize)) {
-                    this.SetDragState(DragState.DragRightEdge);
-                }
-                else if (this.clickPoint.Y <= HeaderSize) {
-                    this.SetDragState(DragState.DragBody);
+                ClipPart part = this.GetPartForPoint(this.clickPoint);
+                switch (part) {
+                    case ClipPart.Header:
+                        this.SetDragState(DragState.DragBody);
+                        break;
+                    case ClipPart.LeftGrip:
+                        this.SetDragState(DragState.DragLeftEdge);
+                        break;
+                    case ClipPart.RightGrip:
+                        this.SetDragState(DragState.DragRightEdge);
+                        break;
                 }
             }
             else if (this.dragState == DragState.None) {
@@ -483,6 +468,12 @@ namespace FramePFX.Editors.Controls.Timelines {
         protected override void OnRender(DrawingContext dc) {
             base.OnRender(dc);
             Rect rect = new Rect(new Point(), this.RenderSize);
+            if (this.renderSizeRectGeometry.Rect != rect) {
+                this.renderSizeRectGeometry.Rect = rect;
+            }
+
+            dc.PushClip(this.renderSizeRectGeometry);
+
             if (this.Background is Brush background) {
                 dc.DrawRectangle(background, null, rect);
             }
@@ -490,13 +481,6 @@ namespace FramePFX.Editors.Controls.Timelines {
             if (this.Track?.TrackColourBrush is Brush headerBrush) {
                 dc.DrawRectangle(headerBrush, null, new Rect(0, 0, rect.Width, Math.Min(rect.Height, HeaderSize)));
             }
-
-            // if (this.formattedText == null && this.DisplayName is string str) {
-            //     Typeface typeface = new Typeface(this.FontFamily, this.FontStyle, this.FontWeight, this.FontStretch);
-            //     this.formattedText = new FormattedText(str, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 12d, this.Foreground, 12d);
-            // }
-            // if (this.formattedText != null)
-            //     dc.DrawText(this.formattedText, new Point());
 
             // glyph run is way faster than using formatted text
             if (this.glyphRun == null && this.DisplayName is string str) {
@@ -506,10 +490,10 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
 
             if (this.glyphRun != null) {
-                dc.PushClip(this.renderSizeRectGeometry);
                 dc.DrawGlyphRun(Brushes.White, this.glyphRun);
-                dc.Pop();
             }
+
+            dc.Pop();
 
             // Pen pen = new Pen(Brushes.Black, 1d);
             // dc.DrawLine(pen, new Point(0d, 0d), new Point(0d, rect.Height));
@@ -521,12 +505,60 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.AutomationSequence.UnitZoom = newZoom;
         }
 
+        private ClipPart GetPartForPoint(Point mpos) {
+            if (mpos.Y <= HeaderSize) {
+                if (mpos.X <= EdgeGripSize) {
+                    return ClipPart.LeftGrip;
+                }
+                else if (mpos.X >= (this.ActualWidth - EdgeGripSize)) {
+                    return ClipPart.RightGrip;
+                }
+                else {
+                    return ClipPart.Header;
+                }
+            }
+            else {
+                Size size = this.RenderSize;
+                if (mpos.X < 0 || mpos.Y < 0 || mpos.X > size.Width || mpos.Y > size.Height)
+                    return ClipPart.None;
+                return ClipPart.Body;
+            }
+        }
+
+        private void SetCursorForMousePoint(Point mpos) {
+            ClipPart part = this.GetPartForPoint(mpos);
+            switch (part) {
+                case ClipPart.None:
+                case ClipPart.Body:
+                    this.SetCursorForDragState(DragState.None, true);
+                    break;
+                case ClipPart.Header:
+                    this.SetCursorForDragState(DragState.DragBody, true);
+                    break;
+                case ClipPart.LeftGrip:
+                    this.SetCursorForDragState(DragState.DragLeftEdge, true);
+                    break;
+                case ClipPart.RightGrip:
+                    this.SetCursorForDragState(DragState.DragRightEdge, true);
+                    break;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
         private enum DragState {
             None,
             Initiated,
             DragBody,
             DragLeftEdge,
             DragRightEdge
+        }
+
+        private enum ClipPart {
+            None,
+            Body,
+            Header,
+            LeftGrip,
+            RightGrip
         }
     }
 }

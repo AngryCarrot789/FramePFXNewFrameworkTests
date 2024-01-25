@@ -135,7 +135,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
             timeStampBoard.MouseLeftButtonDown += (s, e) => this.MovePlayHeadToMouseCursor(e.GetPosition((IInputElement) s).X, true, false);
 
-            this.CreateTimelineButtonAction(addVideoTrackButton, (t) => {
+            this.CreateTimelineButtonAction(addVideoTrackButton, t => {
                 VideoTrack track = new VideoTrack {DisplayName = "Video Track " + (t.Tracks.Count(x => x is VideoTrack) + 1).ToString()};
                 t.AddTrack(track);
                 track.InvalidateRender();
@@ -210,7 +210,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             ModifierKeys mods = Keyboard.Modifiers;
             if ((mods & ModifierKeys.Alt) != 0) {
                 if (VisualTreeUtils.GetParent<TimelineTrackControl>(e.OriginalSource as DependencyObject) is TimelineTrackControl track) {
-                    track.Track.Height = Maths.Clamp(track.Track.Height + (e.Delta / 120d * 18d), TimelineClipControl.HeaderSize, 200d);
+                    track.Track.Height = Maths.Clamp(track.Track.Height + (e.Delta / 120d * 8), TimelineClipControl.HeaderSize, 200d);
                 }
 
                 e.Handled = true;

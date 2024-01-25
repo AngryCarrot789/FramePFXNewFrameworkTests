@@ -157,6 +157,31 @@ namespace FramePFX.Editors.Automation.Params {
         // GlobalIndex is only set once in RegisterInternal, therefore this code is fine
         // ReSharper disable once NonReadonlyMemberInGetHashCode
         public override int GetHashCode() => this.GlobalIndex;
+
+        /// <summary>
+        /// Returns an enumerable of all parameters that are applicable to the given type.
+        /// </summary>
+        /// <param name="targetType">The type to get the applicable parameters of</param>
+        /// <param name="inHierarchy">
+        /// When true, it will also accumulate the parameters of every base type. When false,
+        /// it just gets the parameters for the exact given type (parameters whose owner types match)</param>
+        /// <returns>An enumerable of parameters</returns>
+        public static List<Parameter> GetApplicableParameters(Type targetType, bool inHierarchy = true) {
+            List<Parameter> parameters = new List<Parameter>();
+            if (TypeToParametersMap.TryGetValue(targetType, out List<Parameter> list)) {
+                parameters.AddRange(list);
+            }
+
+            if (inHierarchy) {
+                for (Type bType = targetType.BaseType; bType != null; bType = bType.BaseType) {
+                    if (TypeToParametersMap.TryGetValue(bType, out list)) {
+                        parameters.AddRange(list);
+                    }
+                }
+            }
+
+            return parameters;
+        }
     }
 
     public sealed class ParameterFloat : Parameter {
