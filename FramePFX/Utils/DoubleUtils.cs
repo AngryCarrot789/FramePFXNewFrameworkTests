@@ -7,21 +7,21 @@ namespace FramePFX.Utils {
         internal const double DBL_EPSILON = 2.22044604925031E-16;
         internal const float FLT_MIN = 1.175494E-38f;
 
-        public static bool AreClose(double value1, double value2) {
-            if (value1 == value2)
+        public static bool AreClose(double a, double b) {
+            if (a == b)
                 return true;
-            double num1 = (Math.Abs(value1) + Math.Abs(value2) + 10.0) * 2.22044604925031E-16;
-            double num2 = value1 - value2;
-            return -num1 < num2 && num1 > num2;
+            double x = (Math.Abs(a) + Math.Abs(b) + 10.0) * 2.22044604925031E-16;
+            double y = a - b;
+            return -x < y && x > y;
         }
 
-        public static bool LessThan(double value1, double value2) => value1 < value2 && !AreClose(value1, value2);
+        public static bool LessThan(double a, double b) => a < b && !AreClose(a, b);
 
-        public static bool GreaterThan(double value1, double value2) => value1 > value2 && !AreClose(value1, value2);
+        public static bool GreaterThan(double a, double b) => a > b && !AreClose(a, b);
 
-        public static bool LessThanOrClose(double value1, double value2) => value1 < value2 || AreClose(value1, value2);
+        public static bool LessThanOrClose(double a, double b) => a < b || AreClose(a, b);
 
-        public static bool GreaterThanOrClose(double value1, double value2) => value1 > value2 || AreClose(value1, value2);
+        public static bool GreaterThanOrClose(double a, double b) => a > b || AreClose(a, b);
 
         public static bool IsOne(double value) => Math.Abs(value - 1.0) < 2.22044604925031E-15;
 

@@ -183,6 +183,10 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Surfaces {
             this.ignoreTrackHeightChanged = true;
 
             if (isExpanded) {
+                if (DoubleUtils.AreClose(this.trackHeightBeforeCollapse, Track.MinimumHeight)) {
+                    this.trackHeightBeforeCollapse = Track.DefaultHeight;
+                }
+
                 track.Height = this.trackHeightBeforeCollapse;
             }
             else {
@@ -201,7 +205,14 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Surfaces {
 
         private void UpdateTrackHeightExpander() {
             this.ignoreExpandTrackEvent = true;
-            this.ToggleExpandTrackButton.IsChecked = !Maths.Equals(this.Owner.Track.Height, Track.MinimumHeight);
+            if (Maths.Equals(this.Owner.Track.Height, Track.MinimumHeight)) {
+                this.trackHeightBeforeCollapse = Track.DefaultHeight;
+                this.ToggleExpandTrackButton.IsChecked = false;
+            }
+            else {
+                this.ToggleExpandTrackButton.IsChecked = true;
+            }
+
             this.ignoreExpandTrackEvent = false;
         }
 
