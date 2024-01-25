@@ -8,7 +8,6 @@ using FramePFX.Shortcuts.Attributes;
 using FramePFX.Shortcuts.Events;
 using FramePFX.Shortcuts.Inputs;
 using FramePFX.Shortcuts.Usage;
-using FramePFX.Utils;
 
 namespace FramePFX.Shortcuts.Managing {
     public delegate void ShortcutActivityEventHandler(ShortcutInputManager manager);

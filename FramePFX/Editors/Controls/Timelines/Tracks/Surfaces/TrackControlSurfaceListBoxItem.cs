@@ -5,25 +5,33 @@ using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Utils;
 
-namespace FramePFX.Editors.Controls.Timelines {
-    public class TimelineTrackListBoxItem : ListBoxItem {
+namespace FramePFX.Editors.Controls.Timelines.Tracks.Surfaces {
+    /// <summary>
+    /// A track item for the track list box. This control represents the track control surface,
+    /// which lets you modify things like volume, opacity, selected automation parameter, etc.
+    /// <para>
+    /// This control surface is stored in our <see cref="ContentControl.Content"/> property, which
+    /// is created dynamically based on the type of track that is connected (via <see cref="OnAddingToList"/>)
+    /// </para>
+    /// </summary>
+    public class TrackControlSurfaceListBoxItem : ListBoxItem {
         /// <summary>
         /// Gets this track item's associated track model
         /// </summary>
         public Track Track { get; private set; }
 
         /// <summary>
-        /// Gets our owner list
+        /// Gets our owner list box
         /// </summary>
-        public TimelineTrackListBox TrackList { get; private set; }
+        public TrackControlSurfaceListBox TrackList { get; private set; }
 
         private readonly GetSetAutoPropertyBinder<Track> isSelectedBinder = new GetSetAutoPropertyBinder<Track>(IsSelectedProperty, nameof(VideoTrack.IsSelectedChanged), b => b.Model.IsSelected.Box(), (b, v) => b.Model.IsSelected = (bool) v);
 
-        public TimelineTrackListBoxItem() {
+        public TrackControlSurfaceListBoxItem() {
         }
 
-        static TimelineTrackListBoxItem() {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof (TimelineTrackListBoxItem), new FrameworkPropertyMetadata(typeof(TimelineTrackListBoxItem)));
+        static TrackControlSurfaceListBoxItem() {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof (TrackControlSurfaceListBoxItem), new FrameworkPropertyMetadata(typeof(TrackControlSurfaceListBoxItem)));
         }
 
         private void OnTrackHeightChanged(Track track) {
@@ -37,7 +45,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         #region Model Linkage
 
-        public void OnAddingToList(TimelineTrackListBox ownerList, Track track) {
+        public void OnAddingToList(TrackControlSurfaceListBox ownerList, Track track) {
             this.Track = track ?? throw new ArgumentNullException(nameof(track));
             this.TrackList = ownerList;
             this.Track.HeightChanged += this.OnTrackHeightChanged;
@@ -45,7 +53,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public void OnAddedToList() {
-            ((TimelineTrackListBoxItemContent) this.Content).Connect(this);
+            ((TrackControlSurface) this.Content).Connect(this);
             this.Height = this.Track.Height;
             this.isSelectedBinder.Attach(this, this.Track);
         }
@@ -53,7 +61,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         public void OnRemovingFromList() {
             this.Track.HeightChanged -= this.OnTrackHeightChanged;
             this.isSelectedBinder.Detatch();
-            TimelineTrackListBoxItemContent content = (TimelineTrackListBoxItemContent) this.Content;
+            TrackControlSurface content = (TrackControlSurface) this.Content;
             content.Disconnect();
             this.Content = null;
             this.TrackList.ReleaseContentObject(this.Track.GetType(), content);

@@ -1,26 +1,33 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using FramePFX.Editors.Controls.Timelines.Tracks.Clips;
 using FramePFX.Editors.Timelines.Tracks.Clips;
 
-namespace FramePFX.Editors.Controls.Timelines {
-    public class TimelineTrackClipPanel : Panel {
+namespace FramePFX.Editors.Controls.Timelines.Tracks {
+    /// <summary>
+    /// A panel which stores a track's clip items. This is pretty much just a canvas
+    /// </summary>
+    public class ClipStoragePanel : Panel {
         public TimelineTrackControl Track { get; set; }
 
         private readonly Stack<TimelineClipControl> itemCache;
 
-        public UIElementCollection Clips => this.InternalChildren;
+        public UIElementCollection MyInternalChildren => this.InternalChildren;
 
-        public TimelineTrackClipPanel() {
+        public ClipStoragePanel() {
             this.itemCache = new Stack<TimelineClipControl>();
         }
 
-        public void InsertClipInternal(Clip clip, int index) {
-            this.InsertClipInternal(this.itemCache.Count > 0 ? this.itemCache.Pop() : new TimelineClipControl(), clip, index);
+        public IEnumerable<TimelineClipControl> GetClips() => this.InternalChildren.Cast<TimelineClipControl>();
+
+        public void InsertClip(Clip clip, int index) {
+            this.InsertClip(this.itemCache.Count > 0 ? this.itemCache.Pop() : new TimelineClipControl(), clip, index);
         }
 
-        public void InsertClipInternal(TimelineClipControl control, Clip clip, int index) {
+        public void InsertClip(TimelineClipControl control, Clip clip, int index) {
             if (this.Track == null)
                 throw new InvalidOperationException("Cannot insert clips without a track associated");
             control.OnAdding(this.Track, clip);
@@ -29,6 +36,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             // control.UpdateLayout();
             control.ApplyTemplate();
             control.OnAdded();
+            this.Track.Timeline.TimelineControl.UpdateClipAutomationVisibility(control);
         }
 
         public void RemoveClipInternal(int index) {

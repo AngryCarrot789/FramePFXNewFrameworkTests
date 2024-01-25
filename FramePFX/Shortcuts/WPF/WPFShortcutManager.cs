@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using FramePFX.Editors.Views;
@@ -9,7 +8,6 @@ using FramePFX.Shortcuts.Inputs;
 using FramePFX.Shortcuts.Keymapping;
 using FramePFX.Shortcuts.Managing;
 using FramePFX.Shortcuts.Usage;
-using FramePFX.Shortcuts.WPF.Bindings;
 using FramePFX.Utils;
 
 namespace FramePFX.Shortcuts.WPF {

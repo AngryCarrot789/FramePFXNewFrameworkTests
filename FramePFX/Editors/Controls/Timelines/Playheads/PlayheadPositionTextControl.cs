@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines;
 
-namespace FramePFX.Editors.Controls.Timelines {
+namespace FramePFX.Editors.Controls.Timelines.Playheads {
     public class PlayheadPositionTextControl : Control {
         public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(PlayheadPositionTextControl), new PropertyMetadata(null, (d, e) => ((PlayheadPositionTextControl) d).OnTimelineChanged((Timeline)e.OldValue, (Timeline)e.NewValue)));
         public static readonly DependencyProperty PlayHeadPositionProperty = DependencyProperty.Register("PlayHeadPosition", typeof(long), typeof(PlayheadPositionTextControl), new FrameworkPropertyMetadata(0L));

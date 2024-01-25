@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using FramePFX.Editors.Timelines;
 
-namespace FramePFX.Editors.Controls.Timelines {
+namespace FramePFX.Editors.Controls.Timelines.Playheads {
     public abstract class BasePlayHeadControl : Control {
         protected static readonly FieldInfo IsDraggingPropertyKeyField = typeof(Thumb).GetField("IsDraggingPropertyKey", BindingFlags.NonPublic | BindingFlags.Static);
         public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(BasePlayHeadControl), new PropertyMetadata(null, (d, e) => ((BasePlayHeadControl) d).OnTimelineChanged((Timeline) e.OldValue, (Timeline) e.NewValue)));
@@ -14,7 +14,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             set => this.SetValue(TimelineProperty, value);
         }
 
-        public BasePlayHeadControl() {
+        protected BasePlayHeadControl() {
         }
 
         public abstract long GetFrame(Timeline timeline);

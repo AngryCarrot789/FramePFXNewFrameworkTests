@@ -1,4 +1,3 @@
-using System;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using FramePFX.Editors.Controls.Automation;
@@ -6,8 +5,8 @@ using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Controls.Dragger;
 using FramePFX.Editors.Timelines.Tracks;
 
-namespace FramePFX.Editors.Controls.Timelines {
-    public class TimelineTrackListBoxItemContent_Video : TimelineTrackListBoxItemContent {
+namespace FramePFX.Editors.Controls.Timelines.Tracks.Surfaces {
+    public class TrackControlSurfaceVideo : TrackControlSurface {
         public NumberDragger OpacityDragger { get; private set; }
 
         public ToggleButton VisibilityButton { get; private set; }
@@ -17,7 +16,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         private readonly AutomationBinder<VideoTrack> opacityBinder = new AutomationBinder<VideoTrack>(VideoTrack.OpacityParameter);
         private readonly AutomationBinder<VideoTrack> visibilityBinder = new AutomationBinder<VideoTrack>(VideoTrack.VisibleParameter);
 
-        public TimelineTrackListBoxItemContent_Video() {
+        public TrackControlSurfaceVideo() {
             this.opacityBinder.UpdateModel += UpdateOpacityForModel;
             this.opacityBinder.UpdateControl += UpdateOpacityForControl;
             this.visibilityBinder.UpdateModel += UpdateVisibilityForModel;
@@ -42,22 +41,22 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private static void UpdateOpacityForModel(AutomationBinder<VideoTrack> binder) {
-            AutomatedControlUtils.SetDefaultKeyFrameOrAddNew(binder.Model, ((TimelineTrackListBoxItemContent_Video) binder.Control).OpacityDragger, binder.Parameter, RangeBase.ValueProperty);
+            AutomatedControlUtils.SetDefaultKeyFrameOrAddNew(binder.Model, ((TrackControlSurfaceVideo) binder.Control).OpacityDragger, binder.Parameter, RangeBase.ValueProperty);
             binder.Model.InvalidateRender();
         }
 
         private static void UpdateOpacityForControl(AutomationBinder<VideoTrack> binder) {
-            TimelineTrackListBoxItemContent_Video control = (TimelineTrackListBoxItemContent_Video) binder.Control;
+            TrackControlSurfaceVideo control = (TrackControlSurfaceVideo) binder.Control;
             control.OpacityDragger.Value = binder.Model.Opacity;
         }
 
         private static void UpdateVisibilityForModel(AutomationBinder<VideoTrack> binder) {
-            AutomatedControlUtils.SetDefaultKeyFrameOrAddNew(binder.Model, ((TimelineTrackListBoxItemContent_Video) binder.Control).VisibilityButton, binder.Parameter, ToggleButton.IsCheckedProperty);
+            AutomatedControlUtils.SetDefaultKeyFrameOrAddNew(binder.Model, ((TrackControlSurfaceVideo) binder.Control).VisibilityButton, binder.Parameter, ToggleButton.IsCheckedProperty);
             binder.Model.InvalidateRender();
         }
 
         private static void UpdateVisibilityForControl(AutomationBinder<VideoTrack> binder) {
-            TimelineTrackListBoxItemContent_Video control = (TimelineTrackListBoxItemContent_Video) binder.Control;
+            TrackControlSurfaceVideo control = (TrackControlSurfaceVideo) binder.Control;
             control.VisibilityButton.IsChecked = binder.Model.Visible;
         }
 

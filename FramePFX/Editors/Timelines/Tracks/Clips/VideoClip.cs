@@ -17,13 +17,14 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
     /// a proxy object which is accessible via the render thread
     /// </para>
     /// <para>
-    /// Rendering (on rendering thread). This is where the clip actually renders its contents. Since this is done off
-    /// the main thread on a render-specific thread, it's very important that the clip does not access any unsynchronised
-    /// data. The render data should be calculated in the preparation phase
+    /// Rendering (on a randomly assigned rendering thread). This is where the clip actually renders its contents.
+    /// Since this is done off the main thread on a render-specific thread, it's very important that the clip does
+    /// not access any un-synchronised data. The render data should be calculated in the preparation phase
     /// </para>
     /// <para>
-    /// Final frame assembly (on application main thread). This is where all of the rendered data is
-    /// assembled into a final frame and presented to the user in the view port
+    /// Final frame assembly (on render thread). This is where all of the rendered data is assembled into a final
+    /// frame. An event (<see cref="RenderManager.FrameRendered"/>) is fired on the application main thread, and the view
+    /// port then presents the fully rendered frame to the user
     /// </para>
     /// </summary>
     public abstract class VideoClip : Clip {

@@ -27,7 +27,7 @@ namespace FramePFX.Editors.Automation.Keyframes {
         private bool isOverrideEnabled;
 
         /// <summary>
-        /// Whether or not this sequence has any key frames
+        /// True when this sequence has no key frames, false when key frames are present
         /// </summary>
         public bool IsEmpty => this.keyFrameList.Count < 1;
 

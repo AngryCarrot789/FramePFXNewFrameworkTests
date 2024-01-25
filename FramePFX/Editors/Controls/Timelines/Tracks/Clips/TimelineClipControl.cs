@@ -10,15 +10,15 @@ using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Utils;
 using Timeline = FramePFX.Editors.Timelines.Timeline;
 
-namespace FramePFX.Editors.Controls.Timelines {
-    public class TimelineClipControl : Control {
+namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
+    /// <summary>
+    /// The control used to represent a clip in a UI
+    /// </summary>
+    public sealed class TimelineClipControl : Control {
         private static readonly FontFamily SegoeUI = new FontFamily("Segoe UI");
         public static readonly DependencyProperty DisplayNameProperty = DependencyProperty.Register("DisplayName", typeof(string), typeof(TimelineClipControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(bool), typeof(TimelineClipControl), new PropertyMetadata(BoolBox.False));
 
-        /// <summary>
-        /// Gets or sets this clip's display name. This is a two way binding between the control and model
-        /// </summary>
         public string DisplayName {
             get => (string) this.GetValue(DisplayNameProperty);
             set => this.SetValue(DisplayNameProperty, value);
@@ -44,6 +44,9 @@ namespace FramePFX.Editors.Controls.Timelines {
                 this.frameDuration = value;
                 this.InvalidateMeasure();
                 this.Track.OnClipSpanChanged();
+                if (this.AutomationEditor is AutomationSequenceEditor editor) {
+                    editor.FrameDuration = value;
+                }
             }
         }
 
@@ -51,10 +54,12 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public Clip Model { get; private set; }
 
-        public AutomationSequenceEditor AutomationSequence { get; private set; }
+        public AutomationSequenceEditor AutomationEditor { get; private set; }
 
         public double TimelineZoom => this.Model.Track?.Timeline?.Zoom ?? 1d;
+        
         public double PixelBegin => this.frameBegin * this.TimelineZoom;
+
         public double PixelWidth => this.frameDuration * this.TimelineZoom;
 
         private const double MinDragInitPx = 5d;
@@ -93,7 +98,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             base.OnApplyTemplate();
             if (!(this.GetTemplateChild("PART_AutomationSequence") is AutomationSequenceEditor sequenceEditor))
                 throw new Exception("Missing PART_AutomationSequence");
-            this.AutomationSequence = sequenceEditor;
+            this.AutomationEditor = sequenceEditor;
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
@@ -110,22 +115,15 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.renderSizeRectGeometry.Rect = new Rect(sizeInfo.NewSize);
         }
 
-        private void OnGotFocus(object sender, RoutedEventArgs e) {
-            Panel.SetZIndex(this, 2);
-        }
+        private void OnGotFocus(object sender, RoutedEventArgs e) => Panel.SetZIndex(this, 2);
 
-        private void OnLostFocus(object sender, RoutedEventArgs e) {
-            Panel.SetZIndex(this, 0);
-        }
+        private void OnLostFocus(object sender, RoutedEventArgs e) => Panel.SetZIndex(this, 0);
 
         #region Model Binding
 
         private void SetSizeFromSpan(FrameSpan span) {
             this.FrameBegin = span.Begin;
             this.FrameDuration = span.Duration;
-            if (this.AutomationSequence is AutomationSequenceEditor editor) {
-                editor.FrameDuration = span.Duration;
-            }
         }
 
         public void OnAdding(TimelineTrackControl trackList, Clip clip) {
@@ -137,21 +135,20 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.displayNameBinder.Attach(this, this.Model);
             this.frameSpanBinder.Attach(this, this.Model);
             this.isSelectedBinder.Attach(this, this.Model);
-            if (this.AutomationSequence is AutomationSequenceEditor editor) {
+            if (this.AutomationEditor is AutomationSequenceEditor editor) {
                 editor.FrameDuration = this.frameDuration;
                 editor.Sequence = this.Model.AutomationData[VideoClip.OpacityParameter];
             }
         }
 
         public void OnRemoving() {
-
-        }
-
-        public void OnRemoved() {
             this.displayNameBinder.Detatch();
             this.frameSpanBinder.Detatch();
             this.isSelectedBinder.Detatch();
-            this.AutomationSequence.Sequence = null;
+            this.AutomationEditor.Sequence = null;
+        }
+
+        public void OnRemoved() {
             this.Track = null;
             this.Model = null;
         }
@@ -261,12 +258,10 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void SetDragState(DragState state) {
-            if (this.dragState == state) {
-                return;
+            if (this.dragState != state) {
+                this.dragState = state;
+                this.SetCursorForDragState(state, false);
             }
-
-            this.dragState = state;
-            this.SetCursorForDragState(state, false);
         }
 
         private void SetCursorForDragState(DragState state, bool isPreview) {
@@ -311,8 +306,8 @@ namespace FramePFX.Editors.Controls.Timelines {
             }
 
             this.SetCursorForMousePoint(mpos);
-            TimelineSequenceControl timelineCtrl;
-            if (this.Track == null || (timelineCtrl = this.Track.Timeline) == null) {
+            TrackStoragePanel ctrl;
+            if (this.Track == null || (ctrl = this.Track.Timeline) == null) {
                 return;
             }
 
@@ -355,8 +350,8 @@ namespace FramePFX.Editors.Controls.Timelines {
                         if (offset != 0) {
                             FrameSpan newSpan = new FrameSpan(oldSpan.Begin + offset, oldSpan.Duration);
                             long newEndIndex = newSpan.EndIndex;
-                            if (newEndIndex > timelineCtrl.Timeline.MaxDuration) {
-                                timelineCtrl.Timeline.MaxDuration = newEndIndex + 300;
+                            if (newEndIndex > ctrl.Timeline.MaxDuration) {
+                                ctrl.Timeline.MaxDuration = newEndIndex + 300;
                             }
 
                             this.isUpdatingFrameSpanFromDrag = true;
@@ -366,7 +361,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                     }
                 }
 
-                if (Math.Abs(mdif.Y) >= 1.0d && timelineCtrl.Timeline is Timeline timeline) {
+                if (Math.Abs(mdif.Y) >= 1.0d && ctrl.Timeline is Timeline timeline) {
                     int trackIndex = timeline.Tracks.IndexOf(this.Model.Track);
                     const double area = 0;
                     if (mpos.Y < Math.Min(area, this.clickPoint.Y)) {
@@ -410,8 +405,8 @@ namespace FramePFX.Editors.Controls.Timelines {
                             // }
 
                             FrameSpan newSpan = FrameSpan.FromIndex(oldSpan.Begin, newEndIndex);
-                            if (newEndIndex > timelineCtrl.Timeline.MaxDuration) {
-                                timelineCtrl.Timeline.MaxDuration = newEndIndex + 300;
+                            if (newEndIndex > ctrl.Timeline.MaxDuration) {
+                                ctrl.Timeline.MaxDuration = newEndIndex + 300;
                             }
 
                             this.isUpdatingFrameSpanFromDrag = true;
@@ -440,8 +435,8 @@ namespace FramePFX.Editors.Controls.Timelines {
 
                             FrameSpan newSpan = FrameSpan.FromIndex(newBegin, oldSpan.EndIndex);
                             long newEndIndex = newSpan.EndIndex;
-                            if (newEndIndex > timelineCtrl.Timeline.MaxDuration) {
-                                timelineCtrl.Timeline.MaxDuration = newEndIndex + 300;
+                            if (newEndIndex > ctrl.Timeline.MaxDuration) {
+                                ctrl.Timeline.MaxDuration = newEndIndex + 300;
                             }
 
                             this.isUpdatingFrameSpanFromDrag = true;
@@ -502,7 +497,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public void OnZoomChanged(double newZoom) {
             // this.InvalidateMeasure();
-            this.AutomationSequence.UnitZoom = newZoom;
+            this.AutomationEditor.UnitZoom = newZoom;
         }
 
         private ClipPart GetPartForPoint(Point mpos) {

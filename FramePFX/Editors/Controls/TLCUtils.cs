@@ -1,5 +1,6 @@
 using System;
 using FramePFX.Editors.Controls.Timelines;
+using FramePFX.Editors.Controls.Timelines.Tracks.Clips;
 using Mouse = System.Windows.Input.Mouse;
 
 namespace FramePFX.Editors.Controls {
@@ -18,7 +19,7 @@ namespace FramePFX.Editors.Controls {
         /// it, meaning it is not placed in a valid timeline
         /// </exception>
         public static long GetCursorFrame(TimelineClipControl clip, bool useRounding = true) {
-            TimelineSequenceControl timeline = clip.Track?.Timeline;
+            TrackStoragePanel timeline = clip.Track?.Timeline;
             if (timeline == null) {
                 throw new Exception("Clip does not have a timeline sequence associated with it");
             }

@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using FramePFX.Editors.Timelines;
 
-namespace FramePFX.Editors.Controls.Timelines {
+namespace FramePFX.Editors.Controls.Timelines.Playheads {
     public class PlayHeadControl : BasePlayHeadControl {
         private Thumb PART_ThumbHead;
         private Thumb PART_ThumbBody;

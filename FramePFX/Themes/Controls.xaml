@@ -140,40 +140,40 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Button.IsDefaulted" Value="true">
-                            <Setter Property="BorderBrush" Value="{DynamicResource Button.Defaulted.Border}"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource Button.Defaulted.Border}"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" Value="{DynamicResource Button.MouseOver.Background}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource Button.MouseOver.Border}"/>
+                            <Setter Property="Background" TargetName="border" Value="{DynamicResource Button.MouseOver.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource Button.MouseOver.Border}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
-                            <Setter Property="Background" Value="{DynamicResource Button.Pressed.Background}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource Button.Pressed.Border}"/>
+                            <Setter Property="Background" TargetName="border" Value="{DynamicResource Button.Pressed.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource Button.Pressed.Border}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Background" Value="{DynamicResource Button.Disabled.Background}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource Button.Disabled.Border}"/>
+                            <Setter Property="Background" TargetName="border" Value="{DynamicResource Button.Disabled.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource Button.Disabled.Border}"/>
                             <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{DynamicResource Button.Disabled.Foreground}"/>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource ToggleButton.IsChecked.Background}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource ToggleButton.IsChecked.Border}"/>
+                            <Setter Property="Background" TargetName="border" Value="{DynamicResource ToggleButton.IsChecked.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource ToggleButton.IsChecked.Border}"/>
                         </Trigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsChecked" Value="True"/>
                                 <Condition Property="IsPressed" Value="True"/>
                             </MultiTrigger.Conditions>
-                            <Setter Property="Background" Value="{DynamicResource ToggleButton.Pressed.IsChecked.Background}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource ToggleButton.Pressed.IsChecked.Border}"/>
+                            <Setter Property="Background" TargetName="border" Value="{DynamicResource ToggleButton.Pressed.IsChecked.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource ToggleButton.Pressed.IsChecked.Border}"/>
                         </MultiTrigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsChecked" Value="True"/>
                                 <Condition Property="IsMouseOver" Value="True"/>
                             </MultiTrigger.Conditions>
-                            <Setter Property="Background" Value="{DynamicResource ToggleButton.MouseOver.IsChecked.Background}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource ToggleButton.MouseOver.IsChecked.Border}"/>
+                            <Setter Property="Background" TargetName="border" Value="{DynamicResource ToggleButton.MouseOver.IsChecked.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource ToggleButton.MouseOver.IsChecked.Border}"/>
                         </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

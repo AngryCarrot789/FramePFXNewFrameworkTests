@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 
-namespace FramePFX.Editors.Controls.Timelines {
-    public class TimelineTrackListBox : ListBox {
-        public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(TimelineTrackListBox), new PropertyMetadata(null, (d, e) => ((TimelineTrackListBox) d).OnTimelineChanged((Timeline) e.OldValue, (Timeline) e.NewValue)));
+namespace FramePFX.Editors.Controls.Timelines.Tracks.Surfaces {
+    /// <summary>
+    /// A list box which stores the <see cref="TrackControlSurfaceListBoxItem"/> items
+    /// </summary>
+    public class TrackControlSurfaceListBox : ListBox {
+        public static readonly DependencyProperty TimelineProperty = DependencyProperty.Register("Timeline", typeof(Timeline), typeof(TrackControlSurfaceListBox), new PropertyMetadata(null, (d, e) => ((TrackControlSurfaceListBox) d).OnTimelineChanged((Timeline) e.OldValue, (Timeline) e.NewValue)));
 
         public Timeline Timeline {
             get => (Timeline) this.GetValue(TimelineProperty);
@@ -16,20 +20,18 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public TimelineControl TimelineControl { get; set; }
 
-        private const int MaxItemCacheCount = 8;
-        private const int MaxItemContentCacheCount = 4;
-        private readonly Stack<TimelineTrackListBoxItem> cachedItems;
-        private readonly Dictionary<Type, Stack<TimelineTrackListBoxItemContent>> itemContentCacheMap;
+        private readonly Stack<TrackControlSurfaceListBoxItem> cachedItems;
+        private readonly Dictionary<Type, Stack<TrackControlSurface>> itemContentCacheMap;
 
-        public TimelineTrackListBox() {
-            this.cachedItems = new Stack<TimelineTrackListBoxItem>();
-            this.itemContentCacheMap = new Dictionary<Type, Stack<TimelineTrackListBoxItemContent>>();
-            this.ItemsPanel = new ItemsPanelTemplate(new FrameworkElementFactory(typeof(TimelineTrackListBoxItemPanel)));
+        public TrackControlSurfaceListBox() {
+            this.cachedItems = new Stack<TrackControlSurfaceListBoxItem>();
+            this.itemContentCacheMap = new Dictionary<Type, Stack<TrackControlSurface>>();
+            this.ItemsPanel = new ItemsPanelTemplate(new FrameworkElementFactory(typeof(TrackControlSurfaceListBoxPanel)));
             this.SelectionMode = SelectionMode.Extended;
         }
 
-        static TimelineTrackListBox() {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof (TimelineTrackListBox), new FrameworkPropertyMetadata(typeof(TimelineTrackListBox)));
+        static TrackControlSurfaceListBox() {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof (TrackControlSurfaceListBox), new FrameworkPropertyMetadata(typeof(TrackControlSurfaceListBox)));
         }
 
         // I override the measuere/arrange functions to help with debugging sometimes
@@ -75,7 +77,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void InsertTrackInternal(Track track, int index) {
-            TimelineTrackListBoxItem control = this.cachedItems.Count > 0 ? this.cachedItems.Pop() : new TimelineTrackListBoxItem();
+            TrackControlSurfaceListBoxItem control = this.cachedItems.Count > 0 ? this.cachedItems.Pop() : new TrackControlSurfaceListBoxItem();
             control.OnAddingToList(this, track);
             this.Items.Insert(index, control);
             // UpdateLayout must be called explicitly, so that the visual tree
@@ -83,20 +85,20 @@ namespace FramePFX.Editors.Controls.Timelines {
             control.InvalidateMeasure();
             control.UpdateLayout();
             control.OnAddedToList();
-            // this.InvalidateMeasure();
+            this.TimelineControl.UpdateTrackAutomationVisibility(control);
         }
 
         private void RemoveTrackInternal(int index) {
-            TimelineTrackListBoxItem control = (TimelineTrackListBoxItem) this.Items[index];
+            TrackControlSurfaceListBoxItem control = (TrackControlSurfaceListBoxItem) this.Items[index];
             control.OnRemovingFromList();
             this.Items.RemoveAt(index);
             control.OnRemovedFromList();
-            this.cachedItems.Push(control);
-            // this.InvalidateMeasure();
+            if (this.cachedItems.Count < 8)
+                this.cachedItems.Push(control);
         }
 
         private void OnTrackMoved(Timeline timeline, Track track, int oldIndex, int newIndex) {
-            TimelineTrackListBoxItem control = (TimelineTrackListBoxItem) this.Items[oldIndex];
+            TrackControlSurfaceListBoxItem control = (TrackControlSurfaceListBoxItem) this.Items[oldIndex];
             control.OnIndexMoving(oldIndex, newIndex);
             this.Items.RemoveAt(oldIndex);
             this.Items.Insert(newIndex, control);
@@ -104,28 +106,30 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.InvalidateMeasure();
         }
 
-        public TimelineTrackListBoxItemContent GetContentObject(Type trackType) {
-            TimelineTrackListBoxItemContent content;
-            if (this.itemContentCacheMap.TryGetValue(trackType, out Stack<TimelineTrackListBoxItemContent> stack) && stack.Count > 0) {
+        public TrackControlSurface GetContentObject(Type trackType) {
+            TrackControlSurface content;
+            if (this.itemContentCacheMap.TryGetValue(trackType, out Stack<TrackControlSurface> stack) && stack.Count > 0) {
                 content = stack.Pop();
             }
             else {
-                content = TimelineTrackListBoxItemContent.NewInstance(trackType);
+                content = TrackControlSurface.NewInstance(trackType);
             }
 
             return content;
         }
 
-        public bool ReleaseContentObject(Type trackType, TimelineTrackListBoxItemContent contentControl) {
-            if (!this.itemContentCacheMap.TryGetValue(trackType, out Stack<TimelineTrackListBoxItemContent> stack)) {
-                this.itemContentCacheMap[trackType] = stack = new Stack<TimelineTrackListBoxItemContent>();
+        public bool ReleaseContentObject(Type trackType, TrackControlSurface contentControl) {
+            if (!this.itemContentCacheMap.TryGetValue(trackType, out Stack<TrackControlSurface> stack)) {
+                this.itemContentCacheMap[trackType] = stack = new Stack<TrackControlSurface>();
             }
-            else if (stack.Count > MaxItemContentCacheCount) {
+            else if (stack.Count > 4) {
                 return false;
             }
 
             stack.Push(contentControl);
             return true;
         }
+
+        public IEnumerable<TrackControlSurfaceListBoxItem> GetTracks() => this.Items.Cast<TrackControlSurfaceListBoxItem>();
     }
 }

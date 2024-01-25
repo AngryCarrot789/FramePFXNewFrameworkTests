@@ -451,6 +451,7 @@ namespace FramePFX.Editors.Controls.Automation {
 
         private void OnKeyFrameAdded(AutomationSequence sequence, KeyFrame keyframe, int index) {
             this.CreatePoints(index, new List<KeyFrame>() {keyframe});
+            this.InvalidKeyFrameDataAndRender();
         }
 
         private void OnKeyFrameRemoved(AutomationSequence sequence, KeyFrame keyframe, int index) {

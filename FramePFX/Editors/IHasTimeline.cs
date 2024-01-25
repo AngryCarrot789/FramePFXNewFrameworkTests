@@ -1,6 +1,6 @@
 using FramePFX.Editors.Timelines;
 
-namespace FramePFX.Editors.Controls.Timelines {
+namespace FramePFX.Editors {
     /// <summary>
     /// An interface for an object that exists in a timeline, somewhere
     /// </summary>

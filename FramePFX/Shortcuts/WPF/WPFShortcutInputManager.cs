@@ -9,7 +9,6 @@ using FramePFX.Actions.WPF;
 using FramePFX.Interactivity;
 using FramePFX.Shortcuts.Inputs;
 using FramePFX.Shortcuts.Managing;
-using FramePFX.Shortcuts.Usage;
 using FramePFX.Shortcuts.WPF.Bindings;
 using FramePFX.Utils;
 

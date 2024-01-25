@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using FramePFX.Editors.Timelines;
 
-namespace FramePFX.Editors.Controls.Timelines {
+namespace FramePFX.Editors.Controls.Timelines.Playheads {
     public class StopHeadControl : BasePlayHeadControl {
         private const int StateNone = 0;
         private const int StateInit = 1;

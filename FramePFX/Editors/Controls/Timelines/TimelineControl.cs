@@ -3,11 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using FramePFX.Editors.Controls.Rulers;
+using FramePFX.Editors.Controls.Timelines.Playheads;
+using FramePFX.Editors.Controls.Timelines.Tracks;
+using FramePFX.Editors.Controls.Timelines.Tracks.Clips;
+using FramePFX.Editors.Controls.Timelines.Tracks.Surfaces;
 using FramePFX.Editors.Timelines;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Utils;
+using Track = FramePFX.Editors.Timelines.Tracks.Track;
 
 namespace FramePFX.Editors.Controls.Timelines {
     /// <summary>
@@ -21,13 +27,13 @@ namespace FramePFX.Editors.Controls.Timelines {
             set => this.SetValue(TimelineProperty, value);
         }
 
-        public TimelineTrackListBox TrackList { get; private set; }
+        public TrackControlSurfaceListBox TrackList { get; private set; }
 
         public ScrollViewer TrackListScrollViewer { get; private set; }
 
         public ScrollViewer TimelineScrollViewer { get; private set; }
 
-        public TimelineSequenceControl TimelineSequence { get; private set; }
+        public TrackStoragePanel TrackStorage { get; private set; }
 
         public TimelineScrollableContentGrid TimelineContentGrid { get; private set; }
 
@@ -43,6 +49,13 @@ namespace FramePFX.Editors.Controls.Timelines {
         public Ruler Ruler { get; private set; }
 
         public Border RulerContainerBorder { get; private set; } // contains the ruler
+
+        public ToggleButton ToggleClipAutomationButton { get; private set; }
+        public ToggleButton ToggleTrackAutomationButton { get; private set; }
+
+        public Visibility TrackAutomationVisibility { get; private set; }
+
+        public Visibility ClipAutomationVisibility { get; private set; }
 
         private readonly List<Button> timelineActionButtons;
 
@@ -99,8 +112,8 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         public override void OnApplyTemplate() {
             base.OnApplyTemplate();
-            this.GetTemplateChild("PART_TrackListBox", out TimelineTrackListBox trackListBox);
-            this.GetTemplateChild("PART_Timeline", out TimelineSequenceControl timeline);
+            this.GetTemplateChild("PART_TrackListBox", out TrackControlSurfaceListBox trackListBox);
+            this.GetTemplateChild("PART_Timeline", out TrackStoragePanel timeline);
             this.GetTemplateChild("PART_TrackListScrollViewer", out ScrollViewer scrollViewer);
             this.GetTemplateChild("PART_SequenceScrollViewer", out ScrollViewer timelineScrollViewer);
             this.GetTemplateChild("PART_PlayheadPositionPreviewControl", out PlayheadPositionTextControl playheadPosPreview);
@@ -110,14 +123,31 @@ namespace FramePFX.Editors.Controls.Timelines {
             this.GetTemplateChild("PART_TimestampBoard", out Border timeStampBoard);
             this.GetTemplateChild("PART_TimelineSequenceBorder", out Border timelineBorder);
             this.GetTemplateChild("PART_ContentGrid", out TimelineScrollableContentGrid scrollableContent);
+            this.GetTemplateChild("PART_ToggleTrackAutomation", out ToggleButton toggleTrackAutomationBtn);
+            this.GetTemplateChild("PART_ToggleClipAutomation", out ToggleButton toggleClipAutomationBtn);
 
             // action buttons. need a better system because this is really not that good
             this.GetTemplateChild("PART_AddVideoTrackButton", out Button addVideoTrackButton);
 
+            toggleTrackAutomationBtn.IsThreeState = false;
+            toggleTrackAutomationBtn.IsChecked = true;
+            toggleClipAutomationBtn.IsThreeState = false;
+            toggleClipAutomationBtn.IsChecked = true;
+
+            this.ToggleTrackAutomationButton = toggleTrackAutomationBtn;
+            this.ToggleTrackAutomationButton.Checked += this.OnTrackAutomationToggleChanged;
+            this.ToggleTrackAutomationButton.Unchecked += this.OnTrackAutomationToggleChanged;
+            this.ToggleClipAutomationButton = toggleClipAutomationBtn;
+            this.ToggleClipAutomationButton.Checked += this.OnClipAutomationToggleChanged;
+            this.ToggleClipAutomationButton.Unchecked += this.OnClipAutomationToggleChanged;
+
+            this.UpdateClipAutomationVisibilityState();
+            this.UpdateClipAutomationVisibilityState();
+
             this.TrackList = trackListBox;
             this.TrackList.TimelineControl = this;
 
-            this.TimelineSequence = timeline;
+            this.TrackStorage = timeline;
             timeline.TimelineControl = this;
 
             this.TimelineBorder = timelineBorder;
@@ -144,6 +174,57 @@ namespace FramePFX.Editors.Controls.Timelines {
             });
         }
 
+        private void UpdateClipAutomationVisibilityState() {
+            this.ClipAutomationVisibility = (this.ToggleClipAutomationButton.IsChecked ?? false) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void UpdateTrackAutomationVisibilityState() {
+            this.TrackAutomationVisibility = (this.ToggleTrackAutomationButton.IsChecked ?? false) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void OnClipAutomationToggleChanged(object sender, RoutedEventArgs e) {
+            this.UpdateClipAutomationVisibilityState();
+            foreach (TimelineTrackControl track in this.TrackStorage.GetTracks()) {
+                foreach (TimelineClipControl clip in track.GetClips()) {
+                    this.UpdateClipAutomationVisibility(clip);
+                }
+            }
+        }
+
+        private void OnTrackAutomationToggleChanged(object sender, RoutedEventArgs e) {
+            this.UpdateTrackAutomationVisibilityState();
+            foreach (TimelineTrackControl track in this.TrackStorage.GetTracks()) {
+                this.UpdateTrackAutomationVisibility(track);
+            }
+
+            foreach (TrackControlSurfaceListBoxItem track in this.TrackList.GetTracks()) {
+                this.UpdateTrackAutomationVisibility(track);
+            }
+        }
+
+        public void UpdateTrackAutomationVisibility(TimelineTrackControl control) {
+            if (control.AutomationEditor != null) {
+                control.AutomationEditor.Visibility = this.TrackAutomationVisibility;
+            }
+        }
+
+        public void UpdateTrackAutomationVisibility(TrackControlSurfaceListBoxItem control) {
+            if (control.Content is TrackControlSurface surface) {
+                this.UpdateTrackAutomationVisibility(surface);
+            }
+        }
+
+        public void UpdateTrackAutomationVisibility(TrackControlSurface surface) {
+            if (surface.AutomationPanel != null)
+                surface.AutomationPanel.Visibility = this.TrackAutomationVisibility;
+        }
+
+        public void UpdateClipAutomationVisibility(TimelineClipControl control) {
+            if (control.AutomationEditor != null) {
+                control.AutomationEditor.Visibility = this.ClipAutomationVisibility;
+            }
+        }
+
         private void CreateTimelineButtonAction(Button button, Action<Timeline> action) {
             this.timelineActionButtons.Add(button);
             button.Click += (sender, args) => {
@@ -161,7 +242,7 @@ namespace FramePFX.Editors.Controls.Timelines {
                 oldTimeline.TrackRemoved -= this.OnTimelineTrackEvent;
             }
 
-            this.TimelineSequence.Timeline = newTimeline;
+            this.TrackStorage.Timeline = newTimeline;
             this.TrackList.Timeline = newTimeline;
             this.PlayHeadPositionPreview.Timeline = newTimeline;
             this.PlayHead.Timeline = newTimeline;
@@ -265,7 +346,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         private void OnTimelineZoomed(Timeline timeline, double oldzoom, double newzoom, ZoomType zoomtype) {
-            this.TimelineSequence?.OnZoomChanged(newzoom);
+            this.TrackStorage?.OnZoomChanged(newzoom);
             if (this.TimelineContentGrid != null)
                 this.TimelineContentGrid.Width = TimelineUtils.FrameToPixel(timeline.MaxDuration, timeline.Zoom);
 
@@ -299,7 +380,7 @@ namespace FramePFX.Editors.Controls.Timelines {
         }
 
         public TimelineTrackControl GetTimelineControlFromTrack(Track track) {
-            return this.TimelineSequence.GetTrackByModel(track);
+            return this.TrackStorage.GetTrackByModel(track);
         }
     }
 }

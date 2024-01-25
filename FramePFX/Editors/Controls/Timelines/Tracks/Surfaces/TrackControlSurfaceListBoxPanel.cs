@@ -2,8 +2,15 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace FramePFX.Editors.Controls.Timelines {
-    public class TimelineTrackListBoxItemPanel : Panel {
+namespace FramePFX.Editors.Controls.Timelines.Tracks.Surfaces {
+    /// <summary>
+    /// A panel for a <see cref="TrackControlSurfaceListBox"/>, which is used to measure
+    /// and arrange the collection of <see cref="TrackControlSurfaceListBoxItem"/>
+    /// </summary>
+    public class TrackControlSurfaceListBoxPanel : Panel {
+        public TrackControlSurfaceListBoxPanel() {
+        }
+
         protected override Size MeasureOverride(Size availableSize) {
             Size size = new Size();
             UIElementCollection items = this.InternalChildren;

@@ -86,21 +86,23 @@ namespace FramePFX.Editors.Rendering {
                 }
             }
 
-            Task[] tasks = new Task[tracks.Count];
-            for (int i = 0; i < tracks.Count; i++) {
-                VideoTrack track = tracks[i];
-                tasks[i] = Task.Run(() => track.RenderFrame(renderInfo));
-            }
+            await Task.Run(async () => {
+                Task[] tasks = new Task[tracks.Count];
+                for (int i = 0; i < tracks.Count; i++) {
+                    VideoTrack track = tracks[i];
+                    tasks[i] = Task.Run(() => track.RenderFrame(renderInfo));
+                }
 
-            this.surface.Canvas.Clear(SKColors.Transparent);
-            await Task.WhenAll(tasks);
+                this.surface.Canvas.Clear(SKColors.Transparent);
+                await Task.WhenAll(tasks);
 
-            SKPaint paint = null;
-            foreach (VideoTrack track in tracks) {
-                int count = BeginTrackOpacityLayer(this.surface.Canvas, track, ref paint);
-                track.DrawFrameIntoSurface(this.surface);
-                EndOpacityLayer(this.surface.Canvas, count, ref paint);
-            }
+                SKPaint paint = null;
+                foreach (VideoTrack track in tracks) {
+                    int count = BeginTrackOpacityLayer(this.surface.Canvas, track, ref paint);
+                    track.DrawFrameIntoSurface(this.surface);
+                    EndOpacityLayer(this.surface.Canvas, count, ref paint);
+                }
+            });
 
             this.isRendering = false;
             this.FrameRendered?.Invoke(this);
