@@ -2,21 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
-using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Factories;
+using FramePFX.Editors.ResourceManaging.ResourceHelpers;
 using FramePFX.Editors.Timelines.Effects;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Utils;
 
 namespace FramePFX.Editors.Timelines.Clips {
     public delegate void ClipSpanChangedEventHandler(Clip clip, FrameSpan oldSpan, FrameSpan newSpan);
     public delegate void ClipEventHandler(Clip clip);
 
-    public abstract class Clip : IAutomatable, IStrictFrameRange, IHaveEffects, IDestroy {
+    public abstract class Clip : IAutomatable, IStrictFrameRange, IResourceHolder, IHaveEffects, IDestroy {
         private readonly List<BaseEffect> internalEffectList;
         private FrameSpan span;
         private string displayName;
@@ -26,7 +24,16 @@ namespace FramePFX.Editors.Timelines.Clips {
 
         public Timeline Timeline => this.Track?.Timeline;
 
-        public long RelativePlayHead => this.Timeline.PlayHeadPosition - this.span.Begin;
+        public Project Project => this.Timeline?.Project;
+
+        public ReadOnlyCollection<BaseEffect> Effects { get; }
+
+        public long RelativePlayHead {
+            get {
+                Timeline timeline = this.Timeline;
+                return timeline != null ? (this.Timeline.PlayHeadPosition - this.span.Begin) : 0;
+            }
+        }
 
         public AutomationData AutomationData { get; }
 
@@ -63,13 +70,13 @@ namespace FramePFX.Editors.Timelines.Clips {
             }
         }
 
-        public ReadOnlyCollection<BaseEffect> Effects { get; }
-        public event EffectOwnerEventHandler EffectAdded;
-        public event EffectOwnerEventHandler EffectRemoved;
-        public event EffectMovedEventHandler EffectMoved;
+        public ResourceHelper ResourceHelper { get; }
 
         public string FactoryId => ClipFactory.Instance.GetId(this.GetType());
 
+        public event EffectOwnerEventHandler EffectAdded;
+        public event EffectOwnerEventHandler EffectRemoved;
+        public event EffectMovedEventHandler EffectMoved;
         public event ClipSpanChangedEventHandler FrameSpanChanged;
         public event ClipEventHandler DisplayNameChanged;
         public event ClipEventHandler IsSelectedChanged;
@@ -77,6 +84,7 @@ namespace FramePFX.Editors.Timelines.Clips {
         protected Clip() {
             this.internalEffectList = new List<BaseEffect>();
             this.Effects = this.internalEffectList.AsReadOnly();
+            this.ResourceHelper = new ResourceHelper(this);
             this.AutomationData = new AutomationData(this);
         }
 
@@ -90,6 +98,16 @@ namespace FramePFX.Editors.Timelines.Clips {
             string id = this.FactoryId;
             Clip clone = ClipFactory.Instance.NewClip(id);
             this.LoadDataIntoClone(clone, options);
+            if (options.CloneEffects) {
+                foreach (BaseEffect effect in this.Effects) {
+                    clone.AddEffect(effect.Clone());
+                }
+            }
+
+            if (options.CloneAutomationData) {
+                this.AutomationData.LoadDataIntoClone(clone.AutomationData);
+            }
+
             return clone;
         }
 
@@ -114,6 +132,10 @@ namespace FramePFX.Editors.Timelines.Clips {
             }
 
             this.Track.MoveClipToTrack(index, dstTrack, dstIndex);
+        }
+
+        protected virtual void OnTrackChanged(Track oldTrack, Track newTrack) {
+            this.ResourceHelper.SetManager(newTrack?.Project?.ResourceManager);
         }
 
         public bool IntersectsFrameAt(long playHead) {
@@ -230,7 +252,11 @@ namespace FramePFX.Editors.Timelines.Clips {
         }
 
         internal static void OnAddedToTrack(Clip clip, Track track) {
-            clip.Track = track;
+            Track oldTrack = clip.Track;
+            if (!ReferenceEquals(oldTrack, track)) {
+                clip.Track = track;
+                clip.OnTrackChanged(oldTrack, track);
+            }
         }
 
         internal static void OnRemovedFromTrack(Clip clip, Track track) {

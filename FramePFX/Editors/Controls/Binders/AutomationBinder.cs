@@ -2,10 +2,9 @@ using System;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
-using FramePFX.Editors.Controls.Timelines;
 
 namespace FramePFX.Editors.Controls.Binders {
-    public sealed class AutomationBinder<TModel> : BaseObjectBinder<TModel> where TModel : class, IHasTimeline, IAutomatable {
+    public sealed class AutomationBinder<TModel> : BaseObjectBinder<TModel> where TModel : class, IHaveTimeline, IAutomatable {
         private readonly ParameterChangedEventHandler handler;
 
         public Parameter Parameter { get; }

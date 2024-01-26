@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
-using FramePFX.Shortcuts.Usage;
 
 namespace FramePFX.Editors.Controls.Timelines {
     public class AutomationBrushConverter : IMultiValueConverter {

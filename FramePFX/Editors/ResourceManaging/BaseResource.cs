@@ -1,12 +1,9 @@
 using System;
-using System.Runtime.CompilerServices;
 using FramePFX.Editors.Factories;
 using FramePFX.Editors.ResourceManaging.Events;
 using FramePFX.RBC;
 
 namespace FramePFX.Editors.ResourceManaging {
-    public delegate void BaseResourceEventHandler(BaseResource resource);
-
     /// <summary>
     /// Base class for resource items and groups
     /// </summary>
@@ -36,11 +33,9 @@ namespace FramePFX.Editors.ResourceManaging {
                     return;
                 this.displayName = value;
                 this.DisplayNameChanged?.Invoke(this);
-                this.OnDataModified(nameof(this.DisplayName));
             }
         }
 
-        public event ResourceModifiedEventHandler DataModified;
         public event BaseResourceEventHandler DisplayNameChanged;
 
         protected BaseResource() {
@@ -76,18 +71,6 @@ namespace FramePFX.Editors.ResourceManaging {
 
         protected static void InternalSetParent(BaseResource obj, ResourceFolder parent) {
             obj.Parent = parent;
-        }
-
-        /// <summary>
-        /// Raises the <see cref="DataModified"/> event for this resource item with the given property, allowing listeners
-        /// to invalidate their objects that relied on the previous state of the property that changed e.g. text blobs)
-        /// </summary>
-        /// <param name="propertyName"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public virtual void OnDataModified([CallerMemberName] string propertyName = null) {
-            if (propertyName == null)
-                throw new ArgumentNullException(nameof(propertyName));
-            this.DataModified?.Invoke(this, propertyName);
         }
 
         /// <summary>
@@ -148,8 +131,8 @@ namespace FramePFX.Editors.ResourceManaging {
         }
 
         /// <summary>
-        /// Invoked when this resource is about to be completely deleted. It will not have a parent object nor
-        /// a manager associated with it. Dispose of unmanaged resources, unregister event handlers, etc.
+        /// Invoked when this resource is about to be completely deleted. It will not have a parent object
+        /// associated. This should dispose used resources and object, unregister event handlers, etc.
         /// <para>
         /// Any errors should be logged to the application logger
         /// </para>
@@ -157,7 +140,7 @@ namespace FramePFX.Editors.ResourceManaging {
         /// If this object is a <see cref="ResourceItem"/>, it will not be unregistered from the resource manager; that must be done manually
         /// </para>
         /// <para>
-        /// If this object is a <see cref="ResourceFolder"/>, it will recursively dispose and clear the hierarchy of items
+        /// If this object is a <see cref="ResourceFolder"/>, the child hierarchy will not be disposed; it will only dispose this object specifically
         /// </para>
         /// </summary>
         public virtual void Dispose() {

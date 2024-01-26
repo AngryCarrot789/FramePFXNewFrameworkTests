@@ -9,6 +9,7 @@ namespace FramePFX.Editors.Factories {
             // create an instance of an abstract class
             // this.RegisterType("clip_vid", typeof(VideoClip));
             this.RegisterType("vc_shape", typeof(VideoClipShape));
+            this.RegisterType("vc_image", typeof(ImageVideoClip));
         }
 
         public Clip NewClip(string id) {

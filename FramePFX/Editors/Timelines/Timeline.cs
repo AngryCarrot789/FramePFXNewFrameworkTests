@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Timelines.Clips;
@@ -89,7 +88,7 @@ namespace FramePFX.Editors.Timelines {
         /// <summary>
         /// Returns an enumerable of selected tracks
         /// </summary>
-        public IEnumerable<Track> SelectedTracks => this.selectedTracks;
+        public ReadOnlyCollection<Track> SelectedTracks { get; }
 
         /// <summary>
         /// Returns an enumerable of all selected clips in all tracks
@@ -157,6 +156,7 @@ namespace FramePFX.Editors.Timelines {
             this.tracks = new List<Track>();
             this.Tracks = new ReadOnlyCollection<Track>(this.tracks);
             this.selectedTracks = new List<Track>();
+            this.SelectedTracks = this.selectedTracks.AsReadOnly();
             this.maxDuration = 5000L;
             this.Zoom = 1.0d;
         }

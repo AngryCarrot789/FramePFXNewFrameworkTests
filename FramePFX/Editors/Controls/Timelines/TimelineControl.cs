@@ -10,9 +10,16 @@ using FramePFX.Editors.Controls.Timelines.Playheads;
 using FramePFX.Editors.Controls.Timelines.Tracks;
 using FramePFX.Editors.Controls.Timelines.Tracks.Clips;
 using FramePFX.Editors.Controls.Timelines.Tracks.Surfaces;
+using FramePFX.Editors.ResourceManaging;
+using FramePFX.Editors.ResourceManaging.Resources;
 using FramePFX.Editors.Timelines;
+using FramePFX.Editors.Timelines.Clips;
+using FramePFX.Editors.Timelines.Effects;
 using FramePFX.Editors.Timelines.Tracks;
+using FramePFX.Interactivity;
+using FramePFX.Logger;
 using FramePFX.Utils;
+using SkiaSharp;
 using Track = FramePFX.Editors.Timelines.Tracks.Track;
 
 namespace FramePFX.Editors.Controls.Timelines {
@@ -103,6 +110,56 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         static TimelineControl() {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(TimelineControl), new FrameworkPropertyMetadata(typeof(TimelineControl)));
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e) {
+            base.OnKeyDown(e);
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == 0 || e.Key != Key.V) {
+                return;
+            }
+
+            ResourceManager manager;
+            if (!(this.Timeline is Timeline timeline) || (manager = timeline.Project?.ResourceManager) == null) {
+                return;
+            }
+
+            if (!timeline.HasAnySelectedTracks || !(timeline.SelectedTracks[timeline.SelectedTracks.Count - 1] is VideoTrack track)) {
+                return;
+            }
+
+            IDataObject dataObject = Clipboard.GetDataObject();
+            if (dataObject == null || !dataObject.GetDataPresent(NativeDropTypes.Bitmap)) {
+                return;
+            }
+
+            IDataObjekt objekt = new DataObjectWrapper(dataObject);
+            if (!objekt.GetBitmap(out SKBitmap bitmap, out int error)) {
+                AppLogger.Instance.WriteLine($"Failed to get bitmap from clipboard: {(error == 2 ? "invalid image format" : "invalid object")}");
+                return;
+            }
+
+            ResourceImage image = new ResourceImage();
+            image.DisplayName = "NewImage_" + RandomUtils.RandomLetters(6);
+            bitmap.SetImmutable();
+            image.SetBitmapImage(bitmap);
+            manager.RootFolder.AddItem(image);
+            ulong id = manager.RegisterEntry(image);
+
+            ImageVideoClip imageClip = new ImageVideoClip();
+            imageClip.DisplayName = "an image!!! for " + image.DisplayName;
+            imageClip.FrameSpan = track.GetSpanUntilClipOrLimitedDuration(track.Timeline.PlayHeadPosition, maximumDurationToClip: 300);
+            imageClip.ResourceImageKey.SetTargetResourceId(id);
+            imageClip.AddEffect(new MotionEffect());
+            imageClip.IsSelected = true;
+            track.AddClip(imageClip);
+
+            this.Dispatcher.Invoke(async () => {
+                // await image.LoadResourceAsync();
+                // VideoEditor editor = track.Editor;
+                // if (editor?.SelectedTimeline != null) {
+                //     await track.Editor.DoDrawRenderFrame(editor.SelectedTimeline);
+                // }
+            });
         }
 
         private void GetTemplateChild<T>(string name, out T value) where T : DependencyObject {

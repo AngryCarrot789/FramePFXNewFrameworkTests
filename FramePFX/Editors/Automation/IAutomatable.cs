@@ -4,7 +4,7 @@ namespace FramePFX.Editors.Automation {
     /// <summary>
     /// An interface implemented by an object which supports parameter automation
     /// </summary>
-    public interface IAutomatable : IHasTimeline {
+    public interface IAutomatable : IHaveTimeline {
         /// <summary>
         /// The automation data for this object, which stores a collection of automation
         /// sequences for storing the key frames for each type of automate-able parameters

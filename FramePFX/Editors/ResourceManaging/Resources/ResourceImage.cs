@@ -2,17 +2,27 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using FramePFX.Editors.ResourceManaging.Events;
 using FramePFX.RBC;
 using SkiaSharp;
 
 namespace FramePFX.Editors.ResourceManaging.Resources {
     public class ResourceImage : ResourceItem {
-        public string FilePath { get; set; }
+        private string filePath;
+
+        public string FilePath {
+            get => this.filePath;
+            set {
+                this.filePath = value;
+            }
+        }
 
         public bool IsRawBitmapMode { get; set; }
 
         public SKBitmap bitmap;
         public SKImage image;
+
+        public event BaseResourceEventHandler ImageChanged;
 
         public ResourceImage() {
         }
@@ -21,8 +31,8 @@ namespace FramePFX.Editors.ResourceManaging.Resources {
             this.bitmap = skBitmap;
             this.image = SKImage.FromBitmap(skBitmap);
             this.IsRawBitmapMode = true;
-            this.OnDataModified(nameof(this.bitmap));
-            this.OnDataModified(nameof(this.image));
+            ResourceItem.SetOnlineHelper(this);
+            this.ImageChanged?.Invoke(this);
         }
 
         public override void WriteToRBE(RBEDictionary data) {
@@ -104,6 +114,7 @@ namespace FramePFX.Editors.ResourceManaging.Resources {
 
             this.image = img;
             this.bitmap = bmp;
+            this.ImageChanged?.Invoke(this);
         }
 
         public override void Dispose() {
@@ -112,6 +123,7 @@ namespace FramePFX.Editors.ResourceManaging.Resources {
             this.bitmap = null;
             this.image?.Dispose();
             this.image = null;
+            this.ImageChanged?.Invoke(this);
         }
 
         private readonly struct UnmanagedImageFormat {

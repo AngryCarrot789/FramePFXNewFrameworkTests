@@ -1,4 +1,3 @@
-using System.Numerics;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Rendering;
@@ -30,6 +29,7 @@ namespace FramePFX.Editors.Timelines.Effects {
         public bool UseAbsoluteScaleOrigin;
         public bool UseAbsoluteRotationOrigin;
         private SKMatrix __internalTransformationMatrix;
+        private SKMatrix renderMatrixProxy;
         private bool isMatrixDirty;
 
         public event MatrixChangedEventHandler MatrixChanged;
@@ -63,19 +63,24 @@ namespace FramePFX.Editors.Timelines.Effects {
             this.UseAbsoluteRotationOrigin = UseAbsoluteRotationOriginParameter.Descriptor.DefaultValue;
         }
 
-        public override void PreProcessFrame(RenderContext rc) {
-            base.PreProcessFrame(rc);
-            rc.Canvas.SetMatrix(rc.Canvas.TotalMatrix.PreConcat(this.TransformationMatrix));
-        }
-
         static MotionEffect() {
             Parameter.AddMultipleHandlers(OnParameterValueChanged, MediaPositionXParameter, MediaPositionYParameter, MediaScaleXParameter, MediaScaleYParameter, MediaScaleOriginXParameter, MediaScaleOriginYParameter, UseAbsoluteScaleOriginParameter, MediaRotationParameter, MediaRotationOriginXParameter, MediaRotationOriginYParameter, UseAbsoluteRotationOriginParameter);
+        }
+
+        public override void PrePrepareFrame(PreRenderContext ctx, long frame) {
+            base.PrePrepareFrame(ctx, frame);
+            this.renderMatrixProxy = this.TransformationMatrix;
+        }
+
+        public override void PreProcessFrame(RenderContext rc) {
+            base.PreProcessFrame(rc);
+            rc.Canvas.SetMatrix(rc.Canvas.TotalMatrix.PreConcat(this.renderMatrixProxy));
         }
 
         private static void OnParameterValueChanged(AutomationSequence sequence) {
             MotionEffect effect = (MotionEffect) sequence.AutomationData.Owner;
             effect.isMatrixDirty = true;
-            if (effect.IsClip) {
+            if (effect.IsClipEffect) {
                 effect.OwnerClip.InvalidateTransformationMatrix();
             }
         }
@@ -94,13 +99,13 @@ namespace FramePFX.Editors.Timelines.Effects {
 
         protected override void OnAdded() {
             base.OnAdded();
-            if (this.IsClip)
+            if (this.IsClipEffect)
                 this.OwnerClip.InvalidateTransformationMatrix();
         }
 
         protected override void OnRemoved() {
             base.OnRemoved();
-            if (this.IsClip)
+            if (this.IsClipEffect)
                 this.OwnerClip.InvalidateTransformationMatrix();
         }
     }

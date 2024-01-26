@@ -2,14 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Factories;
 using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Effects;
-using FramePFX.PropertyEditing;
 using FramePFX.Utils;
 using SkiaSharp;
 
@@ -27,7 +25,9 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public Timeline Timeline { get; private set; }
 
-        public long RelativePlayHead => this.Timeline.PlayHeadPosition;
+        public long RelativePlayHead => this.Timeline?.PlayHeadPosition ?? 0;
+
+        public Project Project => this.Timeline?.Project;
 
         public ReadOnlyCollection<Clip> Clips { get; }
 
@@ -329,6 +329,52 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         private void OnEffectRemoved(int index, BaseEffect effect) {
             this.EffectRemoved?.Invoke(this, effect, index);
+        }
+
+        public FrameSpan GetSpanUntilClipOrLimitedDuration(long frame, long defaultDuration = 300, long maximumDurationToClip = 100000000) {
+            if (TryGetSpanUntilClip(frame, out var span, defaultDuration, maximumDurationToClip))
+                return span;
+            return new FrameSpan(frame, defaultDuration);
+        }
+
+        /// <summary>
+        /// Tries to calculate a frame span that can fill in the space, starting at the frame parameter and extending
+        /// either the unlimitedDuration parameter or the amount of space between frame and the nearest clip.
+        /// When a clip intersects frame, this method returns false. Use <see cref="GetSpanUntilClipOrLimitedDuration"/> to return a span with defaultDuration instead
+        /// </summary>
+        /// <param name="frame"></param>
+        /// <param name="span">The output span</param>
+        /// <param name="defaultDuration">The default duration for the span when there are no clips in the way</param>
+        /// <param name="maxDurationLimit">An upper limit for how long the output span can be</param>
+        /// <returns></returns>
+        public bool TryGetSpanUntilClip(long frame, out FrameSpan span, long defaultDuration = 300, long maxDurationLimit = 100000000U) {
+            long minimum = long.MaxValue;
+            if (this.clips.Count > 0) {
+                foreach (Clip clip in this.clips) {
+                    long begin = clip.FrameSpan.Begin;
+                    if (begin > frame) {
+                        if (clip.IntersectsFrameAt(frame)) {
+                            span = default;
+                            return false;
+                        }
+                        else {
+                            minimum = Math.Min(begin, minimum);
+                            if (minimum <= frame) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (minimum > frame && minimum != long.MaxValue) {
+                span = new FrameSpan(frame, Math.Min(minimum - frame, maxDurationLimit));
+            }
+            else {
+                span = new FrameSpan(frame, defaultDuration);
+            }
+
+            return true;
         }
 
         internal static void OnAddedToTimeline(Track track, Timeline timeline) {

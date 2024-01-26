@@ -1,5 +1,3 @@
-using System;
-
 namespace FramePFX.PropertyEditing {
     public delegate void PropertyEditorObjectEventHandler(BasePropertyEditorObject sender);
 

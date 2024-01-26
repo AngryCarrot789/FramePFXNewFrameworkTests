@@ -14,12 +14,12 @@ namespace FramePFX.PropertyEditing {
 
         private VideoEditorPropertyEditor() {
             this.Root = new FixedPropertyEditorGroup(typeof(object)) {
-                DisplayName = "Root Object"
+                DisplayName = "Root Object", IsExpanded = true
             };
 
             {
                 this.ClipGroup = new FixedPropertyEditorGroup(typeof(Clip)) {
-                    DisplayName = "Clip"
+                    DisplayName = "Clip", IsExpanded = true
                 };
 
                 this.ClipGroup.AddItem(new ClipDisplayNamePropertyEditorSlot());

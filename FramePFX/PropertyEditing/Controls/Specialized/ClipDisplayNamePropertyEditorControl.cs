@@ -1,8 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using FramePFX.Editors.Controls.Binders;
-using FramePFX.Editors.Controls.Dragger;
 using FramePFX.PropertyEditing.Specialized;
 
 namespace FramePFX.PropertyEditing.Controls.Specialized {

@@ -1,4 +1,3 @@
-using FramePFX.Editors.ResourceManaging.Events;
 using FramePFX.RBC;
 using FramePFX.Utils;
 using SkiaSharp;
@@ -56,7 +55,7 @@ namespace FramePFX.Editors.ResourceManaging.Resources {
             set => this.myColour = this.myColour.WithAlpha(value);
         }
 
-        public event ResourceEventHandler ColourChanged;
+        public event Events.BaseResourceEventHandler ColourChanged;
 
         public ResourceColour() : this(0, 0, 0) {
         }

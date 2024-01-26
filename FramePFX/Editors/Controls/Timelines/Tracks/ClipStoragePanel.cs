@@ -39,19 +39,19 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks {
             this.Track.Timeline.TimelineControl.UpdateClipAutomationVisibility(control);
         }
 
-        public void RemoveClipInternal(int index) {
+        public void RemoveClipInternal(int index, bool canCache = true) {
             TimelineClipControl control = (TimelineClipControl) this.InternalChildren[index];
             control.OnRemoving();
             this.InternalChildren.RemoveAt(index);
             control.OnRemoved();
-            if (this.itemCache.Count < 16)
+            if (canCache && this.itemCache.Count < 16)
                 this.itemCache.Push(control);
         }
 
-        public void ClearClipsInternal() {
+        public void ClearClipsInternal(bool canCache = true) {
             int count = this.InternalChildren.Count;
             for (int i = count - 1; i >= 0; i--) {
-                this.RemoveClipInternal(i);
+                this.RemoveClipInternal(i, canCache);
             }
         }
 

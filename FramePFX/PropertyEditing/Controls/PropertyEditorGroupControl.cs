@@ -1,7 +1,6 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Animation;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Utils;
 
@@ -24,7 +23,7 @@ namespace FramePFX.PropertyEditing.Controls {
         public Expander TheExpander { get; private set; }
 
         private readonly AutoPropertyUpdateBinder<BasePropertyEditorGroup> displayNameBinder = new AutoPropertyUpdateBinder<BasePropertyEditorGroup>(nameof(BasePropertyEditorGroup.DisplayNameChanged), UpdateControlDisplayName, null);
-        private readonly AutoPropertyUpdateBinder<BasePropertyEditorGroup> isVisibleBinder = new AutoPropertyUpdateBinder<BasePropertyEditorGroup>(nameof(BasePropertyEditorGroup.IsCurrentlyApplicableChanged), obj => ((PropertyEditorGroupControl) obj.Control).Visibility = obj.Model.IsCurrentlyApplicable ? Visibility.Visible : Visibility.Collapsed, null);
+        private readonly AutoPropertyUpdateBinder<BasePropertyEditorGroup> isVisibleBinder = new AutoPropertyUpdateBinder<BasePropertyEditorGroup>(nameof(BasePropertyEditorGroup.IsCurrentlyApplicableChanged), obj => ((PropertyEditorGroupControl) obj.Control).Visibility = (obj.Model.IsRoot || obj.Model.IsCurrentlyApplicable) ? Visibility.Visible : Visibility.Collapsed, null);
         private readonly AutoPropertyUpdateBinder<BasePropertyEditorGroup> isExpandedBinder = new AutoPropertyUpdateBinder<BasePropertyEditorGroup>(nameof(BasePropertyEditorGroup.IsExpandedChanged), obj => ((PropertyEditorGroupControl) obj.Control).IsExpanded = obj.Model.IsExpanded, obj => obj.Model.IsExpanded = ((PropertyEditorGroupControl) obj.Control).IsExpanded);
 
 

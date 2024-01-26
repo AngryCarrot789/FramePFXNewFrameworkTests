@@ -34,7 +34,6 @@ namespace FramePFX.Editors.Timelines.Clips {
         }
 
         public override void PrepareRenderFrame(PreRenderContext ctx, long frame) {
-            base.PrepareRenderFrame(ctx, frame);
             this.renderData = new RenderData() {
                 opacity = this.Opacity,
                 size = this.RectSize,
@@ -42,11 +41,11 @@ namespace FramePFX.Editors.Timelines.Clips {
             };
         }
 
-        public override void RenderFrame(RenderContext ctx) {
+        public override void RenderFrame(RenderContext rc) {
             RenderData d = this.renderData;
             SKColor colour = RenderUtils.BlendAlpha(d.colour, d.opacity);
             using (SKPaint paint = new SKPaint() {Color = colour}) {
-                ctx.Canvas.DrawRect(0, 0, d.size.X, d.size.Y, paint);
+                rc.Canvas.DrawRect(0, 0, d.size.X, d.size.Y, paint);
             }
         }
 

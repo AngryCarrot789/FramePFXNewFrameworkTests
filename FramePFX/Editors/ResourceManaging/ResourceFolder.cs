@@ -209,13 +209,6 @@ namespace FramePFX.Editors.ResourceManaging {
             return false;
         }
 
-        public override void Dispose() {
-            base.Dispose();
-            for (int i = this.items.Count - 1; i >= 0; i--) {
-                this.UnregisterDisposeAndRemoveItemAt(i);
-            }
-        }
-
         /// <summary>
         /// Registers all items in the hierarchy of the given resource if it's a group. If
         /// it is just a resource item, then the item is registered. This is a recursive function

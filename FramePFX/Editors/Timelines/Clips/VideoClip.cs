@@ -94,15 +94,14 @@ namespace FramePFX.Editors.Timelines.Clips {
         /// </summary>
         /// <param name="ctx"></param>
         /// <param name="frame">The play head frame, relative to this clip. This will always be within range of our span</param>
-        public virtual void PrepareRenderFrame(PreRenderContext ctx, long frame) {
-        }
+        public abstract void PrepareRenderFrame(PreRenderContext ctx, long frame);
 
         /// <summary>
         /// Renders this clip using the given rendering context data. This is called on a randomly
         /// assigned rendering thread, therefore, this method should not access un-synchronised clip data
         /// </summary>
-        /// <param name="ctx">The rendering context, containing things such as the surface and canvas to draw to</param>
-        public abstract void RenderFrame(RenderContext ctx);
+        /// <param name="rc">The rendering context, containing things such as the surface and canvas to draw to</param>
+        public abstract void RenderFrame(RenderContext rc);
 
         public void InvalidateTransformationMatrix() {
             this.isMatrixDirty = true;

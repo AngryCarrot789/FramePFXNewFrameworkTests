@@ -1,12 +1,9 @@
-using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using FramePFX.Editors.Controls.Binders;
-using FramePFX.PropertyEditing.Controls.Specialized;
-using FramePFX.PropertyEditing.Specialized;
 using FramePFX.Utils;
 
 namespace FramePFX.PropertyEditing.Controls {

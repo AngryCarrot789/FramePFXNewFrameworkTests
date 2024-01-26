@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using FramePFX.Editors.Controls.Timelines.Tracks.Surfaces;
 using FramePFX.PropertyEditing.Controls.Specialized;
 using FramePFX.PropertyEditing.Specialized;
 

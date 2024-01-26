@@ -7,8 +7,13 @@ using System.Windows.Media;
 using FramePFX.Editors.Controls.Automation;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Controls.Timelines.Tracks.Clips;
+using FramePFX.Editors.ResourceManaging;
+using FramePFX.Editors.ResourceManaging.Resources;
 using FramePFX.Editors.Timelines.Clips;
+using FramePFX.Editors.Timelines.Effects;
 using FramePFX.Editors.Timelines.Tracks;
+using FramePFX.Interactivity;
+using FramePFX.Logger;
 using FramePFX.Utils;
 using SkiaSharp;
 
@@ -108,7 +113,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks {
                 }
 
                 TimelineClipControl control = (TimelineClipControl) this.StoragePanel.MyInternalChildren[oldIndex];
-                this.StoragePanel.RemoveClipInternal(oldIndex);
+                this.StoragePanel.RemoveClipInternal(oldIndex, false);
                 dstTrack.clipBeingMoved = new MovedClip(control, clip);
             }
             else if (newTrack == this.Track) {

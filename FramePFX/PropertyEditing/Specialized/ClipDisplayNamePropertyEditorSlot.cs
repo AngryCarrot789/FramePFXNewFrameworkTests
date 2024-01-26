@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using FramePFX.Editors.Automation.Keyframes;
-using FramePFX.Editors.Controls.Automation;
 using FramePFX.Editors.Timelines.Clips;
-using FramePFX.Utils;
 
 namespace FramePFX.PropertyEditing.Specialized {
     public class ClipDisplayNamePropertyEditorSlot : PropertyEditorSlot {

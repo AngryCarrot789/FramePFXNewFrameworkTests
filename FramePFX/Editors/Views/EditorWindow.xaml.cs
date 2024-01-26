@@ -46,6 +46,11 @@ namespace FramePFX.Editors.Views {
 
         protected override void OnKeyDown(KeyEventArgs e) {
             base.OnKeyDown(e);
+            if (e.Key == Key.LeftAlt) {
+                e.Handled = true;
+                return;
+            }
+
             if (e.Key == Key.S) {
                 Timeline timeline = this.Editor?.Project?.MainTimeline;
                 if (timeline == null) {

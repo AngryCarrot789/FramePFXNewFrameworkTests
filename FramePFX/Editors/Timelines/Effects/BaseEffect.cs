@@ -1,6 +1,5 @@
 using System;
 using FramePFX.Editors.Automation;
-using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Factories;
 using FramePFX.Editors.Timelines.Clips;
@@ -9,12 +8,6 @@ using FramePFX.RBC;
 
 namespace FramePFX.Editors.Timelines.Effects {
     public abstract class BaseEffect : IStrictFrameRange, IAutomatable {
-        public Timeline Timeline => (this.Owner as IHasTimeline)?.Timeline;
-
-        public long RelativePlayHead => (this.Owner as IHasTimeline)?.RelativePlayHead ?? 0;
-
-        public AutomationData AutomationData { get; }
-
         /// <summary>
         /// Gets the object that this effect is applied to. At the moment, this is either a <see cref="Clip"/> or <see cref="Track"/>
         /// </summary>
@@ -23,12 +16,12 @@ namespace FramePFX.Editors.Timelines.Effects {
         /// <summary>
         /// Returns true when <see cref="Owner"/> is a clip, otherwise it is a track or null
         /// </summary>
-        public bool IsClip { get; private set; }
+        public bool IsClipEffect => this.Owner is Clip;
 
         /// <summary>
         /// Returns true when <see cref="Owner"/> is a track, otherwise it is a clip or null
         /// </summary>
-        public bool IsTrack { get; private set; }
+        public bool IsTrackEffect => this.Owner is Track;
 
         /// <summary>
         /// Casts <see cref="Owner"/> to a <see cref="Clip"/>
@@ -40,6 +33,19 @@ namespace FramePFX.Editors.Timelines.Effects {
         /// </summary>
         public Track OwnerTrack => (Track) this.Owner;
 
+        public Timeline Timeline => this.Owner?.Timeline;
+
+        public Project Project => this.Timeline?.Project;
+
+        public long RelativePlayHead => this.Owner?.RelativePlayHead ?? 0;
+
+        public AutomationData AutomationData { get; }
+
+        /// <summary>
+        /// Returns true if this effect can be cloned. Default is true
+        /// </summary>
+        public virtual bool IsCloneable => true;
+
         /// <summary>
         /// This clip's factory ID, used for creating a new instance dynamically via reflection
         /// </summary>
@@ -47,6 +53,18 @@ namespace FramePFX.Editors.Timelines.Effects {
 
         protected BaseEffect() {
             this.AutomationData = new AutomationData(this);
+        }
+
+        public BaseEffect Clone() {
+            if (!this.IsCloneable)
+                throw new InvalidOperationException("This effect cannot be cloned");
+            BaseEffect clone = EffectFactory.Instance.NewEffect(this.FactoryId);
+            this.LoadDataIntoClone(clone);
+            return clone;
+        }
+
+        protected virtual void LoadDataIntoClone(BaseEffect clone) {
+            this.AutomationData.LoadDataIntoClone(clone.AutomationData);
         }
 
         public virtual void WriteToRBE(RBEDictionary data) {
@@ -66,24 +84,24 @@ namespace FramePFX.Editors.Timelines.Effects {
         }
 
         public long ConvertRelativeToTimelineFrame(long relative) {
-            return this.IsClip ? ((Clip) this.Owner).ConvertRelativeToTimelineFrame(relative) : relative;
+            return this.Owner is Clip clip ? clip.ConvertRelativeToTimelineFrame(relative) : relative;
         }
 
         public long ConvertTimelineToRelativeFrame(long timeline, out bool inRange) {
-            if (this.IsClip) {
-                return ((Clip) this.Owner).ConvertTimelineToRelativeFrame(timeline, out inRange);
+            if (this.Owner is Clip clip) {
+                return clip.ConvertTimelineToRelativeFrame(timeline, out inRange);
             }
 
-            inRange = this.IsTrack;
+            inRange = this.IsTrackEffect;
             return timeline;
         }
 
         public bool IsTimelineFrameInRange(long timeline) {
-            return this.IsClip ? ((Clip) this.Owner).IsTimelineFrameInRange(timeline) : this.IsTrack;
+            return this.Owner is Clip clip ? clip.IsTimelineFrameInRange(timeline) : this.Owner != null;
         }
 
         public bool IsRelativeFrameInRange(long relative) {
-            return this.IsClip ? ((Clip) this.Owner).IsRelativeFrameInRange(relative) : this.IsTrack;
+            return this.Owner is Clip clip ? clip.IsRelativeFrameInRange(relative) : this.Owner != null;
         }
 
         public bool IsAutomated(Parameter parameter) {
@@ -92,8 +110,6 @@ namespace FramePFX.Editors.Timelines.Effects {
         
         public static void OnAddedInternal(IHaveEffects owner, BaseEffect effect) {
             effect.Owner = owner;
-            effect.IsClip = owner is Clip;
-            effect.IsTrack = owner is Track;
             effect.OnAdded();
         }
 
@@ -103,8 +119,6 @@ namespace FramePFX.Editors.Timelines.Effects {
             }
             finally { // just in case it throws... not that it wouldn't crash the app anyway but still
                 effect.Owner = null;
-                effect.IsClip = false;
-                effect.IsTrack = false;
             }
         }
 

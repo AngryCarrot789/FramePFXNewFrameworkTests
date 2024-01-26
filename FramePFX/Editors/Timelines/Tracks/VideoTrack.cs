@@ -5,7 +5,6 @@ using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Rendering;
 using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Effects;
-using OpenTK.Graphics.ES30;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks {
@@ -36,6 +35,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
         /// <summary> The track's visibility. This is an automated parameter and should therefore not be modified directly </summary>
         public bool Visible;
 
+        private SKBitmap bitmap;
+        private SKPixmap pixmap;
         private SKSurface surface;
         private SKImageInfo surfaceInfo;
         private bool isCanvasClear;
@@ -79,8 +80,14 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public void RenderFrame(SKImageInfo imgInfo) {
             if (this.surface == null || this.surfaceInfo != imgInfo) {
                 this.surface?.Dispose();
+                this.bitmap?.Dispose();
+                this.pixmap?.Dispose();
                 this.surfaceInfo = imgInfo;
-                this.surface = SKSurface.Create(imgInfo);
+                this.bitmap = new SKBitmap(imgInfo);
+                IntPtr ptr = this.bitmap.GetAddress(0, 0);
+
+                this.pixmap = new SKPixmap(imgInfo, ptr, imgInfo.RowBytes);
+                this.surface = SKSurface.Create(this.pixmap);
             }
 
             if (!this.isCanvasClear) {
@@ -95,7 +102,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
                 SKPaint transparency = null;
                 int clipOpacityLayer = RenderManager.BeginClipOpacityLayer(this.surface.Canvas, this.theClipToRender, ref transparency);
 
-                RenderContext ctx = new RenderContext(imgInfo, this.surface);
+                RenderContext ctx = new RenderContext(imgInfo, this.surface, this.bitmap, this.pixmap);
                 for (int i = 0; i < fxListCount; i++) {
                     fxList[i].PreProcessFrame(ctx);
                 }

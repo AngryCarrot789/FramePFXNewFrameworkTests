@@ -10,6 +10,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public TrackCloneOptions(bool cloneClips) {
             this.CloneClips = cloneClips;
+            this.ClipCloneOptions = ClipCloneOptions.Default;
         }
     }
 }
