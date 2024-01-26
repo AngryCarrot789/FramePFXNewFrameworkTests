@@ -95,6 +95,8 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -197,11 +199,15 @@
     <Compile Include="Editors\Controls\Dragger\ValueStringFormatter.cs" />
     <Compile Include="Editors\Controls\Dragger\VerticalIncrement.cs" />
     <Compile Include="Editors\Controls\IUIConnection.cs" />
+    <Compile Include="Editors\Controls\Resources\Explorers\ResourceExplorerListControl.cs" />
+    <Compile Include="Editors\Controls\Resources\Explorers\ResourceExplorerListItem.cs" />
+    <Compile Include="Editors\Controls\Resources\Explorers\ResourceExplorerListItemContent.cs" />
     <Compile Include="Editors\Controls\Resources\ResourceDropRegistry.cs" />
-    <Compile Include="Editors\Controls\Resources\ResourceListItemContentControl.cs" />
-    <Compile Include="Editors\Controls\Resources\ResourceListControl.cs" />
-    <Compile Include="Editors\Controls\Resources\ResourceListItemControl.cs" />
     <Compile Include="Editors\Controls\Resources\ResourcePanelControl.cs" />
+    <Compile Include="Editors\Controls\Resources\Trees\IResourceTreeControl.cs" />
+    <Compile Include="Editors\Controls\Resources\Trees\MovedResource.cs" />
+    <Compile Include="Editors\Controls\Resources\Trees\ResourceTreeView.cs" />
+    <Compile Include="Editors\Controls\Resources\Trees\ResourceTreeViewItem.cs" />
     <Compile Include="Editors\Controls\Rulers\Rulers\HorizontalRulerManager.cs" />
     <Compile Include="Editors\Controls\Rulers\Rulers\LeftRulerManager.cs" />
     <Compile Include="Editors\Controls\Rulers\Rulers\RulerPosition.cs" />
@@ -230,6 +236,18 @@
     <Compile Include="Editors\Controls\Timelines\Tracks\TimelineTrackControl.cs" />
     <Compile Include="Editors\Controls\Timelines\Tracks\ClipStoragePanel.cs" />
     <Compile Include="Editors\Controls\TLCUtils.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Automation\Peers\MultiSelectTreeViewAutomationPeer.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Automation\Peers\MultiSelectTreeViewItemAutomationPeer.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Automation\Peers\MultiSelectTreeViewItemDataAutomationPeer.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\BorderSelectionLogic.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\EditTextBox.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\FocusHelper.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\ISelectionStrategy.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\ListUtils.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\MultiSelectTreeView.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\MultiSelectTreeViewItem.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\SelectionMultiple.cs" />
+    <Compile Include="Editors\Controls\TreeViews\Controls\ThicknessLeftConverter.cs" />
     <Compile Include="Editors\Controls\Viewports\VideoEditorViewPortPreview.cs" />
     <Compile Include="Editors\Controls\Viewports\FreeMoveViewPort.cs" />
     <Compile Include="Editors\Controls\Viewports\SKAsyncViewPort.cs" />
@@ -450,6 +468,7 @@
     <Compile Include="Utils\IntRect.cs" />
     <Compile Include="Utils\IRenameTarget.cs" />
     <Compile Include="Utils\KBUtils.cs" />
+    <Compile Include="Utils\KeyboardUtils.cs" />
     <Compile Include="Utils\KeyUtils.cs" />
     <Compile Include="Utils\Lang.cs" />
     <Compile Include="Utils\Maths.cs" />
@@ -569,6 +588,70 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\Aero.NormalColor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\Aero2.NormalColor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\Classic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\EditTextBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\Luna.Homestead.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\Luna.Metallic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\Luna.NormalColor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\MultiSelectTreeView.Aero.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\MultiSelectTreeView.Aero2.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\MultiSelectTreeView.Classic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\MultiSelectTreeViewItem.Aero.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\MultiSelectTreeViewItem.Aero2.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\MultiSelectTreeViewItem.Classic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\MultiSelectTreeViewItem.Luna.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Controls\TreeViews\Themes\Royale.NormalColor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Editors\Views\EditorWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -635,7 +718,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="docs\TheUI.md" />
+    <Resource Include="Editors\Controls\TreeViews\Source Code.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SkiaSharp.NativeAssets.macOS.2.88.7\build\net462\SkiaSharp.NativeAssets.macOS.targets" Condition="Exists('..\packages\SkiaSharp.NativeAssets.macOS.2.88.7\build\net462\SkiaSharp.NativeAssets.macOS.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

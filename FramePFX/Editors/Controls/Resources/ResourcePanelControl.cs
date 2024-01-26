@@ -1,6 +1,8 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using FramePFX.Editors.Controls.Resources.Explorers;
+using FramePFX.Editors.Controls.Resources.Trees;
 using FramePFX.Editors.ResourceManaging;
 
 namespace FramePFX.Editors.Controls.Resources {
@@ -21,7 +23,9 @@ namespace FramePFX.Editors.Controls.Resources {
             set => this.SetValue(ResourceManagerProperty, value);
         }
 
-        public ResourceListControl ResourceList { get; private set; }
+        public ResourceExplorerListControl ResourceExplorerList { get; private set; }
+
+        public ResourceTreeView ResourceTreeView { get; private set; }
 
         public ResourcePanelControl() {
 
@@ -29,20 +33,18 @@ namespace FramePFX.Editors.Controls.Resources {
 
         public override void OnApplyTemplate() {
             base.OnApplyTemplate();
-            if (!(this.GetTemplateChild("PART_ResourceList") is ResourceListControl listBox))
+            if (!(this.GetTemplateChild("PART_ResourceList") is ResourceExplorerListControl listBox))
                 throw new Exception("Missing PART_ResourceList");
-            this.ResourceList = listBox;
+            if (!(this.GetTemplateChild("PART_ResourceTree") is ResourceTreeView treeView))
+                throw new Exception("Missing PART_ResourceTree");
+            this.ResourceExplorerList = listBox;
+            this.ResourceTreeView = treeView;
         }
 
         // Assuming OnApplyTemplate is called before this method, which appears the be every time
         private void OnResourceManagerChanged(ResourceManager oldManager, ResourceManager newManager) {
-            if (oldManager != null) {
-            }
-
-            this.ResourceList.ResourceManager = newManager;
-            if (newManager != null) {
-
-            }
+            this.ResourceExplorerList.ResourceManager = newManager;
+            this.ResourceTreeView.ResourceManager = newManager;
         }
     }
 }

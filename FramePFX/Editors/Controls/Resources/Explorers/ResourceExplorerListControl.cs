@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +9,13 @@ using FramePFX.Editors.ResourceManaging;
 using FramePFX.Editors.ResourceManaging.Events;
 using FramePFX.Interactivity;
 
-namespace FramePFX.Editors.Controls.Resources {
-    public class ResourceListControl : MultiSelector {
-        public static readonly DependencyProperty ResourceManagerProperty = DependencyProperty.Register("ResourceManager", typeof(ResourceManager), typeof(ResourceListControl), new PropertyMetadata(null, (d, e) => ((ResourceListControl) d).OnResourceManagerChanged((ResourceManager) e.OldValue, (ResourceManager) e.NewValue)));
-        public static readonly DependencyProperty CurrentFolderProperty = DependencyProperty.Register("CurrentFolder", typeof(ResourceFolder), typeof(ResourceListControl), new PropertyMetadata(null, (d, e) => ((ResourceListControl) d).OnCurrentFolderChanged((ResourceFolder) e.OldValue, (ResourceFolder) e.NewValue)));
+namespace FramePFX.Editors.Controls.Resources.Explorers {
+    /// <summary>
+    /// The actual list of resource explorer items, which also manages the selection of items
+    /// </summary>
+    public class ResourceExplorerListControl : MultiSelector {
+        public static readonly DependencyProperty ResourceManagerProperty = DependencyProperty.Register("ResourceManager", typeof(ResourceManager), typeof(ResourceExplorerListControl), new PropertyMetadata(null, (d, e) => ((ResourceExplorerListControl) d).OnResourceManagerChanged((ResourceManager) e.OldValue, (ResourceManager) e.NewValue)));
+        public static readonly DependencyProperty CurrentFolderProperty = DependencyProperty.Register("CurrentFolder", typeof(ResourceFolder), typeof(ResourceExplorerListControl), new PropertyMetadata(null, (d, e) => ((ResourceExplorerListControl) d).OnCurrentFolderChanged((ResourceFolder) e.OldValue, (ResourceFolder) e.NewValue)));
         public const string ResourceDropType = "PFXResource_DropType";
 
         public ResourceManager ResourceManager {
@@ -32,22 +34,22 @@ namespace FramePFX.Editors.Controls.Resources {
 
         private const int MaxItemCacheSize = 64;
         private const int MaxItemContentCacheSize = 16;
-        private readonly Stack<ResourceListItemControl> itemCache;
-        private readonly Dictionary<Type, Stack<ResourceListItemContentControl>> itemContentCacheMap;
+        private readonly Stack<ResourceExplorerListItem> itemCache;
+        private readonly Dictionary<Type, Stack<ResourceExplorerListItemContent>> itemContentCacheMap;
         private bool isProcessingAsyncDrop;
 
-        public ResourceListItemControl lastSelectedItem;
+        public ResourceExplorerListItem lastSelectedItem;
 
-        public ResourceListControl() {
-            this.itemCache = new Stack<ResourceListItemControl>(MaxItemCacheSize);
-            this.itemContentCacheMap = new Dictionary<Type, Stack<ResourceListItemContentControl>>();
+        public ResourceExplorerListControl() {
+            this.itemCache = new Stack<ResourceExplorerListItem>(MaxItemCacheSize);
+            this.itemContentCacheMap = new Dictionary<Type, Stack<ResourceExplorerListItemContent>>();
             this.AllowDrop = true;
             this.CanSelectMultipleItems = true;
         }
 
         protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e) {
             base.OnMouseLeftButtonDown(e);
-            if (this.Items.Cast<ResourceListItemControl>().Any(x => x.ResourceList == this && x.IsMouseOver)) {
+            if (this.Items.Cast<ResourceExplorerListItem>().Any(x => x.ResourceExplorerList == this && x.IsMouseOver)) {
                 return;
             }
 
@@ -58,14 +60,14 @@ namespace FramePFX.Editors.Controls.Resources {
             base.OnPreviewMouseDown(e);
             if (e.ChangedButton == MouseButton.XButton1) {
                 // Go backwards in history
-                this.CurrentFolder = this.CurrentFolder?.Parent ?? this.ResourceManager?.RootFolder;
+                this.CurrentFolder = this.CurrentFolder?.Parent ?? this.ResourceManager?.RootContainer;
             }
             // else if (e.ChangedButton == MouseButton.XButton2) {
             //     this.ResourceManager?.GoForward();
             // }
         }
         
-        public void MakeRangedSelection(ResourceListItemControl a, ResourceListItemControl b) {
+        public void MakeRangedSelection(ResourceExplorerListItem a, ResourceExplorerListItem b) {
             if (a == b) {
                 this.MakePrimarySelection(a);
             }
@@ -98,13 +100,13 @@ namespace FramePFX.Editors.Controls.Resources {
             }
         }
 
-        public void MakePrimarySelection(ResourceListItemControl item) {
+        public void MakePrimarySelection(ResourceExplorerListItem item) {
             this.UnselectAll();
             this.SetItemSelectedProperty(item, true);
             this.lastSelectedItem = item;
         }
 
-        public void SetItemSelectedProperty(ResourceListItemControl item, bool selected) {
+        public void SetItemSelectedProperty(ResourceExplorerListItem item, bool selected) {
             item.IsSelected = selected;
             object x = this.ItemContainerGenerator.ItemFromContainer(item);
             if (x == null || x == DependencyProperty.UnsetValue)
@@ -123,7 +125,7 @@ namespace FramePFX.Editors.Controls.Resources {
                 return false;
             }
 
-            if (this.ItemContainerGenerator.ContainerFromIndex(index) is ResourceListItemControl resource) {
+            if (this.ItemContainerGenerator.ContainerFromIndex(index) is ResourceExplorerListItem resource) {
                 this.SetItemSelectedProperty(resource, selected);
                 return true;
             }
@@ -142,7 +144,7 @@ namespace FramePFX.Editors.Controls.Resources {
                 return;
             }
 
-            ResourceListItemControl.ProcessCanDragOver(currentFolder, e);
+            ResourceExplorerListItem.ProcessCanDragOver(currentFolder, e);
         }
 
         protected override async void OnDrop(DragEventArgs e) {
@@ -153,7 +155,7 @@ namespace FramePFX.Editors.Controls.Resources {
 
             try {
                 this.isProcessingAsyncDrop = true;
-                if (ResourceListItemControl.GetDropResourceListForEvent(e, out List<BaseResource> list, out EnumDropType effects)) {
+                if (ResourceExplorerListItem.GetDropResourceListForEvent(e, out List<BaseResource> list, out EnumDropType effects)) {
                     await ResourceDropRegistry.DropRegistry.OnDropped(currentFolder, list, effects);
                 }
                 else if (!await ResourceDropRegistry.DropRegistry.OnDroppedNative(currentFolder, new DataObjectWrapper(e.Data), effects)) {
@@ -206,13 +208,7 @@ namespace FramePFX.Editors.Controls.Resources {
         }
 
         private void OnResourceManagerChanged(ResourceManager oldManager, ResourceManager newManager) {
-            if (oldManager != null) {
-                this.CurrentFolder = null;
-            }
-
-            if (newManager != null) {
-                this.CurrentFolder = newManager.RootFolder;
-            }
+            this.CurrentFolder = newManager?.CurrentFolder;
         }
 
         private void ClearResourcesInternal() {
@@ -222,7 +218,7 @@ namespace FramePFX.Editors.Controls.Resources {
         }
 
         private void InsertResourceInternal(BaseResource resource, int index) {
-            ResourceListItemControl control = this.itemCache.Count > 0 ? this.itemCache.Pop() : new ResourceListItemControl();
+            ResourceExplorerListItem control = this.itemCache.Count > 0 ? this.itemCache.Pop() : new ResourceExplorerListItem();
             control.OnAddingToList(this, resource);
             this.Items.Insert(index, control);
             control.OnAddedToList();
@@ -231,7 +227,7 @@ namespace FramePFX.Editors.Controls.Resources {
         }
 
         private void RemoveResourceInternal(int index) {
-            ResourceListItemControl control = (ResourceListItemControl) this.Items[index];
+            ResourceExplorerListItem control = (ResourceExplorerListItem) this.Items[index];
             control.OnRemovingFromList();
             this.Items.RemoveAt(index);
             control.OnRemovedFromList();
@@ -241,7 +237,7 @@ namespace FramePFX.Editors.Controls.Resources {
         }
 
         private void MoveResourceInternal(int oldIndex, int newIndex) {
-            ResourceListItemControl control = (ResourceListItemControl) this.Items[oldIndex];
+            ResourceExplorerListItem control = (ResourceExplorerListItem) this.Items[oldIndex];
             // control.OnIndexMoving(oldIndex, newIndex);
             this.Items.RemoveAt(oldIndex);
             this.Items.Insert(newIndex, control);
@@ -256,13 +252,13 @@ namespace FramePFX.Editors.Controls.Resources {
         /// </summary>
         /// <param name="resourceType">The resource object type</param>
         /// <returns>A reused or new content object</returns>
-        public ResourceListItemContentControl GetContentObject(Type resourceType) {
-            ResourceListItemContentControl content;
-            if (this.itemContentCacheMap.TryGetValue(resourceType, out Stack<ResourceListItemContentControl> stack) && stack.Count > 0) {
+        public ResourceExplorerListItemContent GetContentObject(Type resourceType) {
+            ResourceExplorerListItemContent content;
+            if (this.itemContentCacheMap.TryGetValue(resourceType, out Stack<ResourceExplorerListItemContent> stack) && stack.Count > 0) {
                 content = stack.Pop();
             }
             else {
-                content = ResourceListItemContentControl.NewInstance(resourceType);
+                content = ResourceExplorerListItemContent.NewInstance(resourceType);
             }
 
             return content;
@@ -275,26 +271,26 @@ namespace FramePFX.Editors.Controls.Resources {
         /// The content object should not be used after this call, instead use <see cref="GetContentObject"/>
         /// </summary>
         /// <param name="resourceType">The resource object type</param>
-        /// <param name="contentControl">The content object type that is no longer in use</param>
+        /// <param name="content">The content object type that is no longer in use</param>
         /// <returns>True when the object was cached, false when the cache is too large and could not fit the object in</returns>
-        public bool ReleaseContentObject(Type resourceType, ResourceListItemContentControl contentControl) {
-            if (!this.itemContentCacheMap.TryGetValue(resourceType, out Stack<ResourceListItemContentControl> stack)) {
-                this.itemContentCacheMap[resourceType] = stack = new Stack<ResourceListItemContentControl>();
+        public bool ReleaseContentObject(Type resourceType, ResourceExplorerListItemContent content) {
+            if (!this.itemContentCacheMap.TryGetValue(resourceType, out Stack<ResourceExplorerListItemContent> stack)) {
+                this.itemContentCacheMap[resourceType] = stack = new Stack<ResourceExplorerListItemContent>();
             }
             else if (stack.Count > MaxItemContentCacheSize) {
                 return false;
             }
 
-            stack.Push(contentControl);
+            stack.Push(content);
             return true;
         }
 
-        public IEnumerable<ResourceListItemControl> GetSelectedControls() {
-            return this.SelectedItems.Cast<ResourceListItemControl>();
+        public IEnumerable<ResourceExplorerListItem> GetSelectedControls() {
+            return this.SelectedItems.Cast<ResourceExplorerListItem>();
         }
 
         public IEnumerable<BaseResource> GetSelectedResources() {
-            foreach (ResourceListItemControl resource in this.GetSelectedControls()) {
+            foreach (ResourceExplorerListItem resource in this.GetSelectedControls()) {
                 if (resource.Model != null) {
                     yield return resource.Model;
                 }

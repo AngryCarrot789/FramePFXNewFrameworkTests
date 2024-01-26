@@ -10,22 +10,22 @@ using FramePFX.Editors.ResourceManaging.Events;
 using FramePFX.Editors.ResourceManaging.Resources;
 using SkiaSharp;
 
-namespace FramePFX.Editors.Controls.Resources {
-    public class ResourceListItemContentControl : Control {
-        private static readonly Dictionary<Type, Func<ResourceListItemContentControl>> Constructors;
+namespace FramePFX.Editors.Controls.Resources.Explorers {
+    public class ResourceExplorerListItemContent : Control {
+        private static readonly Dictionary<Type, Func<ResourceExplorerListItemContent>> Constructors;
 
-        public ResourceListItemControl ListItem { get; private set;}
+        public ResourceExplorerListItem ListItem { get; private set;}
 
         public BaseResource Resource => this.ListItem?.Model;
 
-        protected ResourceListItemContentControl() {
+        protected ResourceExplorerListItemContent() {
         }
 
-        public static void RegisterType<T>(Type resourceType, Func<T> func) where T : ResourceListItemContentControl {
+        public static void RegisterType<T>(Type resourceType, Func<T> func) where T : ResourceExplorerListItemContent {
             Constructors[resourceType] = func;
         }
 
-        public static ResourceListItemContentControl NewInstance(Type resourceType) {
+        public static ResourceExplorerListItemContent NewInstance(Type resourceType) {
             if (resourceType == null) {
                 throw new ArgumentNullException(nameof(resourceType));
             }
@@ -47,15 +47,15 @@ namespace FramePFX.Editors.Controls.Resources {
             throw new Exception("No such content control for resource type: " + resourceType.Name);
         }
 
-        static ResourceListItemContentControl() {
-            Constructors = new Dictionary<Type, Func<ResourceListItemContentControl>>();
-            RegisterType(typeof(ResourceFolder), () => new ResourceListItemContentControlFolder());
-            RegisterType(typeof(ResourceColour), () => new ResourceListItemContentControlColour());
-            RegisterType(typeof(ResourceImage), () => new ResourceListItemContentControlImage());
-            RegisterType(typeof(ResourceTextStyle), () => new ResourceListItemContentControlTextStyle());
+        static ResourceExplorerListItemContent() {
+            Constructors = new Dictionary<Type, Func<ResourceExplorerListItemContent>>();
+            RegisterType(typeof(ResourceFolder), () => new ResourceExplorerListItemContentFolder());
+            RegisterType(typeof(ResourceColour), () => new ResourceExplorerListItemContentColour());
+            RegisterType(typeof(ResourceImage), () => new ResourceExplorerListItemContentImage());
+            RegisterType(typeof(ResourceTextStyle), () => new ResourceExplorerListItemContentTextStyle());
         }
 
-        public void Connect(ResourceListItemControl item) {
+        public void Connect(ResourceExplorerListItem item) {
             this.ListItem = item ?? throw new ArgumentNullException(nameof(item));
             this.OnConnected();
         }
@@ -74,8 +74,8 @@ namespace FramePFX.Editors.Controls.Resources {
         }
     }
 
-    public class ResourceListItemContentControlFolder : ResourceListItemContentControl {
-        public static readonly DependencyProperty ItemCountProperty = DependencyProperty.Register("ItemCount", typeof(int), typeof(ResourceListItemContentControlFolder), new PropertyMetadata(0));
+    public class ResourceExplorerListItemContentFolder : ResourceExplorerListItemContent {
+        public static readonly DependencyProperty ItemCountProperty = DependencyProperty.Register("ItemCount", typeof(int), typeof(ResourceExplorerListItemContentFolder), new PropertyMetadata(0));
 
         public int ItemCount {
             get => (int) this.GetValue(ItemCountProperty);
@@ -84,7 +84,7 @@ namespace FramePFX.Editors.Controls.Resources {
 
         public new ResourceFolder Resource => (ResourceFolder) base.Resource;
 
-        public ResourceListItemContentControlFolder() {
+        public ResourceExplorerListItemContentFolder() {
 
         }
 
@@ -112,8 +112,8 @@ namespace FramePFX.Editors.Controls.Resources {
         }
     }
 
-    public class ResourceListItemContentControlColour : ResourceListItemContentControl {
-        public static readonly DependencyProperty ColourProperty = DependencyProperty.Register("Colour", typeof(Brush), typeof(ResourceListItemContentControlColour), new PropertyMetadata(null));
+    public class ResourceExplorerListItemContentColour : ResourceExplorerListItemContent {
+        public static readonly DependencyProperty ColourProperty = DependencyProperty.Register("Colour", typeof(Brush), typeof(ResourceExplorerListItemContentColour), new PropertyMetadata(null));
 
         public Brush Colour {
             get => (Brush) this.GetValue(ColourProperty);
@@ -123,16 +123,16 @@ namespace FramePFX.Editors.Controls.Resources {
         public new ResourceColour Resource => (ResourceColour) base.Resource;
 
         private readonly AutoPropertyUpdateBinder<ResourceColour> colourBinder = new AutoPropertyUpdateBinder<ResourceColour>(ColourProperty, nameof(ResourceColour.ColourChanged), binder => {
-            ResourceListItemContentControlColour element = (ResourceListItemContentControlColour) binder.Control;
+            ResourceExplorerListItemContentColour element = (ResourceExplorerListItemContentColour) binder.Control;
             SKColor c = binder.Model.Colour;
             ((SolidColorBrush) element.Colour).Color = Color.FromArgb(c.Alpha, c.Red, c.Green, c.Blue);
         }, binder => {
-            ResourceListItemContentControlColour element = (ResourceListItemContentControlColour) binder.Control;
+            ResourceExplorerListItemContentColour element = (ResourceExplorerListItemContentColour) binder.Control;
             Color c = ((SolidColorBrush) element.Colour).Color;
             binder.Model.Colour = new SKColor(c.R, c.G, c.B, c.A);
         });
 
-        public ResourceListItemContentControlColour() {
+        public ResourceExplorerListItemContentColour() {
             this.Colour = new SolidColorBrush();
         }
 
@@ -152,16 +152,16 @@ namespace FramePFX.Editors.Controls.Resources {
         }
     }
 
-    public class ResourceListItemContentControlImage : ResourceListItemContentControl {
+    public class ResourceExplorerListItemContentImage : ResourceExplorerListItemContent {
         public new ResourceImage Resource => (ResourceImage) base.Resource;
 
-        public ResourceListItemContentControlImage() {
+        public ResourceExplorerListItemContentImage() {
 
         }
     }
 
-    public class ResourceListItemContentControlTextStyle : ResourceListItemContentControl {
-        public ResourceListItemContentControlTextStyle() {
+    public class ResourceExplorerListItemContentTextStyle : ResourceExplorerListItemContent {
+        public ResourceExplorerListItemContentTextStyle() {
 
         }
     }

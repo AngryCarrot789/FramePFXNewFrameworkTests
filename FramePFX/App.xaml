@@ -15,6 +15,11 @@
                 <ResourceDictionary Source="Editors/Controls/GeneralControlStyles.xaml"/>
                 <ResourceDictionary Source="Editors/Controls/Dragger/NumberDraggerStyles.xaml"/>
 
+                <!-- Multi-select tree -->
+                <ResourceDictionary Source="Editors/Controls/TreeViews/Themes/EditTextBox.xaml"/>
+                <ResourceDictionary Source="Editors/Controls/TreeViews/Themes/MultiSelectTreeView.Aero2.xaml"/>
+                <ResourceDictionary Source="Editors/Controls/TreeViews/Themes/MultiSelectTreeViewItem.Aero2.xaml"/>
+
                 <!-- Advanced styles, some of these should probably be user controls -->
                 <ResourceDictionary Source="Editors/Controls/Resources/ResourceStyles.xaml"/>
                 <ResourceDictionary Source="Editors/Controls/Timelines/TimelineStyles.xaml"/>

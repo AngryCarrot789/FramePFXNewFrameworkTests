@@ -169,8 +169,9 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
                 this.CaptureMouse();
             }
 
-            Timeline timeline = this.Model.Track?.Timeline;
-            if (timeline == null || this.Track?.Timeline == null) {
+            Timeline timeline;
+            TimelineControl timelineControl = this.Track?.OwnerTimeline;
+            if (timelineControl == null || (timeline = timelineControl.Timeline) == null) {
                 return;
             }
 
@@ -207,6 +208,11 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
                     timeline.MakeSingleSelection(this.Model);
                     timeline.RangedSelectionAnchor = new TrackPoint(this.Model, mouseFrame);
                 }
+                else {
+                    return;
+                }
+
+                timelineControl.UpdatePropertyEditorClipSelection();
             }
             else {
                 if ((Keyboard.Modifiers & ModifierKeys.Control) != 0) {
@@ -217,6 +223,8 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
                     timeline.MakeSingleSelection(this.Model);
                     timeline.RangedSelectionAnchor = new TrackPoint(this.Model, mouseFrame);
                 }
+
+                timelineControl.UpdatePropertyEditorClipSelection();
             }
         }
 
@@ -229,7 +237,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
             e.Handled = true;
             DragState lastDragState = this.dragState;
             if (this.dragState == DragState.Initiated && !this.hasMadeExceptionalSelectionInMouseDown) {
-                this.Track.Timeline.SetPlayHeadToMouseCursor(e.MouseDevice);
+                this.Track.OwnerPanel.SetPlayHeadToMouseCursor(e.MouseDevice);
             }
 
             this.SetDragState(DragState.None);
@@ -240,8 +248,9 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
                 this.hasMadeExceptionalSelectionInMouseDown = false;
             }
             else {
-                Timeline timeline = this.Model.Track?.Timeline;
-                if (timeline == null || this.Track?.Timeline == null) {
+                Timeline timeline;
+                TimelineControl timelineControl = this.Track?.OwnerTimeline;
+                if (timelineControl == null || (timeline = timelineControl.Timeline) == null) {
                     return;
                 }
 
@@ -253,6 +262,8 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
                         timeline.MakeSingleSelection(this.Model);
                         timeline.RangedSelectionAnchor = new TrackPoint(this.Model, TLCUtils.GetCursorFrame(this));
                     }
+
+                    timelineControl.UpdatePropertyEditorClipSelection();
                 }
             }
         }
@@ -307,7 +318,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
 
             this.SetCursorForMousePoint(mpos);
             TrackStoragePanel ctrl;
-            if (this.Track == null || (ctrl = this.Track.Timeline) == null) {
+            if (this.Track == null || (ctrl = this.Track.OwnerPanel) == null) {
                 return;
             }
 

@@ -6,7 +6,6 @@ using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.PropertyEditing;
 using FramePFX.Utils;
 
 namespace FramePFX.Editors.Timelines {
@@ -351,9 +350,6 @@ namespace FramePFX.Editors.Timelines {
         }
 
         internal static void OnIsClipSelectedChanged(Clip clip) {
-            Timeline timeline = clip.Track?.Timeline;
-            if (timeline != null)
-                VideoEditorPropertyEditor.Instance.Root.SetupHierarchyState(timeline.SelectedClips.ToList());
             // UI modifies the anchor directly
             // clip.Track.Timeline.RangedSelectionAnchor = clip.IsSelected ? clip : null;
         }
@@ -369,10 +365,7 @@ namespace FramePFX.Editors.Timelines {
         }
 
         public static void OnTrackSelectionCleared(Track track) {
-            if (track.Timeline == null)
-                return;
 
-            VideoEditorPropertyEditor.Instance.Root.SetupHierarchyState(track.Timeline.SelectedClips.ToList());
         }
     }
 }

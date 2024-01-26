@@ -7,13 +7,8 @@ using System.Windows.Media;
 using FramePFX.Editors.Controls.Automation;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Controls.Timelines.Tracks.Clips;
-using FramePFX.Editors.ResourceManaging;
-using FramePFX.Editors.ResourceManaging.Resources;
 using FramePFX.Editors.Timelines.Clips;
-using FramePFX.Editors.Timelines.Effects;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Interactivity;
-using FramePFX.Logger;
 using FramePFX.Utils;
 using SkiaSharp;
 
@@ -49,7 +44,12 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks {
         /// <summary>
         /// Gets the timeline sequence that stores this track
         /// </summary>
-        public TrackStoragePanel Timeline { get; set; }
+        public TrackStoragePanel OwnerPanel { get; set; }
+
+        /// <summary>
+        /// Gets our panel's timeline control
+        /// </summary>
+        public TimelineControl OwnerTimeline { get; private set; }
 
         /// <summary>
         /// Gets the panel which stores this track's clip items
@@ -103,7 +103,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks {
 
         private void OnClipMovedTracks(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex) {
             if (oldTrack == this.Track) {
-                TimelineTrackControl dstTrack = this.Timeline.GetTrackByModel(newTrack);
+                TimelineTrackControl dstTrack = this.OwnerPanel.GetTrackByModel(newTrack);
                 if (dstTrack == null) {
                     // Instead of throwing, we could just remove the track or insert a new track, instead of
                     // trying to re-use existing controls, at the cost of performance.
@@ -149,7 +149,8 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks {
         }
 
         public void OnAdding(TrackStoragePanel parent, Track track) {
-            this.Timeline = parent;
+            this.OwnerTimeline = parent.TimelineControl ?? throw new Exception("Parent track panel has no timeline control associated with it");
+            this.OwnerPanel = parent;
             this.Track = track;
 
             track.ClipAdded += this.OnClipAdded;
@@ -179,7 +180,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks {
         }
 
         public void OnRemoved() {
-            this.Timeline = null;
+            this.OwnerPanel = null;
             this.Track = null;
         }
 
@@ -200,7 +201,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks {
         private void OnTrackHeightChanged(Track track) {
             this.InvalidateMeasure();
             this.StoragePanel.InvalidateMeasure();
-            this.Timeline?.InvalidateVisual();
+            this.OwnerPanel?.InvalidateVisual();
         }
 
         private void OnTrackColourChanged(Track track) {

@@ -28,12 +28,12 @@
               BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0,0,0,1">
             <MenuItem Header="File"/>
             <MenuItem Header="Theme">
-                <MenuItem Header="Deep Dark" Click="SetThemeClick" Uid="0" />
-                <MenuItem Header="Soft Dark (default)" Click="SetThemeClick" Uid="1" />
-                <MenuItem Header="Dark Grey" Click="SetThemeClick" Uid="2" />
-                <MenuItem Header="Grey" Click="SetThemeClick" Uid="3" />
-                <MenuItem Header="Red and Black" Click="SetThemeClick" Uid="4" />
-                <MenuItem Header="Light Theme" Click="SetThemeClick" Uid="5" />
+                <MenuItem Header="Deep Dark" Click="SetThemeClick" Uid="0"/>
+                <MenuItem Header="Soft Dark (default)" Click="SetThemeClick" Uid="1"/>
+                <MenuItem Header="Dark Grey" Click="SetThemeClick" Uid="2"/>
+                <MenuItem Header="Grey" Click="SetThemeClick" Uid="3"/>
+                <MenuItem Header="Red and Black" Click="SetThemeClick" Uid="4"/>
+                <MenuItem Header="Light Theme" Click="SetThemeClick" Uid="5"/>
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
@@ -44,36 +44,29 @@
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="44*"/>
                     <ColumnDefinition Width="1"/>
-                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="50*"/>
                     <ColumnDefinition Width="1"/>
-                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="27*"/>
                 </Grid.ColumnDefinitions>
                 <GroupBox Grid.Column="0" BorderThickness="0" Header="Resources">
-                    <Border Background="{DynamicResource PanelBackground3}" 
-                            BorderBrush="{DynamicResource PanelBorderBrush}" 
-                            BorderThickness="0 1 0 0">
-                        <controls:PropertyEditorControl x:Name="ThePropertyEditor"/>
-                    </Border>
-                </GroupBox>
-                <GroupBox Grid.Column="2" BorderThickness="0" Header="Resources">
                     <Border Background="{DynamicResource PanelBackground3}" 
                             BorderBrush="{DynamicResource PanelBorderBrush}" 
                             BorderThickness="0 1 0 0">
                         <resources:ResourcePanelControl x:Name="TheResourcePanel"/>
                     </Border>
                 </GroupBox>
-                <GroupBox Grid.Column="4" BorderThickness="0" Header="View Port Preview">
+                <GroupBox Grid.Column="2" BorderThickness="0" Header="View Port Preview">
                     <DockPanel>
                         <Border Background="{DynamicResource PanelBackground3}" DockPanel.Dock="Bottom" Height="32" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0 1 0 0">
                             <DockPanel>
                                 <!-- Left Panel -->
                                 <Grid Margin="5,0,0,0" DockPanel.Dock="Left">
                                     <Button Focusable="False" Content="Fit to Scale" Width="75" HorizontalAlignment="Left" Padding="1,0,0,0" Margin="0,4,0,4"
-                                Click="OnFitToContentClicked"/>
+                                            Click="OnFitToContentClicked"/>
                                     <CheckBox Focusable="False" Content="Zoom to cursor" HorizontalAlignment="Left" Padding="1,0,0,0" Margin="85,5,0,5"
-                                  IsChecked="{Binding PanToCursorOnUserZoom, ElementName=VPViewBox}"/>
+                                              IsChecked="{Binding PanToCursorOnUserZoom, ElementName=VPViewBox}"/>
                                 </Grid>
 
                                 <!-- Right Panel -->
@@ -117,8 +110,17 @@
                         </Grid>
                     </DockPanel>
                 </GroupBox>
-                <Border Focusable="False" UseLayoutRounding="True" Grid.Column="1" BorderThickness="0" Background="{DynamicResource PanelBorderBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-                <GridSplitter Focusable="False" Grid.Column="1" BorderThickness="0" Background="Transparent" Margin="-5,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                <GroupBox Grid.Column="4" BorderThickness="0" Header="Property Editor">
+                    <Border Background="{DynamicResource PanelBackground3}" 
+                            BorderBrush="{DynamicResource PanelBorderBrush}" 
+                            BorderThickness="0 1 0 0">
+                        <controls:PropertyEditorControl x:Name="ThePropertyEditor"/>
+                    </Border>
+                </GroupBox>
+                <Border Grid.Column="1" Focusable="False" UseLayoutRounding="True" SnapsToDevicePixels="True" BorderThickness="0" Background="{DynamicResource PanelBorderBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                <GridSplitter Grid.Column="1" Focusable="False" BorderThickness="0" Background="Transparent" Margin="-5,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                <Border Grid.Column="3" Focusable="False" UseLayoutRounding="True" SnapsToDevicePixels="True" BorderThickness="0" Background="{DynamicResource PanelBorderBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                <GridSplitter Grid.Column="3" Focusable="False" BorderThickness="0" Background="Transparent" Margin="-5,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
             </Grid>
             <GroupBox Header="Timeline" 
                       Grid.Row="2" 

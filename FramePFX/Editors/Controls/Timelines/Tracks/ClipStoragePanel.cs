@@ -36,7 +36,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks {
             // control.UpdateLayout();
             control.ApplyTemplate();
             control.OnAdded();
-            this.Track.Timeline.TimelineControl.UpdateClipAutomationVisibility(control);
+            this.Track.OwnerPanel.TimelineControl.UpdateClipAutomationVisibility(control);
         }
 
         public void RemoveClipInternal(int index, bool canCache = true) {

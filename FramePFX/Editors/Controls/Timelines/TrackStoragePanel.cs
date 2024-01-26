@@ -103,7 +103,7 @@ namespace FramePFX.Editors.Controls.Timelines {
 
         private void InsertTrackInternal(Track track, int index) {
             TimelineTrackControl control = this.cachedTracks.Count > 0 ? this.cachedTracks.Pop() : new TimelineTrackControl();
-            control.Timeline = this;
+            control.OwnerPanel = this;
             control.OnAdding(this, track);
             this.InternalChildren.Insert(index, control);
             control.InvalidateMeasure();

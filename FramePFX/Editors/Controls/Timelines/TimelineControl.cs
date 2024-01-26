@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Threading;
 using FramePFX.Editors.Controls.Rulers;
 using FramePFX.Editors.Controls.Timelines.Playheads;
 using FramePFX.Editors.Controls.Timelines.Tracks;
@@ -18,6 +19,7 @@ using FramePFX.Editors.Timelines.Effects;
 using FramePFX.Editors.Timelines.Tracks;
 using FramePFX.Interactivity;
 using FramePFX.Logger;
+using FramePFX.PropertyEditing;
 using FramePFX.Utils;
 using SkiaSharp;
 using Track = FramePFX.Editors.Timelines.Tracks.Track;
@@ -72,6 +74,18 @@ namespace FramePFX.Editors.Controls.Timelines {
             };
 
             this.timelineActionButtons = new List<Button>();
+        }
+
+        /// <summary>
+        /// Updates the property editor's clip view, based on our timeline's selected items
+        /// </summary>
+        /// <param name="timeline"></param>
+        public void UpdatePropertyEditorClipSelection() {
+            this.Dispatcher.InvokeAsync(() => {
+                Timeline timeline = this.Timeline;
+                if (timeline != null)
+                    VideoEditorPropertyEditor.Instance.ClipGroup.SetupHierarchyState(timeline.SelectedClips.ToList());
+            }, DispatcherPriority.Background);
         }
 
         public Point GetTimelinePointFromClip(Point pointInClip) {
@@ -142,7 +156,7 @@ namespace FramePFX.Editors.Controls.Timelines {
             image.DisplayName = "NewImage_" + RandomUtils.RandomLetters(6);
             bitmap.SetImmutable();
             image.SetBitmapImage(bitmap);
-            manager.RootFolder.AddItem(image);
+            manager.RootContainer.AddItem(image);
             ulong id = manager.RegisterEntry(image);
 
             ImageVideoClip imageClip = new ImageVideoClip();

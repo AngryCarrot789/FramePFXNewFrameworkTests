@@ -5,6 +5,8 @@ using FramePFX.RBC;
 using FramePFX.Utils;
 
 namespace FramePFX.Editors.ResourceManaging {
+    public delegate void CurrentFolderChangedEventHandler(ResourceManager manager, ResourceFolder oldFolder, ResourceFolder newFolder);
+
     /// <summary>
     /// Stores registered <see cref="ResourceItem"/> entries and maps <see cref="ResourceItem.UniqueId"/> to a <see cref="ResourceItem"/>
     /// </summary>
@@ -13,6 +15,8 @@ namespace FramePFX.Editors.ResourceManaging {
         public const ulong EmptyId = 0UL;
         private const string EmptyIdErrorMessage = "ID cannot be zero (null)";
         private readonly Dictionary<ulong, ResourceItem> uuidToItem;
+        private readonly HashSet<BaseResource> selectedItems;
+        private ResourceFolder currentFolder;
 
         /// <summary>
         /// Gets the project that owns this resource manager
@@ -36,7 +40,26 @@ namespace FramePFX.Editors.ResourceManaging {
         /// stored in this tree, and cached in an internal dictionary (for speed purposes), therefore it is
         /// important that this tree is not modified unless the internal dictionary is also modified accordingly
         /// </summary>
-        public ResourceFolder RootFolder { get; }
+        public ResourceFolder RootContainer { get; }
+
+        /// <summary>
+        /// Gets or sets the current folder that is being displayed to the user. This value will never be null,
+        /// and assigning it to null will result in it becoming <see cref="RootContainer"/>
+        /// </summary>
+        public ResourceFolder CurrentFolder {
+            get => this.currentFolder;
+            set {
+                if (value == null)
+                    value = this.RootContainer;
+                ResourceFolder oldFolder = this.currentFolder;
+                if (oldFolder == value)
+                    return;
+                this.currentFolder = value;
+                this.CurrentFolderChanged?.Invoke(this, oldFolder, value);
+            }
+        }
+
+        public IReadOnlyCollection<BaseResource> SelectedItems => this.selectedItems;
 
         /// <summary>
         /// A predicate that returns false when <see cref="EntryExists(ulong)"/> returns true
@@ -48,12 +71,16 @@ namespace FramePFX.Editors.ResourceManaging {
         /// </summary>
         public Predicate<ulong> IsResourceInUsePredicate { get; }
 
+        public event CurrentFolderChangedEventHandler CurrentFolderChanged;
+
         public ResourceManager(Project project) {
             this.Project = project ?? throw new ArgumentNullException(nameof(project));
             this.uuidToItem = new Dictionary<ulong, ResourceItem>();
-            this.RootFolder = new ResourceFolder() {DisplayName = "<root>"};
-            this.RootFolder.manager = this;
-            this.RootFolder.OnAttachedToManager();
+            this.selectedItems = new HashSet<BaseResource>(64, new ReferenceEqualityComparer<BaseResource>());
+            this.RootContainer = new ResourceFolder() {DisplayName = "<root>"};
+            this.RootContainer.manager = this;
+            this.RootContainer.OnAttachedToManager();
+            this.currentFolder = this.RootContainer;
             this.IsResourceNotInUsePredicate = s => !this.EntryExists(s);
             this.IsResourceInUsePredicate = this.EntryExists;
         }
@@ -71,7 +98,7 @@ namespace FramePFX.Editors.ResourceManaging {
         }
 
         public void WriteToRBE(RBEDictionary data) {
-            this.RootFolder.WriteToRBE(data.CreateDictionary(nameof(this.RootFolder)));
+            this.RootContainer.WriteToRBE(data.CreateDictionary(nameof(this.RootContainer)));
             data.SetULong("CurrId", this.currId);
         }
 
@@ -79,8 +106,8 @@ namespace FramePFX.Editors.ResourceManaging {
             if (this.uuidToItem.Count > 0)
                 throw new Exception("Cannot read data while resources are still registered");
 
-            this.RootFolder.ReadFromRBE(data.GetDictionary(nameof(this.RootFolder)));
-            AccumulateEntriesRecursive(this, this.RootFolder, this.uuidToItem);
+            this.RootContainer.ReadFromRBE(data.GetDictionary(nameof(this.RootContainer)));
+            AccumulateEntriesRecursive(this, this.RootContainer, this.uuidToItem);
             this.currId = data.GetULong("CurrId", 0UL);
         }
 
@@ -239,6 +266,18 @@ namespace FramePFX.Editors.ResourceManaging {
             }
 
             return TextIncrement.GetIncrementableString(accept, $"{file}::{streamName}", out output, 10000);
+        }
+
+        public static void UpdateSelection(BaseResource resource) {
+            ResourceManager manager = resource.manager;
+            if (manager != null) {
+                if (resource.IsSelected) {
+                    manager.selectedItems.Add(resource);
+                }
+                else {
+                    manager.selectedItems.Remove(resource);
+                }
+            }
         }
 
         #endregion

@@ -14,14 +14,15 @@ namespace FramePFX.PropertyEditing.Controls {
                 new FrameworkPropertyMetadata(
                     BoolBox.False,
                     FrameworkPropertyMetadataOptions.BindsTwoWayByDefault | FrameworkPropertyMetadataOptions.Journal,
-                    (d, e) => ((PropertyEditorSlotControl) d).OnSelectionChanged((bool) e.OldValue, (bool) e.NewValue)));
+                    (d, e) => ((PropertyEditorSlotControl) d).OnSelectionChanged((bool) e.OldValue, (bool) e.NewValue),
+                    (o, value) => ((PropertyEditorSlotControl) o).IsSelectable ? value : BoolBox.False));
 
         public static readonly DependencyProperty IsSelectableProperty =
             DependencyProperty.Register(
                 "IsSelectable",
                 typeof(bool),
                 typeof(PropertyEditorSlotControl),
-                new PropertyMetadata(BoolBox.False));
+                new PropertyMetadata(BoolBox.False, (o, e) => ((PropertyEditorSlotControl) o).CoerceValue(IsSelectedProperty)));
 
         /// <summary>
         /// Whether or not this slot is selected. Setting this property automatically affects

@@ -10,6 +10,7 @@ namespace FramePFX.Editors.ResourceManaging {
     public abstract class BaseResource {
         internal ResourceManager manager;
         private string displayName;
+        private bool isSelected;
 
         /// <summary>
         /// The manager that this resource belongs to. Null if <see cref="Parent"/> is null, or there is just no manager associated with this hierarchy
@@ -36,7 +37,19 @@ namespace FramePFX.Editors.ResourceManaging {
             }
         }
 
+        public bool IsSelected {
+            get => this.isSelected;
+            set {
+                if (this.isSelected == value)
+                    return;
+                this.isSelected = value;
+                ResourceManager.UpdateSelection(this);
+                this.IsSelectedChanged?.Invoke(this);
+            }
+        }
+
         public event BaseResourceEventHandler DisplayNameChanged;
+        public event BaseResourceEventHandler IsSelectedChanged;
 
         protected BaseResource() {
         }
@@ -78,7 +91,7 @@ namespace FramePFX.Editors.ResourceManaging {
         /// <see cref="Manager"/> is set to a non-null value prior to this call
         /// </summary>
         public virtual void OnAttachedToManager() {
-
+            ResourceManager.UpdateSelection(this);
         }
 
         /// <summary>
@@ -86,7 +99,7 @@ namespace FramePFX.Editors.ResourceManaging {
         /// <see cref="Manager"/> is set to null after this call
         /// </summary>
         public virtual void OnDetatchedFromManager() {
-
+            ResourceManager.UpdateSelection(this);
         }
 
         public static BaseResource ReadSerialisedWithType(RBEDictionary dictionary) {

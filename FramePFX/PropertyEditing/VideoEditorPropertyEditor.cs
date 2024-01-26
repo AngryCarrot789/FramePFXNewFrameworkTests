@@ -10,7 +10,7 @@ namespace FramePFX.PropertyEditing {
 
         public FixedPropertyEditorGroup Root { get; }
 
-        private FixedPropertyEditorGroup ClipGroup { get; }
+        public FixedPropertyEditorGroup ClipGroup { get; }
 
         private VideoEditorPropertyEditor() {
             this.Root = new FixedPropertyEditorGroup(typeof(object)) {

@@ -138,7 +138,7 @@
                             <a:AutomationSequenceEditor x:Name="PART_AutomationSequence"
                                                         HorizontalAlignment="Stretch"
                                                         VerticalAlignment="Stretch"
-                                                        Margin="0,20,0,0" />
+                                                        Margin="0,20,0,0"/>
                             <Border x:Name="PART_SelectionBorder" Margin="-1"
                                     BorderThickness="2"
                                     BorderBrush="YellowGreen"
@@ -381,7 +381,7 @@
                                                      x:Name="PART_OpacitySlider" Padding="0,1,0,0"/>
                                 </StackPanel>
                                 <TextBlock Grid.Row="0" Grid.Column="2" DockPanel.Dock="Right" Margin="0,1,4,0"
-                                           Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=DisplayName}" />
+                                           Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=DisplayName}"/>
                             </DockPanel>
                             <Grid DockPanel.Dock="Bottom" Margin="2">
                                 <c:SpacedStackPanel x:Name="PART_AutomationPanel" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
@@ -410,7 +410,7 @@
                                     </ComboBox>
                                     <Button BorderBrush="Black" Height="18" Width="18" ToolTip="Insert a key frame at the current play head"
                                             x:Name="PART_InsertKeyFrameButton">
-                                        <Ellipse Width="8" Height="8" Fill="{DynamicResource ABrush.Glyph.Static}" />
+                                        <Ellipse Width="8" Height="8" Fill="{DynamicResource ABrush.Glyph.Static}"/>
                                     </Button>
                                     <Button Content="O" BorderBrush="Black" Height="18" Width="18" ToolTip="Toggles the parameter override state for this track. This is used to enable or disable automation for the parameter"
                                             x:Name="PART_OverrideButton"/>

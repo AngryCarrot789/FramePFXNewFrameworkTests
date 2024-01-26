@@ -19,7 +19,7 @@ namespace FramePFX.Editors.Controls {
         /// it, meaning it is not placed in a valid timeline
         /// </exception>
         public static long GetCursorFrame(TimelineClipControl clip, bool useRounding = true) {
-            TrackStoragePanel timeline = clip.Track?.Timeline;
+            TrackStoragePanel timeline = clip.Track?.OwnerPanel;
             if (timeline == null) {
                 throw new Exception("Clip does not have a timeline sequence associated with it");
             }
