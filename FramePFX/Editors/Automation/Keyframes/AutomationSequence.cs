@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Timelines;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 using FramePFX.RBC;
 
 namespace FramePFX.Editors.Automation.Keyframes {
@@ -51,6 +51,13 @@ namespace FramePFX.Editors.Automation.Keyframes {
                     return;
                 this.isOverrideEnabled = value;
                 this.OverrideStateChanged?.Invoke(this);
+
+                long frame = this.AutomationData.Owner.RelativePlayHead;
+                if (value) {
+                    this.DefaultKeyFrame.AssignCurrentValue(frame, this, true);
+                }
+
+                this.UpdateValue(frame);
             }
         }
 
@@ -123,6 +130,10 @@ namespace FramePFX.Editors.Automation.Keyframes {
                 this.Parameter.SetValue(this, frame);
                 this.ParameterChanged?.Invoke(this);
                 AutomationData.OnParameterValueChanged(this);
+                if ((this.Parameter.Flags & ParameterFlags.InvalidatesRender) != 0) {
+                    Timeline timeline = this.AutomationData.Owner.Timeline;
+                    timeline?.InvalidateRender();
+                }
             }
             finally {
                 this.IsValueChanging = false;

@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
+using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Factories;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
+using FramePFX.Editors.Timelines.Effects;
+using FramePFX.PropertyEditing;
 using FramePFX.Utils;
 using SkiaSharp;
 
@@ -13,7 +18,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void TrackClipIndexEventHandler(Track track, Clip clip, int index);
     public delegate void ClipMovedEventHandler(Clip clip, Track oldTrack, int oldIndex, Track newTrack, int newIndex);
 
-    public abstract class Track : IAutomatable, IDestroy {
+    public abstract class Track : IAutomatable, IHaveEffects, IDestroy {
         public const double MinimumHeight = 20;
         public const double DefaultHeight = 56;
         public const double MaximumHeight = 250;
@@ -25,6 +30,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public long RelativePlayHead => this.Timeline.PlayHeadPosition;
 
         public ReadOnlyCollection<Clip> Clips { get; }
+
+        public ReadOnlyCollection<BaseEffect> Effects { get; }
 
         public double Height {
             get => this.height;
@@ -88,6 +95,9 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public event TrackEventHandler DisplayNameChanged;
         public event TrackEventHandler ColourChanged;
         public event TrackEventHandler IsSelectedChanged;
+        public event EffectOwnerEventHandler EffectAdded;
+        public event EffectOwnerEventHandler EffectRemoved;
+        public event EffectMovedEventHandler EffectMoved;
 
         // Not sure if this will ever be used since track removal should typically be
         // handled at a higher level, but this could work for lazy event handler removal
@@ -96,6 +106,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
         private readonly List<Clip> clips;
         private readonly ClipRangeCache cache;
         private readonly List<Clip> selectedClips;
+        private readonly List<BaseEffect> internalEffectList;
         private double height = DefaultHeight;
         private string displayName = "Track";
         private SKColor colour;
@@ -106,9 +117,15 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.Clips = new ReadOnlyCollection<Clip>(this.clips);
             this.cache = new ClipRangeCache();
             this.cache.FrameDataChanged += this.OnRangeCachedFrameDataChanged;
+            this.internalEffectList = new List<BaseEffect>();
+            this.Effects = this.internalEffectList.AsReadOnly();
             this.colour = RenderUtils.RandomColour();
             this.selectedClips = new List<Clip>();
             this.AutomationData = new AutomationData(this);
+        }
+
+        public bool IsAutomated(Parameter parameter) {
+            return this.AutomationData.IsAutomated(parameter);
         }
 
         private void OnRangeCachedFrameDataChanged(ClipRangeCache handler) {
@@ -138,6 +155,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
         public void AddClip(Clip clip) => this.InsertClip(this.clips.Count, clip);
 
         public void InsertClip(int index, Clip clip) {
+            if (!this.IsClipTypeAccepted(clip.GetType()))
+                throw new InvalidOperationException("This track (" + this.GetType().Name + ") does not accept the clip type " + clip.GetType().Name);
             if (this.clips.Contains(clip))
                 throw new InvalidOperationException("This track already contains the clip");
             this.InternalInsertClipAt(index, clip);
@@ -167,7 +186,11 @@ namespace FramePFX.Editors.Timelines.Tracks {
                 throw new ArgumentOutOfRangeException(nameof(dstTrack));
             if (dstIndex < 0 || dstIndex > dstTrack.clips.Count)
                 throw new ArgumentOutOfRangeException(nameof(dstIndex), "dstIndex is out of range");
+            if (dstTrack.Timeline != this.Timeline)
+                throw new ArgumentException("Clips cannot be moved across timelines");
             Clip clip = this.clips[srcIndex];
+            if (!dstTrack.IsClipTypeAccepted(clip.GetType()))
+                throw new InvalidOperationException("The destination track (" + dstTrack.GetType().Name + ") does not accept the clip type " + clip.GetType().Name);
             this.InternalRemoveClipAt(srcIndex, clip);
             dstTrack.InternalInsertClipAt(dstIndex, clip);
             Clip.OnMovedToTrack(clip, this, dstTrack);
@@ -189,11 +212,7 @@ namespace FramePFX.Editors.Timelines.Tracks {
             this.cache.OnClipRemoved(clip);
             if (clip.IsSelected)
                 this.selectedClips.Remove(clip);
-            Timelines.Timeline.OnClipRemovedFromTrack(this, clip);
-        }
-
-        public virtual bool IsClipTypeAccepted(Clip clip) {
-            return this.IsClipTypeAccepted(clip.GetType());
+            Timeline.OnClipRemovedFromTrack(this, clip);
         }
 
         public abstract bool IsClipTypeAccepted(Type type);
@@ -202,24 +221,28 @@ namespace FramePFX.Editors.Timelines.Tracks {
 
         public Clip GetClipAtFrame(long frame) => this.cache.GetPrimaryClipAt(frame);
 
-        public void ClearClipSelection() {
+        public void ClearClipSelection(Clip except = null) {
             // Use back to front removal since OnIsClipSelectedChanged can process
             // that more efficiently, and in general, back to front is more efficient
             List<Clip> list = this.selectedClips;
             for (int i = list.Count - 1; i >= 0; i--) {
-                list[i].IsSelected = false;
+                Clip clip = list[i];
+                if (clip != except)
+                    clip.IsSelected = false;
             }
+
+            Timeline.OnTrackSelectionCleared(this);
         }
 
         public void InvalidateRender() {
-            this.Timeline?.Project?.RenderManager.InvalidateRender();
+            this.Timeline?.InvalidateRender();
         }
 
         public virtual void Destroy() {
             for (int i = this.clips.Count - 1; i >= 0; i--) {
                 Clip clip = this.clips[i];
-                clip.Destroy();
                 this.RemoveClipAt(i);
+                clip.Destroy();
             }
         }
 
@@ -240,6 +263,72 @@ namespace FramePFX.Editors.Timelines.Tracks {
             List<Clip> list = new List<Clip>();
             this.CollectClipsInSpan(list, span);
             return list;
+        }
+
+        public IEnumerable<Clip> GetClipsAtFrame(long frame) {
+            List<Clip> list = new List<Clip>();
+            this.cache.GetClipsAtFrame(list, frame);
+            return list;
+        }
+
+        public abstract bool IsEffectTypeAccepted(Type effectType);
+
+        public void AddEffect(BaseEffect effect) {
+            this.InsertEffect(this.internalEffectList.Count, effect);
+        }
+
+        public void InsertEffect(int index, BaseEffect effect) {
+            BaseEffect.ValidateInsertEffect(this, effect, index);
+            BaseEffect.OnAddedInternal(this, effect);
+            this.OnEffectAdded(index, effect);
+        }
+
+        public bool RemoveEffect(BaseEffect effect) {
+            if (effect.Owner != this)
+                return false;
+
+            int index = this.internalEffectList.IndexOf(effect);
+            if (index == -1) { // what to do here?????
+                Debug.WriteLine("EFFECT OWNER MATCHES THIS CLIP BUT IT IS NOT PLACED IN THE COLLECTION");
+                Debugger.Break();
+                return false;
+            }
+
+            this.RemoveEffectAtInternal(index, effect);
+            return true;
+        }
+
+        public void RemoveEffectAt(int index) {
+            BaseEffect effect = this.Effects[index];
+            if (!ReferenceEquals(effect.Owner, this)) {
+                Debug.WriteLine("EFFECT STORED IN CLIP HAS A MISMATCHING OWNER");
+                Debugger.Break();
+            }
+
+            this.RemoveEffectAtInternal(index, effect);
+        }
+
+        public void MoveEffect(int oldIndex, int newIndex) {
+            if (newIndex < 0 || newIndex >= this.internalEffectList.Count)
+                throw new IndexOutOfRangeException($"{nameof(newIndex)} is not within range: {(newIndex < 0 ? "less than zero" : "greater than list length")} ({newIndex})");
+            BaseEffect effect = this.internalEffectList[oldIndex];
+            this.internalEffectList.RemoveAt(oldIndex);
+            this.internalEffectList.Insert(newIndex, effect);
+            this.EffectMoved?.Invoke(this, effect, oldIndex, newIndex);
+        }
+
+        private void RemoveEffectAtInternal(int index, BaseEffect effect) {
+            this.internalEffectList.RemoveAt(index);
+            BaseEffect.OnRemovedInternal(effect);
+            this.OnEffectRemoved(index, effect);
+        }
+
+        private void OnEffectAdded(int index, BaseEffect effect) {
+            this.EffectAdded?.Invoke(this, effect, index);
+        }
+
+        private void OnEffectRemoved(int index, BaseEffect effect) {
+            this.EffectRemoved?.Invoke(this, effect, index);
         }
 
         internal static void OnAddedToTimeline(Track track, Timeline timeline) {
@@ -291,11 +380,5 @@ namespace FramePFX.Editors.Timelines.Tracks {
         }
 
         #endregion
-
-        public IEnumerable<Clip> GetClipsAtFrame(long frame) {
-            List<Clip> list = new List<Clip>();
-            this.cache.GetClipsAtFrame(list, frame);
-            return list;
-        }
     }
 }

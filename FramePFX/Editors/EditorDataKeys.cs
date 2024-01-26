@@ -1,6 +1,6 @@
 using System.Windows.Controls.Primitives;
 using FramePFX.Editors.Timelines;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 
 namespace FramePFX.Editors {
     public static class EditorDataKeys {

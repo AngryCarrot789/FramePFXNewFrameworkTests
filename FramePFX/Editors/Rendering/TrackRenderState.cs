@@ -1,5 +1,5 @@
+using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
 
 namespace FramePFX.Editors.Rendering {
     /// <summary>

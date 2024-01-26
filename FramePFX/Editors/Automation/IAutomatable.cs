@@ -1,4 +1,4 @@
-using FramePFX.Editors.Controls.Timelines;
+using FramePFX.Editors.Automation.Params;
 
 namespace FramePFX.Editors.Automation {
     /// <summary>
@@ -10,5 +10,12 @@ namespace FramePFX.Editors.Automation {
         /// sequences for storing the key frames for each type of automate-able parameters
         /// </summary>
         AutomationData AutomationData { get; }
+
+        /// <summary>
+        /// Checks if the given parameter has any key frames for this object
+        /// </summary>
+        /// <param name="parameter">The parameter to check</param>
+        /// <returns>True or false</returns>
+        bool IsAutomated(Parameter parameter);
     }
 }

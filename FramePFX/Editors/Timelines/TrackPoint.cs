@@ -1,4 +1,4 @@
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 
 namespace FramePFX.Editors.Timelines {
     /// <summary>

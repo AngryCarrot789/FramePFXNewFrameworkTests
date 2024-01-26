@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using FramePFX.Editors.Timelines;
+using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
-using FramePFX.Utils;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Rendering {
@@ -19,7 +18,7 @@ namespace FramePFX.Editors.Rendering {
     public class RenderManager {
         public Project Project { get; }
 
-        public SKImageInfo FrameInfo { get; private set; }
+        public SKImageInfo ImageInfo { get; private set; }
 
         private volatile bool isRendering;
         private volatile int isRenderScheduled;
@@ -37,7 +36,7 @@ namespace FramePFX.Editors.Rendering {
         }
 
         public void UpdateFrameInfo(SKImageInfo info) {
-            if (this.FrameInfo == info) {
+            if (this.ImageInfo == info) {
                 return;
             }
 
@@ -45,7 +44,7 @@ namespace FramePFX.Editors.Rendering {
                 throw new InvalidOperationException("Cannot change frame info while rendering");
             }
 
-            this.FrameInfo = info;
+            this.ImageInfo = info;
             this.bitmap?.Dispose();
             this.pixmap?.Dispose();
             this.bitmap = new SKBitmap(info);
@@ -67,21 +66,23 @@ namespace FramePFX.Editors.Rendering {
                 throw new ArgumentOutOfRangeException(nameof(frame), "Frame is not within the bounds of the timeline");
             if (this.isRendering)
                 throw new InvalidOperationException("Render already in progress");
-            if (this.FrameInfo.Width < 1 || this.FrameInfo.Height < 1)
+            if (this.ImageInfo.Width < 1 || this.ImageInfo.Height < 1)
                 throw new InvalidOperationException("The current frame info is invalid");
             if (!Application.Current.Dispatcher.CheckAccess())
                 throw new InvalidOperationException("Cannot start rendering while not on the main thread");
 
             this.isRendering = true;
-            RenderFrameInfo renderInfo = new RenderFrameInfo(this.FrameInfo, frame);
+            SKImageInfo imageInfo = this.ImageInfo;
             List<VideoTrack> tracks = new List<VideoTrack>();
+
+            // render bottom to top, as most video editors do
             for (int i = timeline.Tracks.Count - 1; i >= 0; i--) {
                 Track track = timeline.Tracks[i];
                 if (!(track is VideoTrack videoTrack) || !videoTrack.Visible) {
                     continue;
                 }
 
-                if (videoTrack.BeginRenderFrame(renderInfo)) {
+                if (videoTrack.PrepareRenderFrame(imageInfo, frame)) {
                     tracks.Add(videoTrack);
                 }
             }
@@ -90,7 +91,7 @@ namespace FramePFX.Editors.Rendering {
                 Task[] tasks = new Task[tracks.Count];
                 for (int i = 0; i < tracks.Count; i++) {
                     VideoTrack track = tracks[i];
-                    tasks[i] = Task.Run(() => track.RenderFrame(renderInfo));
+                    tasks[i] = Task.Run(() => track.RenderFrame(imageInfo));
                 }
 
                 this.surface.Canvas.Clear(SKColors.Transparent);
@@ -117,7 +118,7 @@ namespace FramePFX.Editors.Rendering {
         }
 
         public static int BeginClipOpacityLayer(SKCanvas canvas, VideoClip clip, ref SKPaint paint) {
-            if (clip.UsesCustomOpacityCalculation || Maths.Equals(clip.Opacity, 1d)) {
+            if (clip.UsesCustomOpacityCalculation || clip.Opacity >= 1.0) { // check greater than just in case...
                 return canvas.Save();
             }
             else {
@@ -127,7 +128,7 @@ namespace FramePFX.Editors.Rendering {
 
         public static int BeginTrackOpacityLayer(SKCanvas canvas, VideoTrack track, ref SKPaint paint) {
             // TODO: optimise this, because it adds about 3ms of extra lag per layer with an opacity less than 1 (due to bitmap allocation obviously)
-            return !Maths.Equals(track.Opacity, 1d) ? SaveLayerForOpacity(canvas, track.Opacity, ref paint) : canvas.Save();
+            return track.Opacity >= 1.0 ? canvas.Save() : SaveLayerForOpacity(canvas, track.Opacity, ref paint);
         }
 
         public static void EndOpacityLayer(SKCanvas canvas, int count, ref SKPaint paint) {

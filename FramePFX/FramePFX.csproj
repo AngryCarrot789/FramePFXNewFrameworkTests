@@ -158,8 +158,10 @@
     <Compile Include="Editors\Automation\Keyframes\KeyFrameUtils.cs" />
     <Compile Include="Editors\Automation\Params\Parameter.cs" />
     <Compile Include="Editors\Automation\Params\ParameterDescriptor.cs" />
+    <Compile Include="Editors\Automation\Params\ParameterFlags.cs" />
     <Compile Include="Editors\Automation\Params\ParameterKey.cs" />
     <Compile Include="Editors\Automation\Params\ParameterChangedEventHandler.cs" />
+    <Compile Include="Editors\Automation\Params\ValueAccessor.cs" />
     <Compile Include="Editors\Automation\SwitchAutomationDataTypeAttribute.cs" />
     <Compile Include="Editors\Collections\SelectionList.cs" />
     <Compile Include="Editors\Controls\Automation\AutomatedControlUtils.cs" />
@@ -233,6 +235,7 @@
     <Compile Include="Editors\Controls\Viewports\SKAsyncViewPort.cs" />
     <Compile Include="Editors\EditorDataKeys.cs" />
     <Compile Include="Editors\Factories\ClipFactory.cs" />
+    <Compile Include="Editors\Factories\EffectFactory.cs" />
     <Compile Include="Editors\Factories\ReflectiveObjectFactory.cs" />
     <Compile Include="Editors\Factories\ObjectFactory.cs" />
     <Compile Include="Editors\Factories\ResourceTypeFactory.cs" />
@@ -246,8 +249,11 @@
     <Compile Include="Editors\PlaybackManager.cs" />
     <Compile Include="Editors\PlayState.cs" />
     <Compile Include="Editors\ProjectSettings.cs" />
+    <Compile Include="Editors\Rendering\PreRenderContext.cs" />
+    <Compile Include="Editors\Rendering\RenderContext.cs" />
     <Compile Include="Editors\Rendering\RenderFrameInfo.cs" />
     <Compile Include="Editors\Rendering\RenderManager.cs" />
+    <Compile Include="Editors\Rendering\RenderState.cs" />
     <Compile Include="Editors\Rendering\TrackRenderState.cs" />
     <Compile Include="Editors\RenderUtils.cs" />
     <Compile Include="Editors\ResourceManaging\BaseResource.cs" />
@@ -263,18 +269,25 @@
     <Compile Include="Editors\ResourceManaging\Resources\ResourceImage.cs" />
     <Compile Include="Editors\ResourceManaging\Resources\ResourceTextStyle.cs" />
     <Compile Include="Editors\ResourceManaging\RLinkState.cs" />
-    <Compile Include="Editors\Timelines\RenderContext.cs" />
+    <Compile Include="Editors\Timelines\Clips\Clip.cs" />
+    <Compile Include="Editors\Timelines\Clips\IStrictFrameRange.cs" />
+    <Compile Include="Editors\Timelines\Clips\VideoClip.cs" />
+    <Compile Include="Editors\Timelines\Clips\VideoClipShape.cs" />
+    <Compile Include="Editors\Timelines\Effects\BaseEffect.cs" />
+    <Compile Include="Editors\Timelines\Effects\ITransformationEffect.cs" />
+    <Compile Include="Editors\Timelines\Effects\MotionEffect.cs" />
+    <Compile Include="Editors\Timelines\Effects\VideoEffect.cs" />
+    <Compile Include="Editors\Timelines\IHaveEffects.cs" />
     <Compile Include="Editors\Timelines\SelectionType.cs" />
     <Compile Include="Editors\Timelines\TrackFrameSpan.cs" />
     <Compile Include="Editors\Timelines\TrackPoint.cs" />
     <Compile Include="Editors\Timelines\Tracks\ClipCloneOptions.cs" />
     <Compile Include="Editors\Timelines\Tracks\ClipRangeCache.cs" />
-    <Compile Include="Editors\Timelines\Tracks\Clips\IStrictFrameRange.cs" />
-    <Compile Include="Editors\Timelines\Tracks\Clips\VideoClipShape.cs" />
     <Compile Include="Editors\Timelines\Tracks\TrackCloneOptions.cs" />
     <Compile Include="Editors\Timelines\ZoomType.cs" />
     <Compile Include="Editors\TimelineUtils.cs" />
     <Compile Include="Editors\Utils\ItemCacheStack.cs" />
+    <Compile Include="Editors\Utils\SKUtils.cs" />
     <Compile Include="Interactivity\DataContext.cs" />
     <Compile Include="Interactivity\DataObjectWrapper.cs" />
     <Compile Include="Interactivity\DragDropRegistry.cs" />
@@ -286,6 +299,23 @@
     <Compile Include="Interactivity\IDataObjekt.cs" />
     <Compile Include="Interactivity\IFileDropHandler.cs" />
     <Compile Include="Interactivity\NativeDropTypes.cs" />
+    <Compile Include="PropertyEditing\ApplicabilityMode.cs" />
+    <Compile Include="PropertyEditing\BasePropertyEditorItem.cs" />
+    <Compile Include="PropertyEditing\Controls\BasePropEditControlContent.cs" />
+    <Compile Include="PropertyEditing\Controls\PropertyEditorControl.cs" />
+    <Compile Include="PropertyEditing\Controls\PropertyEditorSlotControl.cs" />
+    <Compile Include="PropertyEditing\Controls\Specialized\ClipDisplayNamePropertyEditorControl.cs" />
+    <Compile Include="PropertyEditing\Controls\Specialized\VideoClipOpacityPropertyEditorControl.cs" />
+    <Compile Include="PropertyEditing\Specialized\ClipDisplayNamePropertyEditorSlot.cs" />
+    <Compile Include="PropertyEditing\Specialized\VideoClipOpacityPropertyEditorSlot.cs" />
+    <Compile Include="PropertyEditing\FixedPropertyEditorGroup.cs" />
+    <Compile Include="PropertyEditing\HandlerCountMode.cs" />
+    <Compile Include="PropertyEditing\BasePropertyEditorObject.cs" />
+    <Compile Include="PropertyEditing\Controls\PropertyEditorGroupControl.cs" />
+    <Compile Include="PropertyEditing\Controls\PropertyEditorControlPanel.cs" />
+    <Compile Include="PropertyEditing\VideoEditorPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\BasePropertyEditorGroup.cs" />
+    <Compile Include="PropertyEditing\PropertyEditorSlot.cs" />
     <Compile Include="RBC\BinaryUtils.cs" />
     <Compile Include="RBC\Events\ReadFromRBEEventHandler.cs" />
     <Compile Include="RBC\Events\WriteToRBEEventHandler.cs" />
@@ -466,8 +496,6 @@
     <Compile Include="Editors\Project.cs" />
     <Compile Include="Editors\Timelines\FrameSpan.cs" />
     <Compile Include="Editors\Timelines\Timeline.cs" />
-    <Compile Include="Editors\Timelines\Tracks\Clips\Clip.cs" />
-    <Compile Include="Editors\Timelines\Tracks\Clips\VideoClip.cs" />
     <Compile Include="Editors\Timelines\Tracks\Track.cs" />
     <Compile Include="Editors\Timelines\Tracks\VideoTrack.cs" />
     <Compile Include="Editors\VideoEditor.cs" />
@@ -528,6 +556,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Editors\Views\EditorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PropertyEditing\Controls\PropertyEditorSlotContentStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PropertyEditing\Controls\PropertyEditorStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

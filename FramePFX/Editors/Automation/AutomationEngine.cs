@@ -1,6 +1,6 @@
 using FramePFX.Editors.Timelines;
+using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
 
 namespace FramePFX.Editors.Automation {
     public static class AutomationEngine {

@@ -1,4 +1,4 @@
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 
 namespace FramePFX.Editors.Controls {
     public interface IClipControl {

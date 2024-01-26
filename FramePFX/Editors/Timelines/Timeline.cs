@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
+using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.PropertyEditing;
 using FramePFX.Utils;
 
 namespace FramePFX.Editors.Timelines {
@@ -262,8 +264,8 @@ namespace FramePFX.Editors.Timelines {
         public virtual void Destroy() {
             for (int i = this.tracks.Count - 1; i >= 0; i--) {
                 Track track = this.tracks[i];
-                track.Destroy();
                 this.RemoveTrackAt(i);
+                track.Destroy();
             }
         }
 
@@ -318,14 +320,14 @@ namespace FramePFX.Editors.Timelines {
         /// <summary>
         /// Sets all clips in all tracks to not-selected
         /// </summary>
-        public void ClearClipSelection() {
+        public void ClearClipSelection(Clip except = null) {
             foreach (Track track in this.tracks) {
-                track.ClearClipSelection();
+                track.ClearClipSelection(except);
             }
         }
 
         public void MakeSingleSelection(Clip clipToSelect) {
-            this.ClearClipSelection();
+            this.ClearClipSelection(clipToSelect);
             clipToSelect.IsSelected = true;
         }
 
@@ -349,6 +351,9 @@ namespace FramePFX.Editors.Timelines {
         }
 
         internal static void OnIsClipSelectedChanged(Clip clip) {
+            Timeline timeline = clip.Track?.Timeline;
+            if (timeline != null)
+                VideoEditorPropertyEditor.Instance.Root.SetupHierarchyState(timeline.SelectedClips.ToList());
             // UI modifies the anchor directly
             // clip.Track.Timeline.RangedSelectionAnchor = clip.IsSelected ? clip : null;
         }
@@ -357,6 +362,17 @@ namespace FramePFX.Editors.Timelines {
             // if (track.Timeline.RangedSelectionAnchorClip == clip) {
             //     track.Timeline.RangedSelectionAnchorClip = null;
             // }
+        }
+
+        public void InvalidateRender() {
+            this.Project?.RenderManager.InvalidateRender();
+        }
+
+        public static void OnTrackSelectionCleared(Track track) {
+            if (track.Timeline == null)
+                return;
+
+            VideoEditorPropertyEditor.Instance.Root.SetupHierarchyState(track.Timeline.SelectedClips.ToList());
         }
     }
 }

@@ -7,7 +7,7 @@
             xmlns:tl="clr-namespace:FramePFX.Editors.Controls.Timelines"
             xmlns:cv="clr-namespace:FramePFX.Editors.Controls.Viewports"
             xmlns:resources="clr-namespace:FramePFX.Editors.Controls.Resources"
-            xmlns:wpf="clr-namespace:FramePFX.Shortcuts.WPF"
+            xmlns:wpf="clr-namespace:FramePFX.Shortcuts.WPF" xmlns:controls="clr-namespace:FramePFX.PropertyEditing.Controls"
             mc:Ignorable="d"
             Style="{StaticResource CustomWindowStyleEx}"
             Background="{DynamicResource PanelBorderBrush}"
@@ -44,6 +44,8 @@
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="1"/>
                     <ColumnDefinition Width="4*"/>
                     <ColumnDefinition Width="1"/>
                     <ColumnDefinition Width="5*"/>
@@ -52,10 +54,17 @@
                     <Border Background="{DynamicResource PanelBackground3}" 
                             BorderBrush="{DynamicResource PanelBorderBrush}" 
                             BorderThickness="0 1 0 0">
+                        <controls:PropertyEditorControl x:Name="ThePropertyEditor"/>
+                    </Border>
+                </GroupBox>
+                <GroupBox Grid.Column="2" BorderThickness="0" Header="Resources">
+                    <Border Background="{DynamicResource PanelBackground3}" 
+                            BorderBrush="{DynamicResource PanelBorderBrush}" 
+                            BorderThickness="0 1 0 0">
                         <resources:ResourcePanelControl x:Name="TheResourcePanel"/>
                     </Border>
                 </GroupBox>
-                <GroupBox Grid.Column="2" BorderThickness="0" Header="View Port Preview">
+                <GroupBox Grid.Column="4" BorderThickness="0" Header="View Port Preview">
                     <DockPanel>
                         <Border Background="{DynamicResource PanelBackground3}" DockPanel.Dock="Bottom" Height="32" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0 1 0 0">
                             <DockPanel>

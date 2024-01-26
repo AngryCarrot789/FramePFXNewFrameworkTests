@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 
 namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void ClipRangeCacheEventHandler(ClipRangeCache handler);

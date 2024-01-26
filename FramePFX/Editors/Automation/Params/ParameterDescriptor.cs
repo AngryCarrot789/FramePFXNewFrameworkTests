@@ -30,7 +30,7 @@ namespace FramePFX.Editors.Automation.Params {
         /// </summary>
         public float Maximum { get; }
 
-        public ParameterDescriptorFloat(float defaultValue, float minimum, float maximum) : base(AutomationDataType.Float) {
+        public ParameterDescriptorFloat(float defaultValue = default, float minimum = float.MinValue, float maximum = float.MaxValue) : base(AutomationDataType.Float) {
             if (minimum > maximum)
                 throw new ArgumentException($"Minimum value exceeds the maximum value: {minimum} > {maximum}", nameof(minimum));
             if (defaultValue < minimum || defaultValue > maximum)
@@ -59,7 +59,7 @@ namespace FramePFX.Editors.Automation.Params {
         /// </summary>
         public double Maximum { get; }
 
-        public ParameterDescriptorDouble(double defaultValue, double minimum, double maximum) : base(AutomationDataType.Double) {
+        public ParameterDescriptorDouble(double defaultValue = default, double minimum = double.MinValue, double maximum = double.MaxValue) : base(AutomationDataType.Double) {
             if (minimum > maximum)
                 throw new ArgumentException($"Minimum value exceeds the maximum value: {minimum} > {maximum}", nameof(minimum));
             if (defaultValue < minimum || defaultValue > maximum)
@@ -88,7 +88,7 @@ namespace FramePFX.Editors.Automation.Params {
         /// </summary>
         public long Maximum { get; }
 
-        public ParameterDescriptorLong(long defaultValue, long minimum, long maximum) : base(AutomationDataType.Long) {
+        public ParameterDescriptorLong(long defaultValue = default, long minimum = long.MinValue, long maximum = long.MaxValue) : base(AutomationDataType.Long) {
             if (minimum > maximum)
                 throw new ArgumentException($"Minimum value exceeds the maximum value: {minimum} > {maximum}", nameof(minimum));
             if (defaultValue < minimum || defaultValue > maximum)

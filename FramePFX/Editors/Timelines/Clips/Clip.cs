@@ -1,13 +1,23 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
 using FramePFX.Destroying;
 using FramePFX.Editors.Automation;
+using FramePFX.Editors.Automation.Keyframes;
+using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Factories;
+using FramePFX.Editors.Timelines.Effects;
+using FramePFX.Editors.Timelines.Tracks;
+using FramePFX.Utils;
 
-namespace FramePFX.Editors.Timelines.Tracks.Clips {
+namespace FramePFX.Editors.Timelines.Clips {
     public delegate void ClipSpanChangedEventHandler(Clip clip, FrameSpan oldSpan, FrameSpan newSpan);
     public delegate void ClipEventHandler(Clip clip);
 
-    public abstract class Clip : IAutomatable, IStrictFrameRange, IDestroy {
+    public abstract class Clip : IAutomatable, IStrictFrameRange, IHaveEffects, IDestroy {
+        private readonly List<BaseEffect> internalEffectList;
         private FrameSpan span;
         private string displayName;
         private bool isSelected;
@@ -53,6 +63,11 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
             }
         }
 
+        public ReadOnlyCollection<BaseEffect> Effects { get; }
+        public event EffectOwnerEventHandler EffectAdded;
+        public event EffectOwnerEventHandler EffectRemoved;
+        public event EffectMovedEventHandler EffectMoved;
+
         public string FactoryId => ClipFactory.Instance.GetId(this.GetType());
 
         public event ClipSpanChangedEventHandler FrameSpanChanged;
@@ -60,6 +75,8 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
         public event ClipEventHandler IsSelectedChanged;
 
         protected Clip() {
+            this.internalEffectList = new List<BaseEffect>();
+            this.Effects = this.internalEffectList.AsReadOnly();
             this.AutomationData = new AutomationData(this);
         }
 
@@ -116,7 +133,7 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
                 throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot exceed our span's range");
             long begin = this.span.Begin;
             FrameSpan spanLeft = FrameSpan.FromIndex(begin, begin + offset);
-            FrameSpan spanRight = FrameSpan.FromIndex(spanLeft.EndIndex, this.FrameSpan.EndIndex);
+            FrameSpan spanRight = FrameSpan.FromIndex(spanLeft.EndIndex, this.span.EndIndex);
 
             Clip clone = this.Clone();
             this.Track.AddClip(clone);
@@ -140,6 +157,72 @@ namespace FramePFX.Editors.Timelines.Tracks.Clips {
 
         public bool IsRelativeFrameInRange(long relative) {
             return relative >= 0 && relative < this.span.Duration;
+        }
+
+        public bool IsAutomated(Parameter parameter) {
+            return this.AutomationData.IsAutomated(parameter);
+        }
+
+        public abstract bool IsEffectTypeAccepted(Type effectType);
+
+        public void AddEffect(BaseEffect effect) {
+            this.InsertEffect(this.internalEffectList.Count, effect);
+        }
+
+        public void InsertEffect(int index, BaseEffect effect) {
+            BaseEffect.ValidateInsertEffect(this, effect, index);
+            this.internalEffectList.Insert(index, effect);
+            BaseEffect.OnAddedInternal(this, effect);
+            this.OnEffectAdded(index, effect);
+        }
+
+        public bool RemoveEffect(BaseEffect effect) {
+            if (effect.Owner != this)
+                return false;
+
+            int index = this.internalEffectList.IndexOf(effect);
+            if (index == -1) {
+                // what to do here?????
+                Debug.WriteLine("EFFECT OWNER MATCHES THIS CLIP BUT IT IS NOT PLACED IN THE COLLECTION!!!");
+                Debugger.Break();
+                return false;
+            }
+
+            this.RemoveEffectAtInternal(index, effect);
+            return true;
+        }
+
+        public void RemoveEffectAt(int index) {
+            BaseEffect effect = this.internalEffectList[index];
+            if (!ReferenceEquals(effect.Owner, this)) {
+                Debug.WriteLine("EFFECT STORED IN CLIP HAS A MISMATCHING OWNER!!!");
+                Debugger.Break();
+            }
+
+            this.RemoveEffectAtInternal(index, effect);
+        }
+
+        public void MoveEffect(int oldIndex, int newIndex) {
+            if (newIndex < 0 || newIndex >= this.internalEffectList.Count)
+                throw new IndexOutOfRangeException($"{nameof(newIndex)} is not within range: {(newIndex < 0 ? "less than zero" : "greater than list length")} ({newIndex})");
+            BaseEffect effect = this.internalEffectList[oldIndex];
+            this.internalEffectList.RemoveAt(oldIndex);
+            this.internalEffectList.Insert(newIndex, effect);
+            this.EffectMoved?.Invoke(this, effect, oldIndex, newIndex);
+        }
+
+        private void RemoveEffectAtInternal(int index, BaseEffect effect) {
+            this.internalEffectList.RemoveAt(index);
+            BaseEffect.OnRemovedInternal(effect);
+            this.OnEffectRemoved(index, effect);
+        }
+
+        private void OnEffectAdded(int index, BaseEffect effect) {
+            this.EffectAdded?.Invoke(this, effect, index);
+        }
+
+        private void OnEffectRemoved(int index, BaseEffect effect) {
+            this.EffectRemoved?.Invoke(this, effect, index);
         }
 
         public virtual void Destroy() {

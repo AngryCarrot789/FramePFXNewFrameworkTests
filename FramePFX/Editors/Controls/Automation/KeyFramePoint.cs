@@ -5,7 +5,9 @@ using System.Windows;
 using System.Windows.Media;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
+using FramePFX.Editors.Utils;
 using FramePFX.Utils;
+using SkiaSharp;
 using Rect = System.Windows.Rect;
 
 namespace FramePFX.Editors.Controls.Automation {
@@ -96,6 +98,29 @@ namespace FramePFX.Editors.Controls.Automation {
             }
         }
 
+        public virtual void RenderEllipse(SKSurface surface, ref Rect drawing_area, byte opacity = 255) {
+            Point point = this.GetLocation();
+            const double r = AutomationSequenceEditor.EllipseRadius;
+            const double rH = AutomationSequenceEditor.EllipseHitRadius, rH2 = rH * 2d;
+            Rect area = new Rect(point.X - rH, point.Y - rH, rH2, rH2);
+            if (AutomationSequenceEditor.RectContains(ref drawing_area, ref area)) {
+                SKColor colour;
+                if (this.editor.isOverrideEnabled) {
+                    colour = SKColors.DarkGray;
+                }
+                else if (this.IsMovingPoint || this.IsMouseOverPoint) {
+                    colour = SKColors.White;
+                }
+                else {
+                    colour = SKColors.OrangeRed;
+                }
+
+                using (SKPaint paint = new SKPaint() {Color = colour.WithAlpha(opacity)}) {
+                    surface.Canvas.DrawCircle(point.AsSkia(), (float) r, paint);
+                }
+            }
+        }
+
         public static bool IsLineVisible(ref Rect rect, ref Point p1, ref Point p2) {
             double leftmost = Math.Min(p1.X, p2.X);
             double rightmost = Math.Max(p1.X, p2.X);
@@ -155,6 +180,24 @@ namespace FramePFX.Editors.Controls.Automation {
                 //     dc.DrawGeometry(null, pen, this.geometry);
                 dc.DrawLine(this.editor.LineTransparentPen, p1, p2);
                 dc.DrawLine(pen, p1, p2);
+            }
+        }
+
+         public virtual void RenderLine(SKSurface suface, KeyFramePoint target, ref Rect drawing_area, byte opacity = 255) {
+            Point p1 = this.GetLocation();
+            Point p2 = target.GetLocation();
+            if (IsLineVisible(ref drawing_area, ref p1, ref p2)) {
+                SKColor colour;
+                if (this.LastLineHitType != LineHitType.Head && this.LastLineHitType != LineHitType.Tail) {
+                    colour = this.editor.isOverrideEnabled ? SKColors.DarkGray : (this.LastLineHitType != LineHitType.None ? SKColors.White : SKColors.OrangeRed);
+                }
+                else {
+                    colour = this.editor.isOverrideEnabled ? SKColors.White : SKColors.OrangeRed;
+                }
+
+                using (SKPaint paint = new SKPaint() {Color = colour.WithAlpha(opacity)}) {
+                    suface.Canvas.DrawLine(p1.AsSkia(), p2.AsSkia(), paint);
+                }
             }
         }
 

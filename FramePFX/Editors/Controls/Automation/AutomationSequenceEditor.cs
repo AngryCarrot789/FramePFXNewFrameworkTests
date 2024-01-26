@@ -10,7 +10,9 @@ using System.Windows.Media.Imaging;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
+using FramePFX.Editors.Utils;
 using FramePFX.Utils;
+using SkiaSharp;
 
 namespace FramePFX.Editors.Controls.Automation {
     public class AutomationSequenceEditor : FrameworkElement {
@@ -400,7 +402,6 @@ namespace FramePFX.Editors.Controls.Automation {
         }
 
         private bool ignoreMouseMove;
-        private WriteableBitmap bitmap;
         public bool isOverrideEnabled;
 
         private void SetPointCaptured(KeyFramePoint point, bool captureMouse, LineHitType lineHit) {
@@ -755,10 +756,83 @@ namespace FramePFX.Editors.Controls.Automation {
 
         #region Rendering
 
+        private WriteableBitmap bitmapImg;
+
         protected override void OnRender(DrawingContext dc) {
-            List<KeyFramePoint> list = this.backingList;
-            // Rect visible = GetVisibleRect(this.scroller, this);
             Rect visible = UIUtils.GetVisibleRect(this.scroller, this);
+            if (visible.Width < 1.0 || visible.Height < 1.0) {
+                return;
+            }
+
+            List<KeyFramePoint> list = this.backingList;
+
+            // Size size = this.RenderSize;
+            // if (this.bitmapImg == null || this.bitmapImg.PixelWidth != (int) size.Width || this.bitmapImg.PixelHeight != (int) size.Height) {
+            //     this.bitmapImg = new WriteableBitmap((int) size.Width, (int) size.Height, 96, 96, PixelFormats.Bgra32, null);
+            // }
+            //
+            // this.bitmapImg.Lock();
+            // IntPtr handle = this.bitmapImg.BackBuffer;
+            //
+            // // Rect visible = Getvisible(this.scroller, this);
+            // using (SKSurface surface = SKSurface.Create(new SKImageInfo((int) size.Width, (int) size.Height, SKColorType.Bgra8888), handle)) {
+            //     surface.Canvas.Clear(SKColors.Transparent);
+            //     int end = list.Count - 1;
+            //     if (end < 0) {
+            //         AutomationSequence seq = this.Sequence;
+            //         if (seq != null) {
+            //             double y = this.ActualHeight / 2.0;
+            //             if (this.IsMouseOver) {
+            //                 Point mPos = new Point(Mouse.GetPosition(this).X, y);
+            //                 using (SKPaint paint = new SKPaint() {Color = SKColors.OrangeRed}) {
+            //                     surface.Canvas.DrawLine(0, (float) y, (float) size.Width, (float) y, paint);
+            //                 }
+            //
+            //                 using (SKPaint paint = new SKPaint() {Color = SKColors.WhiteSmoke}) {
+            //                     surface.Canvas.DrawCircle(new SKPoint((float) mPos.X, (float) mPos.Y), (float) EllipseRadius, paint);
+            //                 }
+            //             }
+            //             else {
+            //                 using (SKPaint paint = new SKPaint() {Color = SKColors.OrangeRed.WithAlpha(127)}) {
+            //                     surface.Canvas.DrawLine(0, (float) y, (float) size.Width, (float) y, paint);
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     else {
+            //         byte opacity = (byte) (this.isOverrideEnabled ? 127 : 255);
+            //         KeyFramePoint first = list[0], prev = first;
+            //         this.DrawFirstKeyFrameLine(surface, first, ref visible, opacity);
+            //         if (end == 0) {
+            //             this.DrawLastKeyFrameLine(surface, first, ref visible, opacity);
+            //             first.RenderEllipse(surface, ref visible, opacity);
+            //         }
+            //         else {
+            //             for (int i = 1; i < end; i++) {
+            //                 KeyFramePoint keyFrame = list[i];
+            //                 DrawKeyFramesAndLine(surface, prev, keyFrame, ref visible, opacity);
+            //                 prev = keyFrame;
+            //             }
+            //
+            //             this.DrawLastKeyFrameLine(surface, list[end], ref visible, opacity);
+            //             DrawKeyFramesAndLine(surface, prev, list[end], ref visible, opacity);
+            //         }
+            //
+            //         if (this.isOverrideEnabled) {
+            //             AutomationSequence seq = this.Sequence;
+            //             if (seq != null) {
+            //                 double y = this.ActualHeight - KeyPointUtils.GetYHelper(this, seq.DefaultKeyFrame, this.ActualHeight);
+            //                 dc.DrawLine(this.OverrideModeValueLinePen, new Point(0, y), new Point(size.Width, y));
+            //             }
+            //         }
+            //     }
+            //
+            //     this.bitmapImg.AddDirtyRect(new Int32Rect(0, 0, (int) size.Width, (int) size.Height));
+            //     this.bitmapImg.Unlock();
+            //     dc.DrawImage(this.bitmapImg, new Rect(0, 0, size.Width, size.Height));
+            //     // dc.DrawImage(this.bitmapImg, visible);
+            // }
+
             int end = list.Count - 1;
             if (end < 0) {
                 AutomationSequence seq = this.Sequence;
@@ -862,6 +936,12 @@ namespace FramePFX.Editors.Controls.Automation {
             b.RenderEllipse(dc, ref rect);
         }
 
+        private static void DrawKeyFramesAndLine(SKSurface surface, KeyFramePoint a, KeyFramePoint b, ref Rect rect, byte opacity) {
+            a.RenderLine(surface, b, ref rect, opacity);
+            a.RenderEllipse(surface, ref rect, opacity);
+            b.RenderEllipse(surface, ref rect, opacity);
+        }
+
         public static bool IsLineVisibleInRect(ref Rect visibleArea, ref Point p1, ref Point p2, double thickness) {
             double angle = Math.Atan2(p2.Y - p1.Y, p2.X - p1.X);
             double length = (p2 - p1).Length;
@@ -890,10 +970,6 @@ namespace FramePFX.Editors.Controls.Automation {
                 dc.DrawLine(this.LineTransparentPen, p1, p2);
                 dc.DrawLine(this.isOverrideEnabled ? this.LineOverridePen : (key.LastLineHitType == LineHitType.Head ? this.LineMouseOverPen : this.LinePen), p1, p2);
             }
-            // if (RectContains(ref rect, ref p1) || RectContains(ref rect, ref p2)) {
-            //     dc.DrawLine(this.LineTransparentPen, p1, p2);
-            //     dc.DrawLine(this.isOverrideEnabled ? this.LineOverridePen : (key.LastLineHitType == LineHitType.Head ? this.LineMouseOverPen : this.LinePen), p1, p2);
-            // }
         }
 
         // draw a horizontal line at the key's Y pos
@@ -903,6 +979,28 @@ namespace FramePFX.Editors.Controls.Automation {
             if (RectContains(ref rect, ref a) || RectContains(ref rect, ref b)) {
                 dc.DrawLine(this.LineTransparentPen, a, b);
                 dc.DrawLine(this.isOverrideEnabled ? this.LineOverridePen : (key.LastLineHitType == LineHitType.Tail ? this.LineMouseOverPen : this.LinePen), a, b);
+            }
+        }
+
+        private void DrawFirstKeyFrameLine(SKSurface surface, KeyFramePoint key, ref Rect rect, byte opacity) {
+            Point p2 = key.GetLocation();
+            Point p1 = new Point(0, p2.Y);
+            if (IsLineVisibleInRect(ref rect, ref p1, ref p2, LineThickness)) {
+                SKColor colour = this.isOverrideEnabled ? SKColors.DarkGray : (key.LastLineHitType == LineHitType.Head ? SKColors.White : SKColors.OrangeRed);
+                using (SKPaint paint = new SKPaint() {Color = colour.WithAlpha(opacity)}) {
+                    surface.Canvas.DrawLine(p1.AsSkia(), p2.AsSkia(), paint);
+                }
+            }
+        }
+
+        private void DrawLastKeyFrameLine(SKSurface surface, KeyFramePoint key, ref Rect rect, byte opacity) {
+            Point a = key.GetLocation();
+            Point b = new Point(rect.Right, a.Y);
+            if (RectContains(ref rect, ref a) || RectContains(ref rect, ref b)) {
+                SKColor colour = this.isOverrideEnabled ? SKColors.DarkGray : (key.LastLineHitType == LineHitType.Tail ? SKColors.White : SKColors.OrangeRed);
+                using (SKPaint paint = new SKPaint() {Color = colour.WithAlpha(opacity)}) {
+                    surface.Canvas.DrawLine(a.AsSkia(), b.AsSkia(), paint);
+                }
             }
         }
 

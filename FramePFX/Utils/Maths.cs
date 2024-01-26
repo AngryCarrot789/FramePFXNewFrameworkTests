@@ -37,7 +37,7 @@ namespace FramePFX.Utils {
         public static bool IsZero(double value) => Math.Abs(value) < 2.22044604925031E-15; // 0.00000000000000222044604925031
 
         public static double Lerp(double a, double b, double blend) {
-            return blend * (b - a) + a;
+            return a + (b - a) * blend;
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace FramePFX.Utils {
         /// <returns>A lerp-ed long value</returns>
         public static long Lerp(long a, long b, double blend, int roundingMode) {
             double nA = a, nB = b;
-            double val = blend * (nB - nA) + nA;
+            double val = nA + (nB - nA) * blend;
             switch (roundingMode) {
                 case 0: return (long) val;
                 case 1: return (long) Math.Floor(val);

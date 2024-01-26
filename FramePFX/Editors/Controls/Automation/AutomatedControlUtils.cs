@@ -2,21 +2,25 @@ using System.Windows;
 using FramePFX.Editors.Automation;
 using FramePFX.Editors.Automation.Keyframes;
 using FramePFX.Editors.Automation.Params;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 
 namespace FramePFX.Editors.Controls.Automation {
-    public class AutomatedControlUtils {
+    public static class AutomatedControlUtils {
         public static void SetDefaultKeyFrameOrAddNew(IAutomatable automatable, DependencyObject control, Parameter parameter, DependencyProperty property) {
+            SetDefaultKeyFrameOrAddNew(automatable, parameter, control.GetValue(property));
+        }
+
+        public static void SetDefaultKeyFrameOrAddNew(IAutomatable automatable, Parameter parameter, object value) {
             AutomationSequence sequence = automatable.AutomationData[parameter];
             if (sequence.IsEmpty || sequence.IsOverrideEnabled) {
-                sequence.DefaultKeyFrame.SetValueFromObject(control.GetValue(property));
+                sequence.DefaultKeyFrame.SetValueFromObject(value);
             }
             else {
                 long frame = automatable.RelativePlayHead;
                 if (automatable is IStrictFrameRange && !((IStrictFrameRange) automatable).IsRelativeFrameInRange(frame)) {
                     // when the object is has a strict frame range, e.g. clip, effect, and it is not in range,
                     // enable override and set the default key frame
-                    sequence.DefaultKeyFrame.SetValueFromObject(control.GetValue(property));
+                    sequence.DefaultKeyFrame.SetValueFromObject(value);
                     sequence.IsOverrideEnabled = true;
                 }
                 else {
@@ -30,7 +34,7 @@ namespace FramePFX.Editors.Controls.Automation {
                         keyFrame = sequence.GetKeyFrameAtIndex(index);
                     }
 
-                    keyFrame.SetValueFromObject(control.GetValue(property));
+                    keyFrame.SetValueFromObject(value);
                 }
             }
         }

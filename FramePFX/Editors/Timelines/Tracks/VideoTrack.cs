@@ -1,15 +1,34 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using FramePFX.Editors.Automation.Params;
 using FramePFX.Editors.Rendering;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
+using FramePFX.Editors.Timelines.Effects;
+using OpenTK.Graphics.ES30;
 using SkiaSharp;
 
 namespace FramePFX.Editors.Timelines.Tracks {
     public delegate void VideoTrackEventHandler(VideoTrack track);
 
     public class VideoTrack : Track {
-        public static readonly ParameterDouble OpacityParameter = Parameter.RegisterDouble(typeof(VideoTrack), nameof(VideoTrack), "Opacity", new ParameterDescriptorDouble(1, 0, 1), t => ((VideoTrack) t).Opacity, (t, v) => ((VideoTrack) t).Opacity = v);
-        public static readonly ParameterBoolean VisibleParameter = Parameter.RegisterBoolean(typeof(VideoTrack), nameof(VideoTrack), "Visible", new ParameterDescriptorBoolean(true), t => ((VideoTrack) t).Visible, (t, v) => ((VideoTrack) t).Visible = v);
+        public static readonly ParameterDouble OpacityParameter =
+            Parameter.RegisterDouble(
+                typeof(VideoTrack),
+                nameof(VideoTrack),
+                "Opacity",
+                new ParameterDescriptorDouble(1, 0, 1),
+                ValueAccessors.LinqExpression<double>(typeof(VideoTrack), nameof(Opacity)),
+                ParameterFlags.InvalidatesRender);
+
+        public static readonly ParameterBoolean VisibleParameter =
+            Parameter.RegisterBoolean(
+                typeof(VideoTrack),
+                nameof(VideoTrack),
+                "Visible",
+                new ParameterDescriptorBoolean(true),
+                ValueAccessors.Reflective<bool>(typeof(VideoTrack), nameof(Visible)),
+                ParameterFlags.InvalidatesRender);
 
         /// <summary> The track opacity. This is an automated parameter and should therefore not be modified directly </summary>
         public double Opacity;
@@ -20,19 +39,36 @@ namespace FramePFX.Editors.Timelines.Tracks {
         private SKSurface surface;
         private SKImageInfo surfaceInfo;
         private bool isCanvasClear;
-
         private VideoClip theClipToRender;
+        private List<VideoEffect> theEffectsToApplyToClip;
 
         public VideoTrack() {
             this.Opacity = OpacityParameter.Descriptor.DefaultValue;
             this.Visible = VisibleParameter.Descriptor.DefaultValue;
         }
 
-        public bool BeginRenderFrame(RenderFrameInfo info) {
-            VideoClip clip = (VideoClip) this.GetClipAtFrame(info.PlayHeadFrame);
+        public bool PrepareRenderFrame(SKImageInfo imgInfo, long frame) {
+            VideoClip clip = (VideoClip) this.GetClipAtFrame(frame);
             if (clip != null) {
-                clip.PrepareRenderFrame(info);
+                ReadOnlyCollection<BaseEffect> fxList = clip.Effects;
+                List<VideoEffect> effects = new List<VideoEffect>();
+                PreRenderContext ctx = new PreRenderContext(imgInfo);
+                int fxCount = fxList.Count;
+                for (int i = 0; i < fxCount; i++) {
+                    if (fxList[i] is VideoEffect videoFx) {
+                        videoFx.PrePrepareFrame(ctx, frame);
+                        effects.Add(videoFx);
+                    }
+                }
+
+                clip.PrepareRenderFrame(ctx, frame - clip.FrameSpan.Begin);
+                fxCount = effects.Count;
+                for (int i = 0; i < fxCount; i++) {
+                    effects[i].PostPrepareFrame(ctx, frame);
+                }
+
                 this.theClipToRender = clip;
+                this.theEffectsToApplyToClip = effects;
                 return true;
             }
 
@@ -40,11 +76,11 @@ namespace FramePFX.Editors.Timelines.Tracks {
         }
 
         // CALLED ON A RENDER THREAD
-        public void RenderFrame(RenderFrameInfo info) {
-            if (this.surface == null || this.surfaceInfo != info.ImageInfo) {
+        public void RenderFrame(SKImageInfo imgInfo) {
+            if (this.surface == null || this.surfaceInfo != imgInfo) {
                 this.surface?.Dispose();
-                this.surfaceInfo = info.ImageInfo;
-                this.surface = SKSurface.Create(info.ImageInfo);
+                this.surfaceInfo = imgInfo;
+                this.surface = SKSurface.Create(imgInfo);
             }
 
             if (!this.isCanvasClear) {
@@ -53,12 +89,35 @@ namespace FramePFX.Editors.Timelines.Tracks {
             }
 
             if (this.theClipToRender != null) {
+                List<VideoEffect> fxList = this.theEffectsToApplyToClip;
+                int fxListCount = fxList.Count;
+                Exception renderException = null;
                 SKPaint transparency = null;
-                int count = RenderManager.BeginClipOpacityLayer(this.surface.Canvas, this.theClipToRender, ref transparency);
-                this.theClipToRender.RenderFrame(info, this.surface);
+                int clipOpacityLayer = RenderManager.BeginClipOpacityLayer(this.surface.Canvas, this.theClipToRender, ref transparency);
+
+                RenderContext ctx = new RenderContext(imgInfo, this.surface);
+                for (int i = 0; i < fxListCount; i++) {
+                    fxList[i].PreProcessFrame(ctx);
+                }
+
+                try {
+                    this.theClipToRender.RenderFrame(ctx);
+                }
+                catch (Exception e) {
+                    renderException = e;
+                }
+
+                for (int i = 0; i < fxListCount; i++) {
+                    fxList[i].PostProcessFrame(ctx);
+                }
+
                 this.theClipToRender = null;
+                this.theEffectsToApplyToClip = null;
                 this.isCanvasClear = false;
-                RenderManager.EndOpacityLayer(this.surface.Canvas, count, ref transparency);
+                RenderManager.EndOpacityLayer(this.surface.Canvas, clipOpacityLayer, ref transparency);
+                if (renderException != null) {
+                    throw renderException;
+                }
             }
         }
 
@@ -68,8 +127,8 @@ namespace FramePFX.Editors.Timelines.Tracks {
             }
         }
 
-        public override bool IsClipTypeAccepted(Type type) {
-            return typeof(VideoClip).IsAssignableFrom(type);
-        }
+        public override bool IsClipTypeAccepted(Type type) => typeof(VideoClip).IsAssignableFrom(type);
+
+        public override bool IsEffectTypeAccepted(Type effectType) => false;
     }
 }

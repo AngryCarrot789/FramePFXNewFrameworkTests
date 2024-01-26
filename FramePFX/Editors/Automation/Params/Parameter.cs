@@ -4,6 +4,9 @@ using System.Threading;
 using FramePFX.Editors.Automation.Keyframes;
 
 namespace FramePFX.Editors.Automation.Params {
+    public delegate T AutoGetter<out T>(IAutomatable a);
+    public delegate void AutoSetter<in T>(IAutomatable a, T v);
+
     /// <summary>
     /// A class that stores information about a registered parameter for a specific type of automatable object
     /// </summary>
@@ -50,7 +53,17 @@ namespace FramePFX.Editors.Automation.Params {
         /// </summary>
         public int GlobalIndex { get; private set; }
 
-        protected Parameter(Type ownerType, ParameterKey key, ParameterDescriptor descriptor) {
+        /// <summary>
+        /// Gets this parameter's special flags, which add extra functionality
+        /// </summary>
+        public ParameterFlags Flags { get; }
+
+        /// <summary>
+        /// An event fired when this parameter changes in any <see cref="AutomationSequence"/> throughout the entire application
+        /// </summary>
+        public event ParameterChangedEventHandler ParameterChanged;
+
+        protected Parameter(Type ownerType, ParameterKey key, ParameterDescriptor descriptor, ParameterFlags flags) {
             if (descriptor == null)
                 throw new ArgumentNullException(nameof(descriptor));
             if (ownerType == null)
@@ -59,11 +72,29 @@ namespace FramePFX.Editors.Automation.Params {
             this.OwnerType = ownerType;
             this.Descriptor = descriptor;
             this.DataType = descriptor.DataType;
+            this.Flags = flags;
         }
 
         static Parameter() {
             RegistryMap = new Dictionary<ParameterKey, Parameter>();
             TypeToParametersMap = new Dictionary<Type, List<Parameter>>();
+        }
+
+        public void OnParameterValueChanged(AutomationSequence sequence) {
+            if (sequence.Parameter.GlobalIndex != this.GlobalIndex)
+                throw new ArgumentException("Sequence's parameter does not match the current instance");
+            this.ParameterChanged?.Invoke(sequence);
+        }
+
+        /// <summary>
+        /// Adds the given event handler to all of the given parameters
+        /// </summary>
+        /// <param name="handler">The handler to add</param>
+        /// <param name="parameters">The parameters to add an event handler for</param>
+        public static void AddMultipleHandlers(ParameterChangedEventHandler handler, params Parameter[] parameters) {
+            foreach (Parameter parameter in parameters) {
+                parameter.ParameterChanged += handler;
+            }
         }
 
         /// <summary>
@@ -75,27 +106,37 @@ namespace FramePFX.Editors.Automation.Params {
         /// <param name="frame">The frame which should be used to calculate the new effective value</param>
         public abstract void SetValue(AutomationSequence sequence, long frame);
 
+        public abstract object GetObjectValue(IAutomatable automatable);
+
         public KeyFrame CreateKeyFrame(long frame = 0L) => KeyFrame.CreateDefault(this, frame);
 
         #region Registering parameters
 
-        public static ParameterFloat RegisterFloat(Type ownerType, string domain, string parameterName, ParameterDescriptorFloat descriptor, Func<IAutomatable, float> getter, Action<IAutomatable, float> setter) {
-            return (ParameterFloat) RegisterInternal(new ParameterFloat(ownerType, new ParameterKey(domain, parameterName), descriptor, getter, setter));
+        public static ParameterFloat RegisterFloat(Type ownerType, string domain, string name, float defaultValue, ValueAccessor<float> accessor, ParameterFlags flags = ParameterFlags.None) => RegisterFloat(ownerType, domain, name, new ParameterDescriptorFloat(defaultValue), accessor, flags);
+        public static ParameterFloat RegisterFloat(Type ownerType, string domain, string name, float defaultValue, float minValue, float maxValue, ValueAccessor<float> accessor, ParameterFlags flags = ParameterFlags.None) => RegisterFloat(ownerType, domain, name, new ParameterDescriptorFloat(defaultValue, minValue, maxValue), accessor, flags);
+        public static ParameterFloat RegisterFloat(Type ownerType, string domain, string name, ParameterDescriptorFloat desc, ValueAccessor<float> accessor, ParameterFlags flags = ParameterFlags.None) {
+            return (ParameterFloat) Register(new ParameterFloat(ownerType, new ParameterKey(domain, name), desc, accessor, flags));
         }
 
-        public static ParameterDouble RegisterDouble(Type ownerType, string domain, string parameterName, ParameterDescriptorDouble descriptor, Func<IAutomatable, double> getter, Action<IAutomatable, double> setter) {
-            return (ParameterDouble) RegisterInternal(new ParameterDouble(ownerType, new ParameterKey(domain, parameterName), descriptor, getter, setter));
+        public static ParameterDouble RegisterDouble(Type ownerType, string domain, string name, double defaultValue, ValueAccessor<double> accessor, ParameterFlags flags = ParameterFlags.None) => RegisterDouble(ownerType, domain, name, new ParameterDescriptorDouble(defaultValue), accessor, flags);
+        public static ParameterDouble RegisterDouble(Type ownerType, string domain, string name, double defaultValue, double minValue, double maxValue, ValueAccessor<double> accessor, ParameterFlags flags = ParameterFlags.None) => RegisterDouble(ownerType, domain, name, new ParameterDescriptorDouble(defaultValue, minValue, maxValue), accessor, flags);
+        public static ParameterDouble RegisterDouble(Type ownerType, string domain, string name, ParameterDescriptorDouble desc, ValueAccessor<double> accessor, ParameterFlags flags = ParameterFlags.None) {
+            return (ParameterDouble) Register(new ParameterDouble(ownerType, new ParameterKey(domain, name), desc, accessor, flags));
         }
 
-        public static ParameterLong RegisterLong(Type ownerType, string domain, string parameterName, ParameterDescriptorLong descriptor, Func<IAutomatable, long> getter, Action<IAutomatable, long> setter) {
-            return (ParameterLong) RegisterInternal(new ParameterLong(ownerType, new ParameterKey(domain, parameterName), descriptor, getter, setter));
+        public static ParameterLong RegisterLong(Type ownerType, string domain, string name, long defaultValue, ValueAccessor<long> accessor, ParameterFlags flags = ParameterFlags.None) => RegisterLong(ownerType, domain, name, new ParameterDescriptorLong(defaultValue), accessor, flags);
+        public static ParameterLong RegisterLong(Type ownerType, string domain, string name, long defaultValue, long minValue, long maxValue, ValueAccessor<long> accessor, ParameterFlags flags = ParameterFlags.None) => RegisterLong(ownerType, domain, name, new ParameterDescriptorLong(defaultValue, minValue, maxValue), accessor, flags);
+        public static ParameterLong RegisterLong(Type ownerType, string domain, string name, ParameterDescriptorLong desc, ValueAccessor<long> accessor, ParameterFlags flags = ParameterFlags.None) {
+            return (ParameterLong) Register(new ParameterLong(ownerType, new ParameterKey(domain, name), desc, accessor, flags));
         }
 
-        public static ParameterBoolean RegisterBoolean(Type ownerType, string domain, string parameterName, ParameterDescriptorBoolean descriptor, Func<IAutomatable, bool> getter, Action<IAutomatable, bool> setter) {
-            return (ParameterBoolean) RegisterInternal(new ParameterBoolean(ownerType, new ParameterKey(domain, parameterName), descriptor, getter, setter));
+        public static ParameterBoolean RegisterBoolean(Type ownerType, string domain, string name, ValueAccessor<bool> accessor, ParameterFlags flags = ParameterFlags.None) => RegisterBoolean(ownerType, domain, name, new ParameterDescriptorBoolean(), accessor, flags);
+        public static ParameterBoolean RegisterBoolean(Type ownerType, string domain, string name, bool defaultValue, ValueAccessor<bool> accessor, ParameterFlags flags = ParameterFlags.None) => RegisterBoolean(ownerType, domain, name, new ParameterDescriptorBoolean(defaultValue), accessor, flags);
+        public static ParameterBoolean RegisterBoolean(Type ownerType, string domain, string name, ParameterDescriptorBoolean desc, ValueAccessor<bool> accessor, ParameterFlags flags = ParameterFlags.None) {
+            return (ParameterBoolean) Register(new ParameterBoolean(ownerType, new ParameterKey(domain, name), desc, accessor, flags));
         }
 
-        private static Parameter RegisterInternal(Parameter parameter) {
+        public static Parameter Register(Parameter parameter) {
             if (parameter.GlobalIndex != 0) {
                 throw new InvalidOperationException("Parameter was already registered with a global index of " + parameter.GlobalIndex);
             }
@@ -185,86 +226,86 @@ namespace FramePFX.Editors.Automation.Params {
     }
 
     public sealed class ParameterFloat : Parameter {
-        private readonly Func<IAutomatable, float> getter;
-        private readonly Action<IAutomatable, float> setter;
+        private readonly ValueAccessor<float> accessor;
 
         /// <summary>
         /// Gets the <see cref="ParameterDescriptorFloat"/> for this parameter. This just casts the base <see cref="Parameter.Descriptor"/> property
         /// </summary>
         public new ParameterDescriptorFloat Descriptor => (ParameterDescriptorFloat) base.Descriptor;
 
-        public ParameterFloat(Type ownerType, ParameterKey key, ParameterDescriptorFloat descriptor, Func<IAutomatable, float> getter, Action<IAutomatable, float> setter) : base(ownerType, key, descriptor) {
-            this.getter = getter;
-            this.setter = setter;
+        public ParameterFloat(Type ownerType, ParameterKey key, ParameterDescriptorFloat descriptor, ValueAccessor<float> accessor, ParameterFlags flags = ParameterFlags.None) : base(ownerType, key, descriptor, flags) {
+            this.accessor = accessor;
         }
 
         public override void SetValue(AutomationSequence sequence, long frame) {
-            this.setter(sequence.AutomationData.Owner, sequence.GetFloatValue(frame));
+            this.accessor.SetValue(sequence.AutomationData.Owner, sequence.GetFloatValue(frame));
         }
 
-        public float GetEffectiveValue(IAutomatable automatable) => this.getter(automatable);
+        public float GetEffectiveValue(IAutomatable automatable) => this.accessor.GetValue(automatable);
+
+        public override object GetObjectValue(IAutomatable automatable) => this.accessor.GetObjectValue(automatable);
     }
 
     public sealed class ParameterDouble : Parameter {
-        private readonly Func<IAutomatable, double> getter;
-        private readonly Action<IAutomatable, double> setter;
+        private readonly ValueAccessor<double> accessor;
 
         /// <summary>
         /// Gets the <see cref="ParameterDescriptorDouble"/> for this parameter. This just casts the base <see cref="Parameter.Descriptor"/> property
         /// </summary>
         public new ParameterDescriptorDouble Descriptor => (ParameterDescriptorDouble) base.Descriptor;
 
-        public ParameterDouble(Type ownerType, ParameterKey key, ParameterDescriptorDouble descriptor, Func<IAutomatable, double> getter, Action<IAutomatable, double> setter) : base(ownerType, key, descriptor) {
-            this.getter = getter;
-            this.setter = setter;
+        public ParameterDouble(Type ownerType, ParameterKey key, ParameterDescriptorDouble descriptor, ValueAccessor<double> accessor, ParameterFlags flags = ParameterFlags.None) : base(ownerType, key, descriptor, flags) {
+            this.accessor = accessor;
         }
 
         public override void SetValue(AutomationSequence sequence, long frame) {
-            this.setter(sequence.AutomationData.Owner, sequence.GetDoubleValue(frame));
+            this.accessor.SetValue(sequence.AutomationData.Owner, sequence.GetDoubleValue(frame));
         }
 
-        public double GetEffectiveValue(IAutomatable automatable) => this.getter(automatable);
+        public double GetEffectiveValue(IAutomatable automatable) => this.accessor.GetValue(automatable);
+
+        public override object GetObjectValue(IAutomatable automatable) => this.accessor.GetObjectValue(automatable);
     }
 
     public sealed class ParameterLong : Parameter {
-        private readonly Func<IAutomatable, long> getter;
-        private readonly Action<IAutomatable, long> setter;
+        private readonly ValueAccessor<long> accessor;
 
         /// <summary>
         /// Gets the <see cref="ParameterDescriptorLong"/> for this parameter. This just casts the base <see cref="Parameter.Descriptor"/> property
         /// </summary>
         public new ParameterDescriptorLong Descriptor => (ParameterDescriptorLong) base.Descriptor;
 
-        public ParameterLong(Type ownerType, ParameterKey key, ParameterDescriptorLong descriptor, Func<IAutomatable, long> getter, Action<IAutomatable, long> setter) : base(ownerType, key, descriptor) {
-            this.getter = getter;
-            this.setter = setter;
+        public ParameterLong(Type ownerType, ParameterKey key, ParameterDescriptorLong descriptor, ValueAccessor<long> accessor, ParameterFlags flags = ParameterFlags.None) : base(ownerType, key, descriptor, flags) {
+            this.accessor = accessor;
         }
 
         public override void SetValue(AutomationSequence sequence, long frame) {
-            this.setter(sequence.AutomationData.Owner, sequence.GetLongValue(frame));
+            this.accessor.SetValue(sequence.AutomationData.Owner, sequence.GetLongValue(frame));
         }
 
-        public long GetEffectiveValue(IAutomatable automatable) => this.getter(automatable);
+        public long GetEffectiveValue(IAutomatable automatable) => this.accessor.GetValue(automatable);
+
+        public override object GetObjectValue(IAutomatable automatable) => this.accessor.GetObjectValue(automatable);
     }
 
     public sealed class ParameterBoolean : Parameter {
-        private readonly Func<IAutomatable, bool> getter;
-        private readonly Action<IAutomatable, bool> setter;
+        private readonly ValueAccessor<bool> accessor;
 
         /// <summary>
         /// Gets the <see cref="ParameterDescriptorBoolean"/> for this parameter. This just casts the base <see cref="Parameter.Descriptor"/> property
         /// </summary>
         public new ParameterDescriptorBoolean Descriptor => (ParameterDescriptorBoolean) base.Descriptor;
 
-        public ParameterBoolean(Type ownerType, ParameterKey key, ParameterDescriptorBoolean descriptor, Func<IAutomatable, bool> getter, Action<IAutomatable, bool> setter) : base(ownerType, key, descriptor) {
-            this.getter = getter;
-            this.setter = setter;
+        public ParameterBoolean(Type ownerType, ParameterKey key, ParameterDescriptorBoolean descriptor, ValueAccessor<bool> accessor, ParameterFlags flags = ParameterFlags.None) : base(ownerType, key, descriptor, flags) {
+            this.accessor = accessor;
         }
 
         public override void SetValue(AutomationSequence sequence, long frame) {
-            this.setter(sequence.AutomationData.Owner, sequence.GetBooleanValue(frame));
+            this.accessor.SetValue(sequence.AutomationData.Owner, sequence.GetBooleanValue(frame));
         }
 
-        public bool GetEffectiveValue(IAutomatable automatable) => this.getter(automatable);
+        public bool GetEffectiveValue(IAutomatable automatable) => this.accessor.GetValue(automatable);
+
+        public override object GetObjectValue(IAutomatable automatable) => this.accessor.GetObjectValue(automatable);
     }
 }

@@ -163,5 +163,9 @@ namespace FramePFX.Editors.Automation {
         internal static void OnParameterValueChanged(AutomationSequence sequence) {
             sequence.AutomationData.ParameterChanged?.Invoke(sequence);
         }
+
+        public bool IsAutomated(Parameter parameter) {
+            return this.TryGetSequence(parameter, out AutomationSequence sequence) && sequence.HasKeyFrames;
+        }
     }
 }

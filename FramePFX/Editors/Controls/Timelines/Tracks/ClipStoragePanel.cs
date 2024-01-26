@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using FramePFX.Editors.Controls.Timelines.Tracks.Clips;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 
 namespace FramePFX.Editors.Controls.Timelines.Tracks {
     /// <summary>

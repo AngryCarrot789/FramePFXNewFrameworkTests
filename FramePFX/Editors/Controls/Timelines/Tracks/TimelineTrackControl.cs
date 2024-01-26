@@ -7,8 +7,8 @@ using System.Windows.Media;
 using FramePFX.Editors.Controls.Automation;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Controls.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
 using FramePFX.Utils;
 using SkiaSharp;
 

@@ -16,7 +16,7 @@ for 'content' of those controls, they might just have `OnConnected` and `OnDisco
 query data from the models, etc.
 
 The order is something along the line of this: 
-- **model changes*
+- *model adds a new item, e.g. new Clip*
 - View creates a new control (or retrieves a cached item; recycling, for performance)
 - `OnAdding` is called on the control. If the control is recyclable, the parent control (e.g. Track Control) 
   and the model may be passed in. If non-recyclable, then I might just pass objects int he constructor, though 

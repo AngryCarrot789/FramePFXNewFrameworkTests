@@ -6,7 +6,7 @@ using System.Windows.Media;
 using FramePFX.Editors.Controls.Automation;
 using FramePFX.Editors.Controls.Binders;
 using FramePFX.Editors.Timelines;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Utils;
 using Timeline = FramePFX.Editors.Timelines.Timeline;
 
@@ -478,7 +478,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Clips {
             }
 
             // glyph run is way faster than using formatted text
-            if (this.glyphRun == null && this.DisplayName is string str) {
+            if (this.glyphRun == null && this.DisplayName is string str && !string.IsNullOrWhiteSpace(str)) {
                 Typeface typeface = new Typeface(SegoeUI, this.FontStyle, FontWeights.SemiBold, this.FontStretch);
                 Point origin = new Point(3, 14); // hard coded offset for Segoe UI and header size of 20 px
                 this.glyphRun = GlyphGenerator.CreateText(str, 12d, typeface, origin);

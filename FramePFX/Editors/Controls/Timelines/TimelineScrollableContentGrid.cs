@@ -21,8 +21,11 @@ namespace FramePFX.Editors.Controls.Timelines {
             base.OnMouseDown(e);
             if (!e.Handled && e.LeftButton == MouseButtonState.Pressed && this.TimelineControl != null) {
                 Point point = e.GetPosition(this);
-                this.TimelineControl.SetPlayHeadToMouseCursor(point.X, point.Y > this.TimelineControl.Ruler.ActualHeight);
-                this.TimelineControl.Timeline?.ClearClipSelection();
+                bool isClickSequence = point.Y > this.TimelineControl.Ruler.ActualHeight;
+                this.TimelineControl.SetPlayHeadToMouseCursor(point.X, isClickSequence);
+                if (isClickSequence) {
+                    this.TimelineControl.Timeline?.ClearClipSelection();
+                }
             }
         }
 

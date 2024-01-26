@@ -97,12 +97,15 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Surfaces {
 
             this.InsertKeyFrameButton = insertKeyFrameButton;
             this.CreateBasicButtonAction(insertKeyFrameButton, () => {
-                if (this.selectedParameter != null) {
+                Parameter parameter = this.selectedParameter?.Parameter;
+                if (parameter != null) {
                     Track track = this.Owner.Track;
                     long frame = track.RelativePlayHead;
-                    AutomationSequence seq = track.AutomationData[this.selectedParameter.Parameter];
+                    AutomationSequence seq = track.AutomationData[parameter];
+                    object value = parameter.GetObjectValue(track);
                     seq.AddNewKeyFrame(frame, out KeyFrame keyFrame);
-                    keyFrame.AssignCurrentValue(frame, seq);
+                    keyFrame.SetValueFromObject(value);
+                    seq.UpdateValue(frame);
                 }
             });
 
@@ -141,7 +144,7 @@ namespace FramePFX.Editors.Controls.Timelines.Tracks.Surfaces {
             // Just try to find a base control type. It should be found first try unless I forgot to register a new control type
             bool hasLogged = false;
             for (Type type = trackType; type != null; type = type.BaseType) {
-                if (Constructors.TryGetValue(trackType, out var func)) {
+                if (Constructors.TryGetValue(trackType, out Func<TrackControlSurface> func)) {
                     return func();
                 }
 

@@ -4,8 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using FramePFX.Editors.ResourceManaging;
 using FramePFX.Editors.Timelines;
+using FramePFX.Editors.Timelines.Clips;
 using FramePFX.Editors.Timelines.Tracks;
-using FramePFX.Editors.Timelines.Tracks.Clips;
+using FramePFX.PropertyEditing;
 using FramePFX.Themes;
 using FramePFX.Views;
 using SkiaSharp;
@@ -28,6 +29,8 @@ namespace FramePFX.Editors.Views {
         }
 
         private void EditorWindow_Loaded(object sender, RoutedEventArgs e) {
+            this.ThePropertyEditor.ApplyTemplate();
+            this.ThePropertyEditor.RootGroup = VideoEditorPropertyEditor.Instance.Root;
             if (this.ViewPortElement.BeginRender(out SKSurface surface)) {
                 using (SKPaint paint = new SKPaint() { Color = SKColors.Black }) {
                     surface.Canvas.DrawRect(0, 0, 1280, 720, paint);
